@@ -265,7 +265,7 @@ class RetrieveContextNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
                 
             except Exception as e:
                 # Fallback to embedding results if reranking fails
-                LOG.error(f"Reranking failed, falling back to embedding results: {e}")
+                LOG.warning(f"Reranking failed, falling back to embedding results: {e}")
                 final_results = [
                     r for r in initial_results 
                     if r.score >= ctx.deps.config.chat.similarity_threshold
