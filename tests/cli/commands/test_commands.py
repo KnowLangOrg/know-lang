@@ -61,16 +61,6 @@ def mock_formatter():
         yield formatter_func
 
 @pytest.fixture
-def mock_progress_tracker():
-    with patch('knowlang.cli.commands.parse.ProgressTracker') as tracker:
-        mock_instance = MagicMock()
-        # Mock the context manager behavior
-        mock_instance.progress.return_value.__enter__.return_value = None
-        mock_instance.progress.return_value.__exit__.return_value = None
-        tracker.return_value = mock_instance
-        yield tracker
-
-@pytest.fixture
 def mock_vector_store():
     """Mock vector store instance"""
     store = MockVectorStore()
@@ -100,7 +90,6 @@ class TestParseCommand:
         mock_state_manager,
         mock_incremental_updater,
         mock_formatter,
-        mock_progress_tracker,
         tmp_path
     ):
         """Test parsing a codebase with the new implementation."""
@@ -139,8 +128,6 @@ class TestParseCommand:
         mock_formatter.assert_called_once_with("table")
         mock_formatter.return_value.display_chunks.assert_called_once()
         
-        # Assert progress tracker was used
-        mock_progress_tracker.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_parse_empty_codebase(
@@ -150,7 +137,6 @@ class TestParseCommand:
         mock_state_manager,
         mock_incremental_updater,
         mock_formatter,
-        mock_progress_tracker,
         tmp_path
     ):
         """Test parsing an empty codebase with no changes."""
@@ -194,7 +180,6 @@ class TestParseCommand:
         mock_state_manager,
         mock_incremental_updater,
         mock_formatter,
-        mock_progress_tracker,
         tmp_path
     ):
         """Test parsing a codebase with multiple file changes."""

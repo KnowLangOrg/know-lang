@@ -2,6 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
+from rich.progress import track
 import logging
 
 from knowlang.configs import AppConfig
@@ -62,7 +63,7 @@ class IncrementalUpdater:
         stats = UpdateStats()
         chunks_by_file = self._group_chunks_by_file(chunks)
         
-        for change in changes:
+        for change in track(changes, description="Processing code changes"):
             try:
                 # Handle deletions and modifications (remove old chunks)
                 if change.change_type in (StateChangeType.MODIFIED, StateChangeType.DELETED):
