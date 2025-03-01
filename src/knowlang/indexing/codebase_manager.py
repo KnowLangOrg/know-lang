@@ -39,7 +39,7 @@ class CodebaseManager:
         self.temp_dir = tempfile.mkdtemp()
         try:
             self.repo = Repo.clone_from(self.config.db.codebase_url, self.temp_dir)
-            self.config.db.codebase_directory = Path(self.temp_dir)
+            self.config.db.codebase_directory = Path(self.temp_dir).resolve()
         except Exception as e:
             # Not a git repository link
             LOG.info(f"Failed to clone repository: {e}")

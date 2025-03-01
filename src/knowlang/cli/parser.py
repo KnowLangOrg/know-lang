@@ -30,8 +30,7 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
     if parsed_namespace.command == "parse":
         args = args_class(
             **base_args,
-            path=Path(parsed_namespace.path).resolve(),
-            url=parsed_namespace.path,
+            path=parsed_namespace.path,
             output=parsed_namespace.output
         )
     elif parsed_namespace.command == "chat":
@@ -99,7 +98,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     parse_parser.add_argument(
         "path",
-        type=Path,
+        type=str,
         help="Path to codebase directory or repository URL"
     )
 
