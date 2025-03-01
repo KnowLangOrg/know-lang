@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional
 
 from knowlang.cli.display.formatters import get_formatter
-from knowlang.cli.display.progress import ProgressTracker
 from knowlang.cli.types import ParseCommandArgs
 from knowlang.configs import AppConfig
 from knowlang.indexing.codebase_manager import CodebaseManager
@@ -12,9 +11,9 @@ from knowlang.indexing.indexing_agent import IndexingAgent
 from knowlang.indexing.state_manager import StateManager
 from knowlang.indexing.state_store.base import StateChangeType
 from knowlang.parser.factory import CodeParserFactory
-import logging
+from knowlang.utils import FancyLogger
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 
 def create_config(config_path: Optional[Path] = None) -> AppConfig:
     """Create configuration from file or defaults."""
@@ -43,31 +42,28 @@ async def parse_command(args: ParseCommandArgs) -> None:
     
     # Process files
     total_chunks = []
-    progress = ProgressTracker("Parsing Codebase...")
     
-    with progress.progress():
-        codebase_files = await codebase_manager.get_current_files()
-        progress.update(f"detected {len(codebase_files)} files in codebase")
-        file_changes = await state_manager.state_store.detect_changes(codebase_files)
-        progress.update(f"detected {len(file_changes)} file changes")
+    codebase_files = await codebase_manager.get_current_files()
+    LOG.info(f"Found {len(codebase_files)} files in codebase directory")
+    file_changes = await state_manager.state_store.detect_changes(codebase_files)
+    LOG.info(f"Detected {len(file_changes)} file changes")
 
-        for changed_file_path in [
-            (config.db.codebase_directory / change.path) 
-            for change in file_changes
-            if change.change_type != StateChangeType.DELETED
-        ]:
-            progress.update(f"parsing code in {changed_file_path}...")
-            
-            parser = code_parser_factory.get_parser(changed_file_path)
-            if parser:
-                chunks = parser.parse_file(changed_file_path)
-                total_chunks.extend(chunks)
-    
-        updater = IncrementalUpdater(config)
-        await updater.update_codebase(
-            chunks=total_chunks, 
-            file_changes=file_changes
-        )
+    for changed_file_path in [
+        (config.db.codebase_directory / change.path) 
+        for change in file_changes
+        if change.change_type != StateChangeType.DELETED
+    ]:
+        
+        parser = code_parser_factory.get_parser(changed_file_path)
+        if parser:
+            chunks = parser.parse_file(changed_file_path)
+            total_chunks.extend(chunks)
+
+    updater = IncrementalUpdater(config)
+    await updater.update_codebase(
+        chunks=total_chunks, 
+        file_changes=file_changes
+    )
 
     # Display results
     if total_chunks:

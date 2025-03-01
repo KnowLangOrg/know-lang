@@ -2,9 +2,8 @@
 import asyncio
 import importlib.metadata
 from typing import Optional, Sequence
-
 from knowlang.cli.parser import parse_args
-from knowlang.utils import get_logger, setup_logger
+from knowlang.utils import FancyLogger
 
 
 def load_plugins():
@@ -17,7 +16,7 @@ def load_plugins():
         except Exception as e:
             LOG.error(f"Error loading plugin {ep.name}: {e}")
 
-LOG = get_logger(__name__)
+LOG = FancyLogger(__name__)
 
 
 async def main(args: Optional[Sequence[str]] = None) -> int:
@@ -48,7 +47,7 @@ async def main(args: Optional[Sequence[str]] = None) -> int:
 
 def cli_main() -> None:
     """Entry point for CLI scripts."""
-    setup_logger()
+    # setup_logger()
     load_plugins()
     exit_code = asyncio.run(main())
     exit(exit_code)

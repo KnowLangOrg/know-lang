@@ -1,5 +1,4 @@
 import hashlib
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set
@@ -9,6 +8,7 @@ from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String,
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
+from knowlang.utils import FancyLogger
 from knowlang.configs import DBConfig
 from knowlang.core.types import StateStoreProvider
 from knowlang.indexing.file_utils import (compute_file_hash, get_absolute_path,
@@ -17,7 +17,7 @@ from knowlang.indexing.file_utils import (compute_file_hash, get_absolute_path,
 from .base import (FileChange, FileState, StateChangeType, StateStore,
                    register_state_store)
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 Base = declarative_base()
 
 class FileStateModel(Base):

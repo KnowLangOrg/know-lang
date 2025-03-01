@@ -9,9 +9,9 @@ from rich.progress import Progress
 
 from knowlang.configs import AppConfig, EmbeddingConfig
 from knowlang.models import EmbeddingInputType, generate_embedding
-import logging
+from knowlang.utils import FancyLogger
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 console = Console()
 
 BATCH_SIZE = 64  # VoyageAI's maximum batch size is 128

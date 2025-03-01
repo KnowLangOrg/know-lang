@@ -4,8 +4,8 @@ from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 from knowlang.configs import AppConfig
+from knowlang.utils import FancyLogger
 from knowlang.vector_stores.factory import VectorStoreFactory
-import logging
 from knowlang.chat_bot import (
     stream_chat_progress, 
     ChatStatus,
@@ -14,7 +14,7 @@ from knowlang.chat_bot import (
 )
 from knowlang.api import ApiModelRegistry
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 
 @ApiModelRegistry.register
 class ServerSentChatEvent(BaseModel):

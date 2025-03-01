@@ -19,12 +19,11 @@ from rich.console import Console
 from voyageai.object.reranking import RerankingObject
 from knowlang.configs import AppConfig, EmbeddingConfig, RerankerConfig
 from knowlang.models import EmbeddingInputType, generate_embedding
-from knowlang.utils import create_pydantic_model, truncate_chunk
-import logging
+from knowlang.utils import create_pydantic_model, truncate_chunk, FancyLogger
 from knowlang.vector_stores import SearchResult, VectorStore
 from knowlang.api import ApiModelRegistry
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 console = Console()
 
 @ApiModelRegistry.register
@@ -265,7 +264,7 @@ class RetrieveContextNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
                 
             except Exception as e:
                 # Fallback to embedding results if reranking fails
-                LOG.error(f"Reranking failed, falling back to embedding results: {e}")
+                LOG.warning(f"Reranking failed, falling back to embedding results: {e}")
                 final_results = [
                     r for r in initial_results 
                     if r.score >= ctx.deps.config.chat.similarity_threshold
