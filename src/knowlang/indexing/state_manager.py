@@ -1,12 +1,11 @@
-import logging
 from pathlib import Path
 from typing import Optional
-
+from knowlang.utils import FancyLogger
 from knowlang.configs import AppConfig
 from knowlang.indexing.state_store.base import FileState, get_state_store
 from knowlang.vector_stores.factory import VectorStoreFactory
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 
 class StateManager:
     """Manages file states and their associated chunks"""

@@ -11,10 +11,9 @@ from rich.console import Console
 from rich.progress import Progress
 
 from knowlang.configs import AppConfig
-import logging
-from knowlang.utils import truncate_chunk
+from knowlang.utils import truncate_chunk, FancyLogger
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 console = Console()
 
 BATCH_SIZE = 2000  # Max items per batch

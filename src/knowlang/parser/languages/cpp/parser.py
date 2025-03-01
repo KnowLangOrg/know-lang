@@ -1,17 +1,15 @@
 # languages/cpp/parser.py
 from pathlib import Path
 from typing import List, Optional
-import logging
-
 import tree_sitter_cpp
 from tree_sitter import Language, Node, Parser
 
 from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
                                  CodeMetadata, LanguageEnum)
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.utils import convert_to_relative_path
+from knowlang.utils import convert_to_relative_path, FancyLogger
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 
 class CppParser(LanguageParser):
     """C++-specific implementation of LanguageParser"""

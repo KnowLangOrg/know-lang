@@ -1,14 +1,14 @@
 from pydantic_ai import Agent
 from knowlang.configs import AppConfig
-import logging
 from knowlang.core.types import CodeChunk
 from knowlang.utils import (
     create_pydantic_model,
-    format_code_summary
+    format_code_summary,
+    FancyLogger,
 )
 from knowlang.vector_stores.factory import VectorStoreFactory
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 
 
 class IndexingAgent:

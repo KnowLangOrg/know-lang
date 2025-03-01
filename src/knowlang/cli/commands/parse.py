@@ -11,9 +11,9 @@ from knowlang.indexing.indexing_agent import IndexingAgent
 from knowlang.indexing.state_manager import StateManager
 from knowlang.indexing.state_store.base import StateChangeType
 from knowlang.parser.factory import CodeParserFactory
-import logging
+from knowlang.utils import FancyLogger
 
-LOG = logging.getLogger(__name__)
+LOG = FancyLogger(__name__)
 
 def create_config(config_path: Optional[Path] = None) -> AppConfig:
     """Create configuration from file or defaults."""
