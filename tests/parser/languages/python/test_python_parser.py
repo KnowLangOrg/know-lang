@@ -9,7 +9,8 @@ from knowlang.core.types import BaseChunkType, CodeChunk
 from knowlang.parser.languages.python.parser import PythonParser
 from tests.test_data.python_files import (COMPLEX_FILE_EXPECTATIONS,
                                           INVALID_SYNTAX,
-                                          SIMPLE_FILE_EXPECTATIONS, TEST_FILES)
+                                          SIMPLE_FILE_EXPECTATIONS, TEST_FILES,
+                                          DECORATED_FILE_EXPECTATIONS)
 
 
 @pytest.fixture
@@ -36,7 +37,6 @@ def verify_chunk_matches_expectation(
     return (
         chunk.name == expected_name and
         expected_content_snippet in chunk.content and
-        chunk.docstring is not None and
         expected_docstring in chunk.docstring
     )
 
@@ -149,3 +149,37 @@ class TestPythonParser:
     def test_supported_extensions(self, python_parser: PythonParser, test_file: str):
         """Test file extension support"""
         assert any(test_file.endswith(ext) for ext in python_parser.language_config.file_extensions)
+
+    def test_decorated_components(self, python_parser: PythonParser, test_config: AppConfig):
+        """Test parsing Python files with decorated functions and classes"""
+        chunks = python_parser.parse_file(test_config.db.codebase_directory / "decorated.py")
+        
+        # Test decorated function
+        decorated_func = find_chunk_by_criteria(
+            chunks,
+            type=BaseChunkType.FUNCTION,
+            name="decorated_function"
+        )
+        assert decorated_func is not None
+        expected = DECORATED_FILE_EXPECTATIONS['decorated_function']
+        assert verify_chunk_matches_expectation(
+            decorated_func,
+            expected.name,
+            expected.docstring,
+            expected.content_snippet
+        )
+        
+        # Test decorated class
+        decorated_class = find_chunk_by_criteria(
+            chunks,
+            type=BaseChunkType.CLASS,
+            name="DecoratedClass"
+        )
+        assert decorated_class is not None
+        expected = DECORATED_FILE_EXPECTATIONS['DecoratedClass']
+        assert verify_chunk_matches_expectation(
+            decorated_class,
+            expected.name,
+            expected.docstring,
+            expected.content_snippet
+        )

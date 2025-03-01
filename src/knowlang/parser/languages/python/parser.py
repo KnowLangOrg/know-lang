@@ -21,25 +21,26 @@ class PythonParser(LanguageParser):
         self.language_config = self.config.parser.languages["python"]
     
     def _get_preceding_docstring(self, node: Node, source_code: bytes) -> Optional[str]:
-        """Extract docstring from comments"""
-        docstring_parts = []
-        current_node = node.prev_sibling
+        """Extract docstring from inside function or class body"""
+        # For decorated definitions, get the actual function/class node
+        if node.type == "decorated_definition":
+            node = node.child_by_field_name("definition")
+            if not node:
+                return None
 
-        while current_node:
-            if current_node.type == "comment":
-                comment = source_code[current_node.start_byte:current_node.end_byte].decode('utf-8')
-                docstring_parts.insert(0, comment)
-            elif current_node.type == "expression_statement":
-                string_node = current_node.children[0] if current_node.children else None
+        # Find the body block
+        body_node = node.child_by_field_name("body")
+        if not body_node:
+            return None
+
+        # Look for the first expression statement containing a string literal
+        for child in body_node.children:
+            if child.type == "expression_statement":
+                string_node = child.children[0] if child.children else None
                 if string_node and string_node.type in ("string", "string_literal"):
-                    docstring = source_code[string_node.start_byte:string_node.end_byte].decode('utf-8')
-                    docstring_parts.insert(0, docstring)
-                break
-            elif current_node.type not in ("empty_statement", "newline"):
-                break
-            current_node = current_node.prev_sibling
+                    return source_code[string_node.start_byte:string_node.end_byte].decode('utf-8')
         
-        return '\n'.join(docstring_parts) if docstring_parts else None
+        return None
 
     def _has_syntax_error(self, node: Node) -> bool:
         """Check if the node or its children contain syntax errors"""
@@ -111,6 +112,94 @@ class PythonParser(LanguageParser):
             docstring=self._get_preceding_docstring(node, source_code)
         )
 
+    def _process_decorated_function(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+        """Process a decorated function node and return a CodeChunk"""
+        # Get the actual function definition node
+        function_node = node.child_by_field_name("definition")
+        if not function_node:
+            raise ValueError("Could not find function definition in decorated node")
+
+        # Get function name
+        name = next(
+            (child.text.decode('utf-8') 
+             for child in function_node.children 
+             if child.type == "identifier"),
+            None
+        )
+
+        if not name:
+            raise ValueError(f"Could not find function name in node: {function_node.text}")
+        
+        # Get decorators
+        decorators = [
+            child.text.decode('utf-8').strip('@')
+            for child in node.children
+            if child.type == "decorator"
+        ]
+        
+        # Determine if this is a method within a class
+        parent_node = node.parent
+        parent_name = None
+        if parent_node and parent_node.type == "class_definition":
+            parent_name = next(
+                (child.text.decode('utf-8') 
+                 for child in parent_node.children 
+                 if child.type == "identifier"),
+                None
+            )
+        
+        return CodeChunk(
+            language=self.language_name,
+            type=BaseChunkType.FUNCTION,
+            name=name,
+            content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
+            location=CodeLocation(
+                file_path=str(file_path),
+                start_line=node.start_point[0],
+                end_line=node.end_point[0]
+            ),
+            parent_name=parent_name,
+            docstring=self._get_preceding_docstring(node, source_code),
+        )
+
+    def _process_decorated_class(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+        """Process a decorated class node and return a CodeChunk"""
+        # Get the actual class definition node
+        class_node = node.child_by_field_name("definition")
+        if not class_node:
+            raise ValueError("Could not find class definition in decorated node")
+
+        # Get class name
+        name = next(
+            (child.text.decode('utf-8') 
+             for child in class_node.children 
+             if child.type == "identifier"),
+            None
+        )
+        
+        if not name:
+            raise ValueError(f"Could not find class name in node: {class_node.text}")
+        
+        # Get decorators
+        decorators = [
+            child.text.decode('utf-8').strip('@')
+            for child in node.children
+            if child.type == "decorator"
+        ]
+        
+        return CodeChunk(
+            language=self.language_name,
+            type=BaseChunkType.CLASS,
+            name=name,
+            content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
+            location=CodeLocation(
+                file_path=str(file_path),
+                start_line=node.start_point[0],
+                end_line=node.end_point[0]
+            ),
+            docstring=self._get_preceding_docstring(node, source_code),
+        )
+
     def parse_file(self, file_path: Path) -> List[CodeChunk]:
         """Parse a single Python file and return list of code chunks"""
         if not self.supports_extension(file_path.suffix):
@@ -141,7 +230,12 @@ class PythonParser(LanguageParser):
             
             # Process the syntax tree
             for node in tree.root_node.children:
-                if node.type == "class_definition":
+                if node.type == "decorated_definition":
+                    if node.child_by_field_name("definition").type == "function_definition":
+                        chunks.append(self._process_decorated_function(node, source_code, relative_path))
+                    elif node.child_by_field_name("definition").type == "class_definition":
+                        chunks.append(self._process_decorated_class(node, source_code, relative_path))
+                elif node.type == "class_definition":
                     chunks.append(self._process_class(node, source_code, relative_path))
                 elif node.type == "function_definition":
                     chunks.append(self._process_function(node, source_code, relative_path))
