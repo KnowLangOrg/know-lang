@@ -2,9 +2,9 @@
 import asyncio
 import importlib.metadata
 from typing import Optional, Sequence
-
+import logging
 from knowlang.cli.parser import parse_args
-from knowlang.utils import get_logger, setup_logger
+from knowlang.utils import setup_logger
 
 
 def load_plugins():
@@ -17,7 +17,7 @@ def load_plugins():
         except Exception as e:
             LOG.error(f"Error loading plugin {ep.name}: {e}")
 
-LOG = get_logger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 async def main(args: Optional[Sequence[str]] = None) -> int:

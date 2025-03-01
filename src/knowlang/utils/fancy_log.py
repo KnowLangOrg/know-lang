@@ -1,9 +1,9 @@
+from __future__ import annotations
 import json
 import logging
 from rich.console import Console
 from rich.logging import RichHandler
 from knowlang.configs import LoggingConfig
-
 
 class JsonFormatter(logging.Formatter):
     """Format logs as JSON for structured logging."""
@@ -77,19 +77,6 @@ class FancyLogger(logging.Logger):
         self.addHandler(file_handler)
 
 
-def get_logger(name: str) -> FancyLogger:
-    """
-    Get a configured logger instance.
-    
-    Args:
-        name: The logger name
-    
-    Returns:
-        A configured FancyLogger instance
-    """
-    return logging.getLogger(name)
-
-
 def setup_logger() -> None:
     """
     Configure the global logging settings for knowlang while preventing
@@ -108,6 +95,6 @@ def setup_logger() -> None:
             root_logger.removeHandler(handler)
     
     # Configure the knowlang namespace logger
-    knowlang_logger = get_logger("knowlang")
+    knowlang_logger = logging.getLogger("knowlang")
     knowlang_logger.setLevel(logging._nameToLevel[config.level])
     knowlang_logger.propagate = False  # Don't propagate to root logger
