@@ -21,6 +21,7 @@ class CodebaseManager:
     def __init__(self, config: AppConfig):
         self.config = config
         self.repo = self._init_git_repo()
+        self.temp_dir = None
         
     def _init_git_repo(self) -> Repo | None:
         """Initialize git repo if the codebase directory is a git repository"""
@@ -35,15 +36,16 @@ class CodebaseManager:
         """Get set of current files in directory with proper filtering"""
         current_files = set()
         # Convert to string for os.walk
-        root_dir = str(self.config.db.codebase_directory)
-        temp_dir = tempfile.mkdtemp()
+        self.temp_dir = tempfile.mkdtemp()
         try:
-            self.repo = Repo.clone_from(self.config.db.codebase_url, temp_dir)
-            root_dir = temp_dir
+            self.repo = Repo.clone_from(self.config.db.codebase_url, self.temp_dir)
+            self.config.db.codebase_directory = Path(self.temp_dir)
         except Exception as e:
             # Not a git repository link
             LOG.info(f"Failed to clone repository: {e}")
             pass
+
+        root_dir = str(self.config.db.codebase_directory)
         
         try:
             for root, dirs, files in os.walk(root_dir):
@@ -70,8 +72,6 @@ class CodebaseManager:
         except Exception as e:
             LOG.error(f"Error scanning directory {self.config.db.codebase_directory}: {e}")
             raise
-        finally:
-            shutil.rmtree(temp_dir)
 
     async def create_file_state(self, file_path: Path, chunk_ids: Set[str]) -> FileState:
         """Create a new FileState object for a file"""
@@ -84,3 +84,7 @@ class CodebaseManager:
             file_hash=compute_file_hash(file_path),
             chunk_ids=chunk_ids
         )
+    
+    def __del__(self):
+        if self.temp_dir is not None:
+            shutil.rmtree(self.temp_dir)
