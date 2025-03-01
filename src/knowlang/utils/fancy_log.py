@@ -92,20 +92,22 @@ def get_logger(name: str) -> FancyLogger:
 
 def setup_logger() -> None:
     """
-    Configure the global logging settings.
+    Configure the global logging settings for knowlang while preventing
+    third-party library logs from being too verbose.
     """
     config = LoggingConfig()
     
     # Set the default logger class
     logging.setLoggerClass(FancyLogger)
     
-    # Configure root logger
+    # Configure root logger with a high threshold to suppress most third-party logs
     root_logger = logging.getLogger()
+    root_logger.setLevel(logging.WARNING)  # Only show warnings and above from third-party
     if root_logger.handlers:
         for handler in root_logger.handlers:
             root_logger.removeHandler(handler)
     
-    root_logger = get_logger("knowlang")
-    root_logger.setLevel(logging._nameToLevel[config.level])
-    
-    return root_logger
+    # Configure the knowlang namespace logger
+    knowlang_logger = get_logger("knowlang")
+    knowlang_logger.setLevel(logging._nameToLevel[config.level])
+    knowlang_logger.propagate = False  # Don't propagate to root logger
