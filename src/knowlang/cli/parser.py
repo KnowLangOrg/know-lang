@@ -99,6 +99,8 @@ def create_parser() -> argparse.ArgumentParser:
     parse_parser.add_argument(
         "path",
         type=str,
+        nargs="?", # Make path optional
+        default=".", # Default to current directory
         help="Path to codebase directory or repository URL"
     )
 
