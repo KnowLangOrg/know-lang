@@ -5,11 +5,12 @@ import pytest
 from pydantic_graph import End, GraphRunContext
 from voyageai.object.reranking import RerankingResult
 
+from knowlang.search import SearchResult
 from knowlang.chat_bot.chat_graph import (AnswerQuestionNode, ChatGraphDeps,
                                           ChatGraphState, ChatResult,
                                           ChatStatus, PolishQuestionNode,
                                           RetrieveContextNode,
-                                          RetrievedContext, SearchResult,
+                                          RetrievedContext,
                                           stream_chat_progress)
 
 

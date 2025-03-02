@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from unittest.mock import AsyncMock
 import numpy as np
-from knowlang.vector_stores import SearchResult, VectorStore, VectorStoreError
+from knowlang.vector_stores import VectorStore, VectorStoreError
+from knowlang.search.base import SearchResult
 from knowlang.configs import DBConfig, EmbeddingConfig
 
 

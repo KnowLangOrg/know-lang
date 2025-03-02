@@ -20,7 +20,8 @@ from voyageai.object.reranking import RerankingObject
 from knowlang.configs import AppConfig, EmbeddingConfig, RerankerConfig
 from knowlang.models import EmbeddingInputType, generate_embedding
 from knowlang.utils import create_pydantic_model, truncate_chunk, FancyLogger
-from knowlang.vector_stores import SearchResult, VectorStore
+from knowlang.vector_stores import VectorStore
+from knowlang.search import SearchResult
 from knowlang.api import ApiModelRegistry
 
 LOG = FancyLogger(__name__)
@@ -269,6 +270,7 @@ class RetrieveContextNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
                     r for r in initial_results 
                     if r.score >= ctx.deps.config.chat.similarity_threshold
                 ]
+                LOG.info(f"Filtered {len(initial_results)} initial results to {len(final_results)} with threshold {ctx.deps.config.chat.similarity_threshold}")
 
             # Build context from final results
             ctx.state.retrieved_context = RetrievedContext(

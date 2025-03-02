@@ -2,8 +2,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from functools import reduce
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
+from knowlang.search import SearchResult
 from knowlang.configs import DBConfig
+
 
 
 class VectorStoreError(Exception):
@@ -17,12 +18,6 @@ class VectorStoreInitError(VectorStoreError):
 class VectorStoreNotFoundError(VectorStoreError):
     """Error when requested vector store provider is not found"""
     pass
-
-class SearchResult(BaseModel):
-    """Standardized search result across vector stores"""
-    document: str
-    metadata: Dict[str, Any]
-    score: float  # Similarity/relevance score
 
 class VectorStore(ABC):
     """Abstract base class for vector store implementations"""
