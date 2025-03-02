@@ -20,14 +20,23 @@ class CodebaseManager:
 
     def __init__(self, config: AppConfig):
         self.config = config
-        self.repo = self._init_git_repo()
         self.temp_dir = None
+        self.repo = self._init_git_repo()
         
     def _init_git_repo(self) -> Repo | None:
         """Initialize git repo if the codebase directory is a git repository"""
         try:
             if (self.config.db.codebase_directory / '.git').exists():
                 return Repo(self.config.db.codebase_directory)
+            self.temp_dir = tempfile.mkdtemp()
+            try:
+                repo = Repo.clone_from(self.config.db.codebase_url, self.temp_dir)
+                self.config.db.codebase_directory = Path(self.temp_dir).resolve()
+                return repo
+            except Exception as e:
+                # Not a git repository link
+                LOG.info(f"Failed to clone repository: {e}")
+                pass
             return None
         except InvalidGitRepositoryError:
             return None
@@ -35,19 +44,11 @@ class CodebaseManager:
     async def get_current_files(self) -> Set[Path]:
         """Get set of current files in directory with proper filtering"""
         current_files = set()
-        # Convert to string for os.walk
-        self.temp_dir = tempfile.mkdtemp()
-        try:
-            self.repo = Repo.clone_from(self.config.db.codebase_url, self.temp_dir)
-            self.config.db.codebase_directory = Path(self.temp_dir).resolve()
-        except Exception as e:
-            # Not a git repository link
-            LOG.info(f"Failed to clone repository: {e}")
-            pass
-
-        root_dir = str(self.config.db.codebase_directory)
         
         try:
+            # Convert to string for os.walk
+            root_dir = str(self.config.db.codebase_directory)
+            
             for root, dirs, files in os.walk(root_dir):
                 # Skip git-ignored directories early
                 if self.repo:
