@@ -1,12 +1,13 @@
 """Argument parsing for KnowLang CLI."""
 import argparse
 from pathlib import Path
-from typing import Optional, Sequence, Union, Dict, Type, Callable
+from typing import Callable, Dict, Optional, Sequence, Type, Union
 
 from knowlang.cli.commands.chat import chat_command
 from knowlang.cli.commands.parse import parse_command
-from knowlang.cli.types import ChatCommandArgs, ParseCommandArgs, BaseCommandArgs, ServeCommandArgs
 from knowlang.cli.commands.serve import serve_command
+from knowlang.cli.types import (BaseCommandArgs, ChatCommandArgs,
+                                ParseCommandArgs, ServeCommandArgs)
 
 # Define command configurations
 COMMAND_CONFIGS: Dict[str, tuple[Type[BaseCommandArgs], Callable]] = {
@@ -29,7 +30,7 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
     if parsed_namespace.command == "parse":
         args = args_class(
             **base_args,
-            path=Path(parsed_namespace.path).resolve(),
+            path=parsed_namespace.path,
             output=parsed_namespace.output
         )
     elif parsed_namespace.command == "chat":
@@ -97,7 +98,9 @@ def create_parser() -> argparse.ArgumentParser:
     )
     parse_parser.add_argument(
         "path",
-        type=Path,
+        type=str,
+        nargs="?", # Make path optional
+        default=".", # Default to current directory
         help="Path to codebase directory or repository URL"
     )
 

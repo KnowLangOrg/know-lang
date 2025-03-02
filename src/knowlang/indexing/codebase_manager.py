@@ -1,12 +1,17 @@
+import logging
 import os
+import shutil
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Set
+
 from git import InvalidGitRepositoryError, Repo
-from knowlang.utils import FancyLogger
+
 from knowlang.configs import AppConfig
 from knowlang.indexing.file_utils import compute_file_hash, get_relative_path
 from knowlang.indexing.state_store.base import FileState
+from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
 
@@ -15,6 +20,7 @@ class CodebaseManager:
 
     def __init__(self, config: AppConfig):
         self.config = config
+        self.temp_dir = None
         self.repo = self._init_git_repo()
         
     def _init_git_repo(self) -> Repo | None:
@@ -22,6 +28,15 @@ class CodebaseManager:
         try:
             if (self.config.db.codebase_directory / '.git').exists():
                 return Repo(self.config.db.codebase_directory)
+            self.temp_dir = tempfile.mkdtemp()
+            try:
+                repo = Repo.clone_from(self.config.db.codebase_url, self.temp_dir)
+                self.config.db.codebase_directory = Path(self.temp_dir).resolve()
+                return repo
+            except Exception as e:
+                # Not a git repository link
+                LOG.info(f"Failed to clone repository: {e}")
+                pass
             return None
         except InvalidGitRepositoryError:
             return None
@@ -70,3 +85,7 @@ class CodebaseManager:
             file_hash=compute_file_hash(file_path),
             chunk_ids=chunk_ids
         )
+    
+    def __del__(self):
+        if self.temp_dir is not None:
+            shutil.rmtree(self.temp_dir)
