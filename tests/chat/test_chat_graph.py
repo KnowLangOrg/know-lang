@@ -64,7 +64,7 @@ async def test_retrieve_context_node_success(
     mock_rerank = AsyncMock(return_value=mock_rerank_obj)
     mock_voyage_client.rerank = mock_rerank
 
-    populated_mock_store.search = AsyncMock(return_value=[
+    populated_mock_store.vector_search = AsyncMock(return_value=[
         # Create SearchResult objects with appropriate fields.
         SearchResult(document="def test_function(): pass", metadata={"file_path": "test1.py", "start_line": 1, "end_line": 2}, score=1.0),
         SearchResult(document="class TestClass: pass", metadata={"file_path": "test2.py", "start_line": 10, "end_line": 12}, score=0.5)

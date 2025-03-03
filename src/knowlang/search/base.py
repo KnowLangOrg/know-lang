@@ -1,11 +1,7 @@
 from __future__ import annotations
-
-from abc import ABC, abstractmethod
-from enum import Enum, auto
-import inspect
-from typing import Any, Callable, Dict, List, Optional, Protocol, Set, Type, TypeVar, Union, cast
-
-from pydantic import BaseModel, Field
+from enum import Enum
+from typing import Any, Dict, List, Protocol, Set
+from pydantic import BaseModel
 
 class SearchResult(BaseModel):
     """Standardized search result across vector stores"""
@@ -13,13 +9,16 @@ class SearchResult(BaseModel):
     metadata: Dict[str, Any]
     score: float  # Similarity/relevance score
 
-
+class SearchMethodology(str, Enum):
+    """Enumeration of capabilities a store might support"""
+    VECTOR = "approximate_vector_search"
+    KEYWORD = "keyword_search"
 
 class SearchStrategy(Protocol):
     """Protocol defining the interface for search strategies"""
     
     @property
-    def name(self) -> str:
+    def name(self) -> 'SearchMethodology':
         """Unique name identifying this search strategy"""
         ...
     

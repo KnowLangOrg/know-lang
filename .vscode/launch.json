@@ -11,6 +11,16 @@
         "parse",
         "."
       ]
+    },
+    {
+      "name": "Know Lang Chat",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "knowlang.cli",
+      "args": [
+        "--v",
+        "chat"
+      ]
     }
   ]
 }

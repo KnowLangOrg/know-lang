@@ -176,7 +176,7 @@ class RetrieveContextNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
             input_type=EmbeddingInputType.QUERY
         )
         
-        return await vector_store.search(
+        return await vector_store.vector_search(
             query_embedding=query_embedding,
             top_k=n_results
         )

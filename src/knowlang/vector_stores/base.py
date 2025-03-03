@@ -1,8 +1,9 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from functools import reduce
 from typing import Any, Dict, List, Optional
 from knowlang.search import SearchResult
+from knowlang.search.searchable_store import SearchableStore
 from knowlang.configs import DBConfig
 
 
@@ -19,10 +20,11 @@ class VectorStoreNotFoundError(VectorStoreError):
     """Error when requested vector store provider is not found"""
     pass
 
-class VectorStore(ABC):
+class VectorStore(SearchableStore):
     """Abstract base class for vector store implementations"""
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.collection = kwargs.get('collection', None)
 
     def assert_initialized(self) -> None:
@@ -72,7 +74,7 @@ class VectorStore(ABC):
         """Query the vector store for similar documents"""
         pass
 
-    async def search(
+    async def vector_search(
         self,
         query_embedding: List[float],
         top_k: int = 5,
