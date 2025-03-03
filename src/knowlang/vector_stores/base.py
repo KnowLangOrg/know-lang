@@ -6,8 +6,7 @@ from knowlang.search import SearchResult
 from knowlang.search.base import SearchMethodology
 from knowlang.search.searchable_store import SearchableStore
 from knowlang.configs import DBConfig
-
-
+from knowlang.search.vector_search import VectorSearchStrategy
 
 class VectorStoreError(Exception):
     """Base exception for vector store errors"""
