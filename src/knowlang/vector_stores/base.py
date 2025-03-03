@@ -3,6 +3,7 @@ from abc import abstractmethod
 from functools import reduce
 from typing import Any, Dict, List, Optional
 from knowlang.search import SearchResult
+from knowlang.search.base import SearchMethodology
 from knowlang.search.searchable_store import SearchableStore
 from knowlang.configs import DBConfig
 
@@ -26,6 +27,9 @@ class VectorStore(SearchableStore):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.collection = kwargs.get('collection', None)
+
+        self.register_capability(SearchMethodology.VECTOR)
+        self.register_strategy(VectorSearchStrategy())
 
     def assert_initialized(self) -> None:
         """Assert that the vector store is initialized"""

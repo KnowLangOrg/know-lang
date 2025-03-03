@@ -9,23 +9,28 @@ class SearchableStore(ABC):
     
     def __init__(self):
         self._strategies: Dict[str, SearchStrategy] = {}
-        self._capabilities: Set[str] = set()
+        self._capabilities: Set[SearchMethodology] = set()
         
     @property
-    def capabilities(self) -> Set[str]:
+    def capabilities(self) -> Set[SearchMethodology]:
         """Get the set of capabilities supported by this store"""
         return self._capabilities
     
-    def has_capability(self, capability: Union[str, SearchMethodology]) -> bool:
-        """Check if the store has a specific capability"""
-        if isinstance(capability, SearchMethodology):
-            capability = capability.value
+    def has_capability(self, capability: SearchMethodology) -> bool:
+        """
+        Check if the store has a specific capability
+        Seraches like hybrid search requires multiple capabilities
+        """
+        if not isinstance(capability, SearchMethodology):
+            raise ValueError("Unknown search methodology type")
+
         return capability in self._capabilities
     
-    def register_capability(self, capability: Union[str, SearchMethodology]) -> None:
+    def register_capability(self, capability: SearchMethodology) -> None:
         """Register a capability that this store supports"""
-        if isinstance(capability, SearchMethodology):
-            capability = capability.value
+        if not isinstance(capability, SearchMethodology):
+            raise ValueError("Unknown search methodology type")
+
         self._capabilities.add(capability)
         
     def register_strategy(self, strategy: SearchStrategy) -> None:
