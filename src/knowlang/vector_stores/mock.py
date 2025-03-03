@@ -1,15 +1,10 @@
 from __future__ import annotations
-
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 from unittest.mock import AsyncMock
-
 import numpy as np
-
 from knowlang.vector_stores import SearchResult, VectorStore, VectorStoreError
-
-if TYPE_CHECKING:
-    from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.configs import DBConfig, EmbeddingConfig
 
 
 @dataclass
