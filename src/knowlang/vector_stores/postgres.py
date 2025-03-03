@@ -1,18 +1,21 @@
 from __future__ import annotations
+
 from typing import Any, Dict, List, Literal, Optional
+
 import vecs
 from vecs.collection import Record
-from knowlang.vector_stores.base import (
-    SearchResult, 
-    VectorStore,
-    VectorStoreError,
-    VectorStoreInitError
-)
-from knowlang.utils import FancyLogger
+
 from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.core.types import VectorStoreProvider
+from knowlang.utils import FancyLogger
+from knowlang.vector_stores.base import (SearchResult, VectorStore,
+                                         VectorStoreError,
+                                         VectorStoreInitError,
+                                         register_vector_store)
 
 LOG = FancyLogger(__name__)
 
+@register_vector_store(VectorStoreProvider.POSTGRES)
 class PostgresVectorStore(VectorStore):
     """Postgres implementation of VectorStore compatible with the pgvector extension using psycopg."""
 
