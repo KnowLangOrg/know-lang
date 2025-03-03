@@ -2,15 +2,18 @@ from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional
 import vecs
 from vecs.collection import Record
-from knowlang.search.keyword_search import KeywordSearchableStore
-from knowlang.vector_stores.base import (SearchResult, VectorStore,
-                                         VectorStoreError,
-                                         VectorStoreInitError)
-
+from knowlang.vector_stores.base import (
+    SearchResult, 
+    VectorStore,
+    VectorStoreError,
+    VectorStoreInitError
+)
+from knowlang.utils import FancyLogger
 from knowlang.configs import DBConfig, EmbeddingConfig
 
+LOG = FancyLogger(__name__)
 
-class PostgresVectorStore(VectorStore, KeywordSearchableStore):
+class PostgresVectorStore(VectorStore):
     """Postgres implementation of VectorStore compatible with the pgvector extension using psycopg."""
 
     @classmethod
@@ -52,6 +55,7 @@ class PostgresVectorStore(VectorStore, KeywordSearchableStore):
             self.collection.create_index(measure=self.measure(), replace=False)
         except Exception as e:
             # index already exists, ignore
+            LOG.info(f"Index already exists for collection {self.table_name}")
             return
 
     def measure(self) -> vecs.IndexMeasure:
@@ -98,8 +102,6 @@ class PostgresVectorStore(VectorStore, KeywordSearchableStore):
             ))
         return acc
     
-    async def keyword_search(self, query, fields, top_k = 10, score_threshold = 0, **kwargs):
-        raise NotImplementedError("Postgres keyword search not implemented yet")
 
     async def query(
         self,
