@@ -1,14 +1,6 @@
-# src/knowlang/core/types.py
 from enum import Enum
-from typing import Any, Dict, Optional, Type
-
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
-
-from knowlang.vector_stores.base import VectorStore, VectorStoreNotFoundError
-from knowlang.vector_stores.chroma import ChromaVectorStore
-from knowlang.vector_stores.mock import MockVectorStore
-from knowlang.vector_stores.postgres import PostgresVectorStore
-
 
 class LanguageEnum(str, Enum):
     """Supported programming languages"""
@@ -90,20 +82,10 @@ class ModelProvider(str, Enum):
     VOYAGE = "voyage"
     TESTING = "testing"
 
-class VectorStoreProvider(Enum):
-    CHROMA = ("chroma", ChromaVectorStore)
-    POSTGRES = ("postgres", PostgresVectorStore)
-    TESTING = ("testing", MockVectorStore)
-
-    def __init__(self, value: str, store_class: Type[VectorStore]):
-        self._value_ = value
-        self._store_class = store_class
-
-    @property
-    def store_class(self) -> Type[VectorStore]:
-        if self._store_class is None:
-            raise VectorStoreNotFoundError(f"Provider {self._value_} not supported")
-        return self._store_class
+class VectorStoreProvider(str, Enum):
+    CHROMA = "chroma"
+    POSTGRES = "postgres"
+    TESTING = "testing"
 
 class StateStoreProvider(str, Enum):
     """Supported state store types"""

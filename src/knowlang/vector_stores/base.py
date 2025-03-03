@@ -1,13 +1,9 @@
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
-
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
-
-if TYPE_CHECKING:
-    from knowlang.configs import DBConfig
+from knowlang.configs import DBConfig
 
 
 class VectorStoreError(Exception):

@@ -1,16 +1,14 @@
 from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional
-
+from typing import Any, Dict, List, Literal, Optional
 import vecs
 from vecs.collection import Record
-
-from knowlang.vector_stores.base import (SearchResult, VectorStore,
-                                         VectorStoreError,
-                                         VectorStoreInitError)
-
-if TYPE_CHECKING:
-    from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.vector_stores.base import (
+    SearchResult, 
+    VectorStore,
+    VectorStoreError,
+    VectorStoreInitError
+)
+from knowlang.configs import DBConfig, EmbeddingConfig
 
 
 class PostgresVectorStore(VectorStore):

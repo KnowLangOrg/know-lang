@@ -1,17 +1,15 @@
 from __future__ import annotations
-
 from itertools import zip_longest
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple
-
+from typing import Any, Dict, List, Literal, Optional, Tuple
 from chromadb.config import Settings
-
 import chromadb
-from knowlang.vector_stores.base import (SearchResult, VectorStore,
-                                         VectorStoreInitError)
-
-if TYPE_CHECKING:
-    from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.vector_stores.base import (
+    SearchResult, 
+    VectorStore,
+    VectorStoreInitError
+)
+from knowlang.configs import DBConfig, EmbeddingConfig
 
 
 class ChromaVectorStore(VectorStore):
