@@ -1,5 +1,6 @@
-from .base import (VectorStore, VectorStoreError,
-                   VectorStoreInitError, VectorStoreNotFoundError)
+from . import chroma, postgres
+from .base import (VectorStore, VectorStoreError, VectorStoreInitError,
+                   VectorStoreNotFoundError)
 
 __all__ = [
     "VectorStoreError",

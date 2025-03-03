@@ -1,19 +1,10 @@
 from __future__ import annotations
-from typing import Dict, Dict, Type
-from knowlang.vector_stores import (
-    VectorStore, 
-    VectorStoreError,
-    VectorStoreInitError
-)
-from knowlang.core.types import VectorStoreProvider
-from knowlang.vector_stores.chroma import ChromaVectorStore
-from knowlang.vector_stores.postgres import PostgresVectorStore
-from knowlang.configs import DBConfig, EmbeddingConfig
 
-VECTOR_STORE_CLASS_DICT : Dict[VectorStoreProvider, Type[VectorStore]] = {
-    VectorStoreProvider.POSTGRES: PostgresVectorStore,
-    VectorStoreProvider.CHROMA: ChromaVectorStore
-}
+from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.vector_stores import (VectorStore, VectorStoreError,
+                                    VectorStoreInitError)
+from knowlang.vector_stores.base import get_vector_store
+
 
 class VectorStoreFactory:
     """Factory for creating vector store instances"""
@@ -36,7 +27,7 @@ class VectorStoreFactory:
             VectorStoreInitError: If initialization fails
         """
         try:
-            store_cls = VECTOR_STORE_CLASS_DICT.get(config.db_provider)
+            store_cls = get_vector_store(config.db_provider)
             vector_store: VectorStore = store_cls.create_from_config(config, embedding_config)
             
             # Initialize the store

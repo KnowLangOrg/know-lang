@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import Any, Dict, Optional
+
 from pydantic import BaseModel, Field
+
 
 class LanguageEnum(str, Enum):
     """Supported programming languages"""
@@ -86,6 +88,7 @@ class VectorStoreProvider(str, Enum):
     CHROMA = "chroma"
     POSTGRES = "postgres"
     TESTING = "testing"
+    CUSTOM = "custom"
 
 class StateStoreProvider(str, Enum):
     """Supported state store types"""
