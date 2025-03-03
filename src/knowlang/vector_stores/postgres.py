@@ -2,16 +2,15 @@ from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional
 import vecs
 from vecs.collection import Record
-from knowlang.vector_stores.base import (
-    SearchResult, 
-    VectorStore,
-    VectorStoreError,
-    VectorStoreInitError
-)
+from knowlang.search.keyword_search import KeywordSearchableStore
+from knowlang.vector_stores.base import (SearchResult, VectorStore,
+                                         VectorStoreError,
+                                         VectorStoreInitError)
+
 from knowlang.configs import DBConfig, EmbeddingConfig
 
 
-class PostgresVectorStore(VectorStore):
+class PostgresVectorStore(VectorStore, KeywordSearchableStore):
     """Postgres implementation of VectorStore compatible with the pgvector extension using psycopg."""
 
     @classmethod
@@ -32,6 +31,8 @@ class PostgresVectorStore(VectorStore):
         embedding_dim: int,
         similarity_metric: Literal['cosine'] = 'cosine'
     ):
+        super().__init__()
+
         self.connection_string = connection_string
         self.table_name = table_name
         self.embedding_dim = embedding_dim
@@ -96,6 +97,9 @@ class PostgresVectorStore(VectorStore):
                 score=score
             ))
         return acc
+    
+    async def keyword_search(self, query, fields, top_k = 10, score_threshold = 0, **kwargs):
+        raise NotImplementedError("Postgres keyword search not implemented yet")
 
     async def query(
         self,

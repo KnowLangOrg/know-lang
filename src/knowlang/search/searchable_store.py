@@ -48,7 +48,7 @@ class SearchableStore(ABC):
     async def search(
         self, 
         query: SearchQuery,
-        strategy_name: Optional[str] = None,
+        strategy_name: Optional[SearchMethodology] = None,
         **kwargs
     ) -> List[SearchResult]:
         """

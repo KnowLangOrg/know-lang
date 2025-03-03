@@ -27,6 +27,9 @@ class VectorSearchStrategy:
         if not isinstance(query, VectorQuery):
             raise ValueError("VectorSearchStrategy requires a VectorQuery")
         
+        if not hasattr(store, 'vector_search'):
+            raise ValueError(f"Store {store.__class__.__name__} does not support vector search")
+        
         results = await store.vector_search(
             query.embedding, 
             top_k=query.top_k,
