@@ -1,10 +1,12 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from functools import reduce
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
+from knowlang.search import SearchResult
+from knowlang.search.base import SearchMethodology
+from knowlang.search.searchable_store import SearchableStore
 from knowlang.configs import DBConfig
-
+from knowlang.search.vector_search import VectorSearchStrategy
 
 class VectorStoreError(Exception):
     """Base exception for vector store errors"""
@@ -18,17 +20,15 @@ class VectorStoreNotFoundError(VectorStoreError):
     """Error when requested vector store provider is not found"""
     pass
 
-class SearchResult(BaseModel):
-    """Standardized search result across vector stores"""
-    document: str
-    metadata: Dict[str, Any]
-    score: float  # Similarity/relevance score
-
-class VectorStore(ABC):
+class VectorStore(SearchableStore):
     """Abstract base class for vector store implementations"""
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.collection = kwargs.get('collection', None)
+
+        self.register_capability(SearchMethodology.VECTOR)
+        self.register_strategy(VectorSearchStrategy())
 
     def assert_initialized(self) -> None:
         """Assert that the vector store is initialized"""
@@ -77,7 +77,7 @@ class VectorStore(ABC):
         """Query the vector store for similar documents"""
         pass
 
-    async def search(
+    async def vector_search(
         self,
         query_embedding: List[float],
         top_k: int = 5,

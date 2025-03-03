@@ -8,8 +8,10 @@ from knowlang.vector_stores.base import (
     VectorStoreError,
     VectorStoreInitError
 )
+from knowlang.utils import FancyLogger
 from knowlang.configs import DBConfig, EmbeddingConfig
 
+LOG = FancyLogger(__name__)
 
 class PostgresVectorStore(VectorStore):
     """Postgres implementation of VectorStore compatible with the pgvector extension using psycopg."""
@@ -32,6 +34,8 @@ class PostgresVectorStore(VectorStore):
         embedding_dim: int,
         similarity_metric: Literal['cosine'] = 'cosine'
     ):
+        super().__init__()
+
         self.connection_string = connection_string
         self.table_name = table_name
         self.embedding_dim = embedding_dim
@@ -51,6 +55,7 @@ class PostgresVectorStore(VectorStore):
             self.collection.create_index(measure=self.measure(), replace=False)
         except Exception as e:
             # index already exists, ignore
+            LOG.info(f"Index already exists for collection {self.table_name}")
             return
 
     def measure(self) -> vecs.IndexMeasure:
@@ -96,6 +101,7 @@ class PostgresVectorStore(VectorStore):
                 score=score
             ))
         return acc
+    
 
     async def query(
         self,

@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from unittest.mock import AsyncMock
 import numpy as np
-from knowlang.vector_stores import SearchResult, VectorStore, VectorStoreError
+from knowlang.vector_stores import VectorStore, VectorStoreError
+from knowlang.search.base import SearchResult
 from knowlang.configs import DBConfig, EmbeddingConfig
 
 
@@ -80,7 +81,7 @@ class MockVectorStore(VectorStore):
             self.embeddings[doc_id] = emb
             self.added_documents.append(doc_id)
 
-    async def search(
+    async def vector_search(
         self,
         query_embedding: List[float],
         top_k: int = 5,
@@ -100,7 +101,7 @@ class MockVectorStore(VectorStore):
         top_k: int = 5,
         score_threshold: Optional[float] = None
     ) -> List[SearchResult]:
-        return super().search(query_embedding, top_k, score_threshold)
+        return await super().vector_serach(query_embedding, top_k, score_threshold)
     
     def accumulate_result(
         self,
