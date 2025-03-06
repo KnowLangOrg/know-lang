@@ -1,17 +1,18 @@
-from typing import Literal
+from typing import Literal, List
 from sqlalchemy import Column, Index, MetaData, String, Table, Text, column, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.types import UserDefinedType
-from sqlalchemy import inspect
 from sqlalchemy.schema import DDL
 
-from knowlang.vector_stores.base import VectorStoreInitError
+from knowlang.vector_stores.base import VectorStoreError, VectorStoreInitError, register_vector_store, SearchResult
 from knowlang.vector_stores.postgres import PostgresVectorStore
 from knowlang.search.keyword_search import KeywordSearchableStore
 from knowlang.configs import DBConfig, EmbeddingConfig
 from knowlang.utils import FancyLogger
+from knowlang.core.types import VectorStoreProvider
+from knowlang.search.base import SearchMethodology
 
 LOG = FancyLogger(__name__)
 Base = declarative_base()
@@ -22,7 +23,7 @@ class Vector(UserDefinedType):
     def get_col_spec(self, **kw):
         return "vector"
 
-
+@register_vector_store(VectorStoreProvider.POSTGRES)
 class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
     """PostgreSQL implementation that supports both vector similarity and keyword search."""
 
@@ -61,6 +62,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
             embedding_dim: Dimension of the vector embeddings
             similarity_metric: Vector similarity metric to use
             text_search_config: PostgreSQL text search configuration
+            content_field: The metadata field containing text to be searched
         """
         # Initialize vector store capabilities
         super().__init__(
@@ -75,7 +77,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
         self.content_field = content_field
         self.sqlalchemy_url = self.connection_string
         self.engine = None
-        self.session = None 
+        self.Session = None 
         
         # Define metadata for direct SQL operations where ORM is not suitable
         self.metadata = None
@@ -89,7 +91,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
                 self.Session = sessionmaker(bind=self.engine)
                 
                 # Set up metadata for direct table operations
-                self.metadata = Base.metadata
+                self.metadata = MetaData()
                 
                 # Define the table structure to match what vecs creates
                 # This is for metadata access only, not for creating tables
@@ -107,17 +109,21 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
                 raise VectorStoreInitError(f"Failed to initialize SQLAlchemy: {str(e)}") from e
 
     def initialize(self):
+        """Initialize both vector store and text search capabilities."""
         super().initialize()
         self._setup_sqlalchemy()
 
         with self.Session() as session:
             # Check if table exists using SQLAlchemy
-            inspector = inspect(self.engine)
-            if not inspector.has_table(self.table_name):
+            # inspector can't really check for tsvector columns
+            if not self.table_name in self.vecs_table.metadata.tables:
                 raise VectorStoreInitError(f"Table {self.table_name} does not exist. vecs should create it.")
             
             # Check if tsvector column exists
-            if 'tsv' not in inspector.get_columns(self.table_name):
+            columns = self.vecs_table.columns
+            column_names = [col.name for col in columns]
+            
+            if 'tsv' not in column_names:
                 LOG.info(f"Adding tsv column to {self.table_name}")
                 
                 # Add tsvector column for text search
@@ -141,6 +147,66 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
                 session.commit()
                 LOG.info(f"Added tsvector column and index to {self.table_name}")
 
-    async def keyword_search(self, query: str, fields: list, top_k: int = 10, score_threshold: float = 0, **kwargs):
-        """Perform keyword-based search using PostgreSQL full-text search capabilities."""
-        raise NotImplementedError("Postgres keyword search not implemented yet")
+    def has_capability(self, methodology: SearchMethodology) -> bool:
+        """Check if this store supports a specific search methodology."""
+        if methodology == SearchMethodology.VECTOR:
+            return True
+        if methodology == SearchMethodology.KEYWORD:
+            return True
+        return False
+
+    async def keyword_search(
+        self, 
+        query: str, 
+        fields: List[str], 
+        top_k: int = 10, 
+        score_threshold: float = 0, 
+        **kwargs
+    ) -> List[SearchResult]:
+        """Perform keyword-based search using PostgreSQL full-text search capabilities.
+        
+        Args:
+            query: The search query
+            fields: List of metadata fields to search (currently only supports content_field)
+            top_k: Maximum number of results to return
+            score_threshold: Minimum relevance score threshold (0.0 to 1.0)
+            
+        Returns:
+            List of SearchResult objects sorted by relevance
+        """
+        self.assert_initialized()
+        
+        try:
+            with self.Session() as session:
+                # Convert the query to a tsquery expression
+                tsquery = func.plainto_tsquery(self.text_search_config, query)
+                
+                # Build the SQL query
+                sql_query = select(
+                    self.vecs_table.c.id,
+                    self.vecs_table.c.metadata,
+                    func.ts_rank(self.vecs_table.c.tsv, tsquery).label('rank')
+                ).where(
+                    self.vecs_table.c.tsv.op('@@')(tsquery)
+                ).order_by(
+                    column('rank').desc()
+                ).limit(top_k)
+                
+                # Execute the query
+                results = session.execute(sql_query).fetchall()
+                
+                # Format results into SearchResult objects
+                search_results = []
+                for id, metadata, rank in results:
+                    if rank >= score_threshold:
+                        search_results.append(SearchResult(
+                            document=id,
+                            metadata=metadata,
+                            score=float(rank)
+                        ))
+                
+                return search_results
+                
+        except Exception as e:
+            LOG.error(f"Keyword search failed: {str(e)}")
+            raise VectorStoreError(f"Keyword search failed: {str(e)}") from e
