@@ -6,7 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.types import UserDefinedType
 from sqlalchemy.schema import DDL
 
-from knowlang.vector_stores.base import VectorStoreError, VectorStoreInitError, register_vector_store, SearchResult
+from knowlang.vector_stores.factory import register_vector_store
+from knowlang.vector_stores.base import VectorStoreError, VectorStoreInitError, SearchResult
 from knowlang.vector_stores.postgres import PostgresVectorStore
 from knowlang.search.keyword_search import KeywordSearchableStore
 from knowlang.configs import DBConfig, EmbeddingConfig
