@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import reduce
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, TYPE_CHECKING, TypeVar, Union, cast
 
 from knowlang.configs import DBConfig
 from knowlang.core.types import VectorStoreProvider
@@ -11,22 +11,6 @@ from knowlang.search.base import SearchMethodology
 from knowlang.search.searchable_store import SearchableStore
 from knowlang.search.vector_search import VectorSearchStrategy
 
-VECTOR_STORE_CLASS_DICT: Dict[VectorStoreProvider, Type[VectorStore]] = {}
-
-def register_vector_store(provider: VectorStoreProvider):
-    """Decorator to register a state store implementation for a given provider key."""
-    def decorator(cls: Type[VectorStoreProvider]):
-        VECTOR_STORE_CLASS_DICT[provider] = cls
-        return cls
-    return decorator
-
-def get_vector_store(provider: VectorStoreProvider) -> Type[VectorStore]:
-    """Factory method to retrieve a vector store class."""
-    if provider not in VECTOR_STORE_CLASS_DICT:
-        raise ValueError(f"Vector store provider {provider} is not registered.")
-    return VECTOR_STORE_CLASS_DICT.get(provider)
-
-VECTOR_STORE_CLASS_DICT : Dict[VectorStoreProvider, Type[VectorStore]] = {}
 
 class VectorStoreError(Exception):
     """Base exception for vector store errors"""
