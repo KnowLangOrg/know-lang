@@ -87,19 +87,22 @@ class TestPostgresHybridStore:
         self.metadata_patcher.stop()
         self.table_patcher.stop()
     
-    def _create_store(self):
+    def _create_store(self) -> PostgresHybridStore:
         """Helper method to create a store instance"""
-        return PostgresHybridStore.create_from_config(
+        store = PostgresHybridStore.create_from_config(
             config=self.db_config,
             embedding_config=self.embedding_config
         )
-    
-    def _setup_initialized_store(self):
-        """Helper method to create and setup an initialized store"""
-        store = self._create_store()
         store.collection = self.mock_collection
         store.engine = self.mock_engine
         store.Session = self.mock_session_class
+
+        return store
+
+    
+    def _setup_initialized_store(self) -> PostgresHybridStore:
+        """Helper method to create and setup an initialized store"""
+        store = self._create_store()
         
         # Create a proper mock table
         metadata = MetaData()
@@ -183,7 +186,7 @@ class TestPostgresHybridStore:
         """Test error when table doesn't exist"""
         self.mock_metadata_instance.tables = {}
         store = self._create_store()
-        store._setup_sqlalchemy = mock.MagicMock()
+        store._setup_sqlalchemy = mock.MagicMock(side_effect=lambda: setattr(store, 'vecs_table', self.mock_table_instance))
         
         with pytest.raises(VectorStoreInitError):
             store.initialize()
