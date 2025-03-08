@@ -2,9 +2,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, List, Optional
 import logfire
-import voyageai
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_graph import (
@@ -23,6 +22,8 @@ from knowlang.utils import create_pydantic_model, truncate_chunk, FancyLogger
 from knowlang.vector_stores import VectorStore
 from knowlang.search import SearchResult
 from knowlang.api import ApiModelRegistry
+from knowlang.chat_bot.nodes.base import ChatGraphState, ChatGraphDeps, ChatResult
+from knowlang.search.agents.keyword_search_agent_node import KeywordSearchAgentNode
 
 LOG = FancyLogger(__name__)
 console = Console()
@@ -41,27 +42,21 @@ class ChatStatus(str, Enum):
 class StreamingChatResult(BaseModel):
     """Extended chat result with streaming information"""
     answer: str
-    retrieved_context: Optional[RetrievedContext] = None
+    retrieved_context: Optional[List[SearchResult]] = None
     status: ChatStatus
     progress_message: str
     
     @classmethod
     def from_node(cls, node: BaseNode, state: ChatGraphState) -> StreamingChatResult:
         """Create a StreamingChatResult from a node's current state"""
-        if isinstance(node, PolishQuestionNode):
-            return cls(
-                answer="",
-                status=ChatStatus.POLISHING,
-                progress_message=f"Refining question: '{state.original_question}'"
-            )
-        elif isinstance(node, RetrieveContextNode):
+        if isinstance(node, KeywordSearchAgentNode):
             return cls(
                 answer="",
                 status=ChatStatus.RETRIEVING,
                 progress_message=f"Searching codebase with: '{state.polished_question or state.original_question}'"
             )
         elif isinstance(node, AnswerQuestionNode):
-            context_msg = f"Found {len(state.retrieved_context.chunks)} relevant segments" if state.retrieved_context else "No context found"
+            context_msg = f"Found {len(state.retrieved_context)} relevant segments" if state.retrieved_context else "No context found"
             return cls(
                 answer="",
                 retrieved_context=state.retrieved_context,
@@ -94,196 +89,7 @@ class StreamingChatResult(BaseModel):
             progress_message=f"An error occurred: {error_msg}"
         )
 
-@ApiModelRegistry.register
-class RetrievedContext(BaseModel):
-    """Structure for retrieved context"""
-    chunks: List[str]
-    metadatas: List[Dict[str, Any]]
 
-class ChatResult(BaseModel):
-    """Final result from the chat graph"""
-    answer: str
-    retrieved_context: Optional[RetrievedContext] = None
-
-@dataclass
-class ChatGraphState:
-    """State maintained throughout the graph execution"""
-    original_question: str
-    polished_question: Optional[str] = None
-    retrieved_context: Optional[RetrievedContext] = None
-
-@dataclass
-class ChatGraphDeps:
-    """Dependencies required by the graph"""
-    vector_store: VectorStore
-    config: AppConfig
-
-
-# Graph Nodes
-@dataclass
-class PolishQuestionNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
-    """Node that polishes the user's question"""
-    system_prompt = """You are a code question refinement expert. Your ONLY task is to rephrase questions 
-to be more precise for code context retrieval. Follow these rules strictly:
-
-1. Output ONLY the refined question - no explanations or analysis
-2. Preserve the original intent completely
-3. Add missing technical terms if obvious
-4. Keep the question concise - ideally one sentence
-5. Focus on searchable technical terms
-6. Do not add speculative terms not implied by the original question
-
-Example Input: "How do I use transformers for translation?"
-Example Output: "How do I use the Transformers pipeline for machine translation tasks?"
-
-Example Input: "Where is the config stored?"
-Example Output: "Where is the configuration file or configuration settings stored in this codebase?"
-    """
-
-    async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> RetrieveContextNode:
-        # Create an agent for question polishing
-        polish_agent = Agent(
-            create_pydantic_model(
-                model_provider=ctx.deps.config.llm.model_provider,
-                model_name=ctx.deps.config.llm.model_name
-            ),
-            system_prompt=self.system_prompt
-        )
-        prompt = f"""Original question: "{ctx.state.original_question}"
-
-Return ONLY the polished question - no explanations or analysis.
-Focus on making the question more searchable while preserving its original intent."""
-        
-        result = await polish_agent.run(prompt)
-        ctx.state.polished_question = result.data
-        return RetrieveContextNode()
-
-@dataclass
-class RetrieveContextNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
-    """Node that retrieves relevant code context using hybrid search: embeddings + reranking"""
-    
-    async def _get_initial_results(
-        self,
-        query: str,
-        embedding_config: EmbeddingConfig,
-        vector_store: VectorStore,
-        n_results: int
-    ) -> List[SearchResult]:
-        """Get initial results using embedding search"""
-        query_embedding = generate_embedding(
-            input=query,
-            config=embedding_config,
-            input_type=EmbeddingInputType.QUERY
-        )
-        
-        return await vector_store.vector_search(
-            query_embedding=query_embedding,
-            top_k=n_results
-        )
-
-    async def _rerank_results(
-        self,
-        query: str,
-        results: List[SearchResult],
-        reranker_config: RerankerConfig,
-    ) -> List[SearchResult]:
-        """Rerank results using Voyage AI"""
-        try:
-            voyage_client = voyageai.Client()
-            reranking : RerankingObject = await voyage_client.rerank(
-                query=query,
-                documents=[r.document for r in results],
-                model=reranker_config.model_name,
-                top_k=reranker_config.top_k,
-                truncation=True
-            )
-            
-            # Convert reranking results back to SearchResults
-            reranked_results: List[SearchResult] = []
-            for rerank_result in reranking.results:
-                if rerank_result.relevance_score >= reranker_config.relevance_threshold:
-                    # Get the original result to preserve metadata
-                    original_result : SearchResult = results[rerank_result.index]
-                    reranked_results.append(SearchResult(
-                        document=rerank_result.document,
-                        metadata=original_result.metadata,
-                        score=rerank_result.relevance_score
-                    ))
-            
-            return reranked_results
-            
-        except Exception as e:
-            LOG.error(f"Reranking failed: {e}")
-            raise
-    
-    async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> AnswerQuestionNode:
-        try:
-            # Get query
-            query = ctx.state.polished_question or ctx.state.original_question
-            
-            # First pass: Get candidates using embedding search
-            initial_results = await self._get_initial_results(
-                query=query,
-                embedding_config=ctx.deps.config.embedding,
-                vector_store=ctx.deps.vector_store,
-                n_results=min(ctx.deps.config.chat.max_context_chunks * 2, 50)
-            )
-            
-            if not initial_results:
-                LOG.warning("No initial results found through embedding search")
-                raise Exception("No results found through embedding search")
-                
-            # Log initial results
-            logfire.info('initial embedding search results: {results}', 
-                results=[(r.document, r.score) for r in initial_results])
-
-            # Filter initial results to top_k by score
-            initial_results = sorted(
-                initial_results, 
-                key=lambda x: x.score, 
-                reverse=True
-            )[:ctx.deps.config.reranker.top_k]
-
-            try:
-                if not ctx.deps.config.reranker.enabled:
-                    raise Exception("Reranker is disabled")
-                
-                # Second pass: Rerank candidates
-                reranked_results = await self._rerank_results(
-                    query=query,
-                    results=initial_results,
-                    reranker_config=ctx.deps.config.reranker
-                )
-                
-                if not reranked_results:
-                    raise Exception("No relevant results found through reranking")
-                
-                logfire.info('reranked search results: {results}', 
-                    results=[(r.document, r.score) for r in reranked_results])
-                
-                final_results = reranked_results
-                
-            except Exception as e:
-                # Fallback to embedding results if reranking fails
-                LOG.warning(f"Reranking failed, falling back to embedding results: {e}")
-                final_results = [
-                    r for r in initial_results 
-                    if r.score >= ctx.deps.config.chat.similarity_threshold
-                ]
-                LOG.info(f"Filtered {len(initial_results)} initial results to {len(final_results)} with threshold {ctx.deps.config.chat.similarity_threshold}")
-
-            # Build context from final results
-            ctx.state.retrieved_context = RetrievedContext(
-                chunks=[r.document for r in final_results],
-                metadatas=[r.metadata for r in final_results],
-            )
-            
-        except Exception as e:
-            LOG.error(f"Error in context retrieval: {e}")
-            ctx.state.retrieved_context = RetrievedContext(chunks=[], metadatas=[])
-        
-        finally:
-            return AnswerQuestionNode()
 
 @dataclass
 class AnswerQuestionNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
@@ -315,7 +121,7 @@ Remember: Your primary goal is answering the user's specific question, not expla
             system_prompt=self.system_prompt
         )
         
-        if not ctx.state.retrieved_context or not ctx.state.retrieved_context.chunks:
+        if not ctx.state.retrieved_context:
             return End(ChatResult(
                 answer="I couldn't find any relevant code context for your question. "
                       "Could you please rephrase or be more specific?",
@@ -323,14 +129,14 @@ Remember: Your primary goal is answering the user's specific question, not expla
             ))
 
         context = ctx.state.retrieved_context
-        for chunk in context.chunks:
-            chunk = truncate_chunk(chunk, ctx.deps.config.chat.max_length_per_chunk)
+        for single_context in context:
+            chunk = truncate_chunk(single_context.document, ctx.deps.config.chat.max_length_per_chunk)
 
         prompt = f"""
 Question: {ctx.state.original_question}
 
 Relevant Code Context:
-{context.chunks}
+{context}
 
 Provide a focused answer to the question based on the provided context.
 
@@ -352,7 +158,7 @@ Important: Stay focused on answering the specific question asked.
 
 # Create the graph
 chat_graph = Graph(
-    nodes=[PolishQuestionNode, RetrieveContextNode, AnswerQuestionNode]
+    nodes=[KeywordSearchAgentNode, AnswerQuestionNode]
 )
 
 async def process_chat(
@@ -369,8 +175,7 @@ async def process_chat(
     
     try:
         result, _history = await chat_graph.run(
-            # Temporary fix to disable PolishQuestionNode
-            RetrieveContextNode(),
+            KeywordSearchAgentNode(),
             state=state,
             deps=deps
         )
@@ -396,8 +201,7 @@ async def stream_chat_progress(
     state = ChatGraphState(original_question=question)
     deps = ChatGraphDeps(vector_store=vector_store, config=config)
     
-    # Temporary fix to disable PolishQuestionNode
-    start_node = RetrieveContextNode()
+    start_node = KeywordSearchAgentNode()
     history: list[HistoryStep[ChatGraphState, ChatResult]] = []
 
     try:

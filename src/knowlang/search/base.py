@@ -1,7 +1,11 @@
 from __future__ import annotations
 from enum import Enum
-from typing import Any, Dict, List, Protocol, Set
+from typing import Any, Dict, List, Protocol, Set, TYPE_CHECKING
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from knowlang.search.searchable_store import SearchableStore
+    from knowlang.search.query import SearchQuery
 
 class SearchResult(BaseModel):
     """Standardized search result across vector stores"""
