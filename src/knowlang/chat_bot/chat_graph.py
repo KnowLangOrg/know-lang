@@ -21,7 +21,7 @@ from knowlang.vector_stores import VectorStore
 from knowlang.search import SearchResult
 from knowlang.api import ApiModelRegistry
 from knowlang.chat_bot.nodes.base import ChatGraphState, ChatGraphDeps, ChatResult
-from knowlang.search.agents.keyword_search_agent_node import KeywordSearchAgentNode
+from knowlang.search.keyword_search_agent_node import KeywordSearchAgentNode
 
 LOG = FancyLogger(__name__)
 console = Console()
