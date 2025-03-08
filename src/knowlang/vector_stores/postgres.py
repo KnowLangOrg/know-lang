@@ -25,6 +25,7 @@ class PostgresVectorStore(VectorStore):
             table_name=config.collection_name,
             embedding_dim=embedding_config.dimension,
             similarity_metric=config.similarity_metric,
+            content_field=config.content_field
         )
 
     def __init__(
@@ -32,7 +33,8 @@ class PostgresVectorStore(VectorStore):
         connection_string: str,
         table_name: str,
         embedding_dim: int,
-        similarity_metric: Literal['cosine'] = 'cosine'
+        similarity_metric: Literal['cosine'] = 'cosine',
+        content_field: Optional[str] = 'content'
     ):
         super().__init__()
 
@@ -40,6 +42,7 @@ class PostgresVectorStore(VectorStore):
         self.table_name = table_name
         self.embedding_dim = embedding_dim
         self.similarity_metric = similarity_metric
+        self.content_field = content_field
         self.collection = None
 
     def initialize(self) -> None:
@@ -83,6 +86,12 @@ class PostgresVectorStore(VectorStore):
             ids = [str(i) for i in range(len(documents))]
         if len(documents) != len(ids):
             raise VectorStoreError("Number of documents and ids must match.")
+        
+        # Store the document content in metadata's content field
+        for i, doc in enumerate(documents):
+            if i < len(metadatas):
+                metadatas[i][self.content_field] = doc
+        
         vectors = [(id, emb, meta) for id, emb, meta in zip(ids, embeddings, metadatas)]
         self.collection.upsert(records=vectors)
 
@@ -133,6 +142,11 @@ class PostgresVectorStore(VectorStore):
         metadata: Dict[str, Any]
     ) -> None:
         self.assert_initialized()
+        
+        # Store the document content in metadata if content_field is specified
+        if self.content_field and document:
+            metadata[self.content_field] = document
+            
         self.collection.upsert([(id, embedding, metadata)])
 
     async def get_all(self) -> List[SearchResult]:

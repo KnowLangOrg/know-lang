@@ -44,7 +44,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
             table_name=config.collection_name,
             embedding_dim=embedding_config.dimension,
             similarity_metric=config.similarity_metric,
-            content_field=getattr(config, "content_field", "content"),
+            content_field=config.content_field,
         )
 
     def __init__(
@@ -68,24 +68,24 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
             content_field: The metadata field containing text to be searched
             schema: The PostgreSQL schema where the tables are located (default: 'vecs')
         """
-        # Initialize vector store capabilities
+        # Initialize vector store capabilities with content_field
         super().__init__(
             connection_string=connection_string,
             table_name=table_name,
             embedding_dim=embedding_dim,
-            similarity_metric=similarity_metric
+            similarity_metric=similarity_metric,
+            content_field=content_field
         )
         
         # Initialize text search specific attributes
         self.text_search_config = text_search_config
-        self.content_field = content_field
         self.sqlalchemy_url = self.connection_string
         self.schema = schema
         self.engine = None
         self.Session = None 
         
         # Define metadata for direct SQL operations where ORM is not suitable
-        self.metadata = None
+        self.metadata = None 
     
     def _setup_sqlalchemy(self):
         """Initialize SQLAlchemy engine and session"""
