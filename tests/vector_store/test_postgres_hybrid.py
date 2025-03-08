@@ -213,7 +213,7 @@ class TestPostgresHybridStore:
             mock_session.execute.assert_called_once()
             assert len(results) == 3
             for i, (doc_id, metadata, score) in enumerate(mock_results):
-                assert results[i].document == doc_id
+                assert results[i].document == metadata["content"]
                 assert results[i].score == score
                 assert results[i].metadata == metadata
     

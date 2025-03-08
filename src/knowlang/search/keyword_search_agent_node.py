@@ -181,5 +181,6 @@ Please generate a more permissive query with fewer terms or using more OR logic.
                 
         except Exception as e:
             LOG.error(f"Error in keyword search agent: {e}")
+            ctx.state.retrieved_context = []
             # Proceed to next stage despite error
             return AnswerQuestionNode()
