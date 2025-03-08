@@ -223,7 +223,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
                 for id, metadata, rank in results:
                     if rank >= score_threshold:
                         search_results.append(SearchResult(
-                            document=id,
+                            document=metadata.get(self.content_field, ''),
                             metadata=metadata,
                             score=float(rank)
                         ))
