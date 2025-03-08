@@ -1,10 +1,11 @@
-from typing import Literal, List
+from typing import Literal, List, Optional
 from sqlalchemy import Column, Index, MetaData, String, Table, Text, column, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.types import UserDefinedType
 from sqlalchemy.schema import DDL
+from sqlalchemy import inspect
 
 from knowlang.vector_stores.factory import register_vector_store
 from knowlang.vector_stores.base import VectorStoreError, VectorStoreInitError, SearchResult
@@ -43,7 +44,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
             table_name=config.collection_name,
             embedding_dim=embedding_config.dimension,
             similarity_metric=config.similarity_metric,
-            content_field=getattr(config, "content_field", "content"),
+            content_field=config.content_field,
         )
 
     def __init__(
@@ -53,7 +54,8 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
         embedding_dim: int,
         similarity_metric: Literal['cosine'] = 'cosine',
         text_search_config: str = "english",
-        content_field: str = "content"
+        content_field: str = "content",
+        schema: str = "vecs"
     ):
         """Initialize the hybrid store with both vector and text search capabilities.
         
@@ -64,25 +66,26 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
             similarity_metric: Vector similarity metric to use
             text_search_config: PostgreSQL text search configuration
             content_field: The metadata field containing text to be searched
+            schema: The PostgreSQL schema where the tables are located (default: 'vecs')
         """
-        # Initialize vector store capabilities
+        # Initialize vector store capabilities with content_field
         super().__init__(
             connection_string=connection_string,
             table_name=table_name,
             embedding_dim=embedding_dim,
-            similarity_metric=similarity_metric
+            similarity_metric=similarity_metric,
+            content_field=content_field
         )
         
         # Initialize text search specific attributes
         self.text_search_config = text_search_config
-        self.content_field = content_field
         self.sqlalchemy_url = self.connection_string
+        self.schema = schema
         self.engine = None
         self.Session = None 
         
         # Define metadata for direct SQL operations where ORM is not suitable
-        self.metadata = None
-        self.vecs_table = None
+        self.metadata = None 
     
     def _setup_sqlalchemy(self):
         """Initialize SQLAlchemy engine and session"""
@@ -92,20 +95,9 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
                 self.Session = sessionmaker(bind=self.engine)
                 
                 # Set up metadata for direct table operations
-                self.metadata = MetaData()
+                self.metadata = MetaData(schema=self.schema)
                 
-                # Define the table structure to match what vecs creates
-                # This is for metadata access only, not for creating tables
-                self.vecs_table = Table(
-                    self.table_name,
-                    self.metadata,
-                    Column('id', String, primary_key=True),
-                    Column('metadata', JSONB),
-                    Column('embedding', Vector),  # We don't directly use this
-                    Column('tsv', TSVECTOR)  # Will be added in initialize()
-                )
-                
-                LOG.info(f"SQLAlchemy engine initialized for {self.table_name}")
+                LOG.info(f"SQLAlchemy engine initialized for {self.schema}.{self.table_name}")
             except Exception as e:
                 raise VectorStoreInitError(f"Failed to initialize SQLAlchemy: {str(e)}") from e
 
@@ -114,39 +106,58 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
         super().initialize()
         self._setup_sqlalchemy()
 
-        with self.Session() as session:
-            # Check if table exists using SQLAlchemy
-            # inspector can't really check for tsvector columns
-            if not self.table_name in self.vecs_table.metadata.tables:
-                raise VectorStoreInitError(f"Table {self.table_name} does not exist. vecs should create it.")
-            
-            # Check if tsvector column exists
-            columns = self.vecs_table.columns
-            column_names = [col.name for col in columns]
-            
-            if 'tsv' not in column_names:
-                LOG.info(f"Adding tsv column to {self.table_name}")
+        try:
+            with self.Session() as session:
+                # Use proper SQLAlchemy inspection to check if table exists
+                inspector = inspect(self.engine)
                 
-                # Add tsvector column for text search
-                tsv_ddl = DDL(
-                    f"ALTER TABLE {self.table_name} "
-                    f"ADD COLUMN tsv tsvector GENERATED ALWAYS AS "
-                    f"(to_tsvector('{self.text_search_config}', "
-                    f"COALESCE((metadata->>'{self.content_field}')::text, ''))) STORED"
-                )
-                session.execute(tsv_ddl)
+                if not inspector.has_table(self.table_name, schema=self.schema):
+                    raise VectorStoreInitError(
+                        f"Table {self.schema}.{self.table_name} does not exist. vecs should create it."
+                    )
                 
-                # Create GIN index programmatically
-                idx_name = f"idx_{self.table_name}_tsv"
-                idx = Index(
-                    idx_name,
-                    text(f"tsv"),
-                    postgresql_using='gin'
-                )
-                idx.create(bind=self.engine)
+                # Get actual columns from the database - specify schema
+                columns = inspector.get_columns(self.table_name, schema=self.schema)
+                column_names = [col['name'] for col in columns]
                 
-                session.commit()
-                LOG.info(f"Added tsvector column and index to {self.table_name}")
+                if 'tsv' not in column_names:
+                    LOG.info(f"Adding tsv column to {self.schema}.{self.table_name}")
+                    
+                    # Add tsvector column for text search - fully qualify table name with schema
+                    tsv_ddl = DDL(
+                        f"ALTER TABLE {self.schema}.{self.table_name} "
+                        f"ADD COLUMN tsv tsvector GENERATED ALWAYS AS "
+                        f"(to_tsvector('{self.text_search_config}', "
+                        f"COALESCE((metadata->>'{self.content_field}')::text, ''))) STORED"
+                    )
+                    session.execute(tsv_ddl)
+                    session.commit()
+                    
+                    # Create GIN index programmatically - specify schema
+                    idx_name = f"idx_{self.table_name}_tsv"
+                    # Note: Index creation needs schema specified in the Table object
+                    table = Table(
+                        self.table_name, 
+                        self.metadata,
+                        Column('tsv', TSVECTOR),
+                        schema=self.schema
+                    )
+                    idx = Index(
+                        idx_name,
+                        table.c.tsv,
+                        postgresql_using='gin'
+                    )
+                    idx.create(bind=self.engine)
+                    
+                    session.commit()
+                    LOG.info(f"Added tsvector column and index to {self.schema}.{self.table_name}")
+                else:
+                    LOG.info(f"tsv column already exists in {self.schema}.{self.table_name}")
+        except Exception as e:
+            if isinstance(e, VectorStoreInitError):
+                raise 
+            LOG.error(f"Error initializing tsvector column: {e}")
+            raise VectorStoreInitError(f"Failed to initialize tsvector column: {str(e)}") from e
 
     def has_capability(self, methodology: SearchMethodology) -> bool:
         """Check if this store supports a specific search methodology."""
@@ -182,13 +193,24 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
                 # Convert the query to a tsquery expression
                 tsquery = func.plainto_tsquery(self.text_search_config, query)
                 
+                # Define the table structure for querying - include schema
+                table = Table(
+                    self.table_name,
+                    MetaData(schema=self.schema),
+                    Column('id', String, primary_key=True),
+                    Column('metadata', JSONB),
+                    Column('tsv', TSVECTOR),
+                    schema=self.schema,
+                    extend_existing=True
+                )
+                
                 # Build the SQL query
                 sql_query = select(
-                    self.vecs_table.c.id,
-                    self.vecs_table.c.metadata,
-                    func.ts_rank(self.vecs_table.c.tsv, tsquery).label('rank')
+                    table.c.id,
+                    table.c.metadata,
+                    func.ts_rank(table.c.tsv, tsquery).label('rank')
                 ).where(
-                    self.vecs_table.c.tsv.op('@@')(tsquery)
+                    table.c.tsv.op('@@')(tsquery)
                 ).order_by(
                     column('rank').desc()
                 ).limit(top_k)

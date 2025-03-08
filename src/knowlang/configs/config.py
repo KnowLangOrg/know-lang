@@ -169,6 +169,10 @@ class DBConfig(BaseSettings):
         default='cosine',
         description="Similarity metric for vector search"
     )
+    content_field: Optional[str] = Field(
+        default='content',
+        description="Field to store the actual content in the vector store"
+    )
     state_store: StateStoreConfig = Field(default_factory=StateStoreConfig)
 
 class RerankerConfig(BaseSettings):

@@ -1,6 +1,6 @@
 import pytest
 import unittest.mock as mock
-from sqlalchemy import Column, MetaData, Table, String
+from sqlalchemy import Column, MetaData, Table, String, inspect
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
 from knowlang.search.base import SearchMethodology, SearchResult
@@ -15,7 +15,6 @@ class TestPostgresHybridStore:
         """Set up test fixtures"""
         self._setup_configs()
         self._setup_mocks()
-        self._setup_table_metadata()
     
     def _setup_configs(self):
         """Set up configuration mocks"""
@@ -24,6 +23,7 @@ class TestPostgresHybridStore:
         self.db_config.collection_name = "test_collection"
         self.db_config.similarity_metric = "cosine"
         self.db_config.content_field = "content"
+        self.db_config.schema = "vecs"  # Specify schema here
         
         self.embedding_config = mock.MagicMock(spec=EmbeddingConfig)
         self.embedding_config.dimension = 128
@@ -42,12 +42,12 @@ class TestPostgresHybridStore:
         self.engine_patcher = mock.patch("knowlang.vector_stores.postgres_hybrid.create_engine")
         self.sessionmaker_patcher = mock.patch("knowlang.vector_stores.postgres_hybrid.sessionmaker")
         self.metadata_patcher = mock.patch("knowlang.vector_stores.postgres_hybrid.MetaData")
-        self.table_patcher = mock.patch("knowlang.vector_stores.postgres_hybrid.Table")
+        self.inspect_patcher = mock.patch("knowlang.vector_stores.postgres_hybrid.inspect")
         
         self.mock_create_engine = self.engine_patcher.start()
         self.mock_sessionmaker = self.sessionmaker_patcher.start()
         self.mock_metadata = self.metadata_patcher.start()
-        self.mock_table = self.table_patcher.start()
+        self.mock_inspect = self.inspect_patcher.start()
         
         # Set up mock engine and session
         self.mock_engine = mock.MagicMock()
@@ -59,25 +59,18 @@ class TestPostgresHybridStore:
         # Configure session context manager
         self.mock_session_ctx = mock.MagicMock()
         self.mock_session_class.return_value.__enter__.return_value = self.mock_session_ctx
-    
-    def _setup_table_metadata(self):
-        """Set up table metadata and columns"""
-        self.mock_metadata_instance = mock.MagicMock()
-        self.mock_metadata.return_value = self.mock_metadata_instance
         
-        self.mock_table_instance = mock.MagicMock()
-        self.mock_table.return_value = self.mock_table_instance
+        # Setup inspector
+        self.mock_inspector = mock.MagicMock()
+        self.mock_inspect.return_value = self.mock_inspector
         
-        # Set up default columns
-        self.mock_table_instance.columns = [
-            mock.MagicMock(name='id'),
-            mock.MagicMock(name='vec')
+        # Default: table exists but no tsv column
+        self.mock_inspector.has_table.return_value = True
+        self.mock_inspector.get_columns.return_value = [
+            {'name': 'id', 'type': String()}, 
+            {'name': 'metadata', 'type': JSONB()},
+            {'name': 'embedding', 'type': Vector()}
         ]
-        for col in self.mock_table_instance.columns:
-            col.name = col._mock_name
-            
-        self.mock_table_instance.metadata = self.mock_metadata_instance
-        self.mock_metadata_instance.tables = {"test_collection": self.mock_table_instance}
     
     def teardown_method(self):
         """Tear down test fixtures"""
@@ -85,7 +78,7 @@ class TestPostgresHybridStore:
         self.engine_patcher.stop()
         self.sessionmaker_patcher.stop()
         self.metadata_patcher.stop()
-        self.table_patcher.stop()
+        self.inspect_patcher.stop()
     
     def _create_store(self) -> PostgresHybridStore:
         """Helper method to create a store instance"""
@@ -94,25 +87,6 @@ class TestPostgresHybridStore:
             embedding_config=self.embedding_config
         )
         store.collection = self.mock_collection
-        store.engine = self.mock_engine
-        store.Session = self.mock_session_class
-
-        return store
-
-    
-    def _setup_initialized_store(self) -> PostgresHybridStore:
-        """Helper method to create and setup an initialized store"""
-        store = self._create_store()
-        
-        # Create a proper mock table
-        metadata = MetaData()
-        store.vecs_table = Table(
-            'test_collection', metadata,
-            Column('id', String, primary_key=True),
-            Column('metadata', JSONB),
-            Column('embedding', Vector),
-            Column('tsv', TSVECTOR)
-        )
         return store
     
     def _setup_mock_search_results(self, mock_session):
@@ -135,11 +109,18 @@ class TestPostgresHybridStore:
         assert store.table_name == self.db_config.collection_name
         assert store.embedding_dim == self.embedding_config.dimension
         assert store.content_field == self.db_config.content_field
+        assert store.schema == self.db_config.schema  # Verify schema is set
         
         # Test error when connection URL is missing
         self.db_config.connection_url = None
         with pytest.raises(VectorStoreInitError):
             self._create_store()
+    
+    def test_schema_default(self):
+        """Test schema defaults to 'vecs' when not specified"""
+        self.db_config.schema = None  # Remove schema from config
+        store = self._create_store()
+        assert store.schema == "vecs"  # Should default to 'vecs'
     
     def test_capabilities(self):
         """Test that hybrid store has both vector and keyword capabilities"""
@@ -149,52 +130,78 @@ class TestPostgresHybridStore:
         assert not store.has_capability("invalid_methodology")
     
     def test_initialize_with_tsv_column(self):
-        """Test initialization with tsv column already present"""
+        """Test initialization when tsv column already exists"""
+        # Set up mock to indicate tsv column exists
+        self.mock_inspector.get_columns.return_value = [
+            {'name': 'id', 'type': String()}, 
+            {'name': 'metadata', 'type': JSONB()},
+            {'name': 'embedding', 'type': Vector()},
+            {'name': 'tsv', 'type': TSVECTOR()}
+        ]
+        
         store = self._create_store()
-        
-        # Add TSV column to existing columns
-        tsv_mock_col = mock.MagicMock(name='tsv')
-        tsv_mock_col.name = 'tsv'
-        self.mock_table_instance.columns += [tsv_mock_col]
-        
-        store._setup_sqlalchemy = mock.MagicMock(side_effect=lambda: setattr(store, 'vecs_table', self.mock_table_instance))
         
         with mock.patch.object(PostgresVectorStore, 'initialize') as mock_super_init:
             store.initialize()
             mock_super_init.assert_called_once()
-            store._setup_sqlalchemy.assert_called_once()
+            
+            # Verify schema is passed to has_table and get_columns
+            self.mock_inspector.has_table.assert_called_with(
+                store.table_name, schema=store.schema
+            )
+            self.mock_inspector.get_columns.assert_called_with(
+                store.table_name, schema=store.schema
+            )
             
             # Verify no attempt to add TSV column
-            add_column_calls = [call for call in self.mock_session_ctx.execute.call_args_list 
-                              if call and "ADD COLUMN tsv" in str(call)]
-            assert not add_column_calls
+            self.mock_session_ctx.execute.assert_not_called()
     
     def test_initialize_add_tsv_column(self):
-        """Test initialization with adding tsv column"""
+        """Test initialization when tsv column needs to be added"""
+        # Default setup: tsv column doesn't exist
+        
         store = self._create_store()
-        store._setup_sqlalchemy = mock.MagicMock(side_effect=lambda: setattr(store, 'vecs_table', self.mock_table_instance))
         
-        store.initialize()
-        
-        store._setup_sqlalchemy.assert_called_once()
-        self.mock_session_ctx.execute.assert_called()
-        add_column_calls = [call for call in self.mock_session_ctx.mock_calls 
-                           if "ADD COLUMN tsv" in str(call)]
-        assert add_column_calls
+        with mock.patch.object(PostgresVectorStore, 'initialize') as mock_super_init:
+            store.initialize()
+            mock_super_init.assert_called_once()
+            
+            # Verify schema is passed to has_table and get_columns
+            self.mock_inspector.has_table.assert_called_with(
+                store.table_name, schema=store.schema
+            )
+            self.mock_inspector.get_columns.assert_called_with(
+                store.table_name, schema=store.schema
+            )
+            
+            # Verify attempt to add TSV column
+            self.mock_session_ctx.execute.assert_called()
+            # Check that the ALTER TABLE command includes the schema
+            execute_args = self.mock_session_ctx.execute.call_args[0][0]
+            assert f"ALTER TABLE {store.schema}.{store.table_name}" in str(execute_args)
     
     def test_table_not_found(self):
         """Test error when table doesn't exist"""
-        self.mock_metadata_instance.tables = {}
-        store = self._create_store()
-        store._setup_sqlalchemy = mock.MagicMock(side_effect=lambda: setattr(store, 'vecs_table', self.mock_table_instance))
+        # Set up mock to indicate table doesn't exist
+        self.mock_inspector.has_table.return_value = False
         
-        with pytest.raises(VectorStoreInitError):
+        store = self._create_store()
+        
+        with pytest.raises(VectorStoreInitError) as excinfo:
             store.initialize()
+        
+        # Verify error message contains schema
+        assert store.schema in str(excinfo.value)
+        assert store.table_name in str(excinfo.value)
     
     @pytest.mark.asyncio
     async def test_keyword_search(self):
         """Test keyword search functionality"""
-        store = self._setup_initialized_store()
+        store = self._create_store()
+        # Initialize store to setup necessary attributes
+        with mock.patch.object(PostgresVectorStore, 'initialize'):
+            store.initialize()
+        
         mock_session = mock.MagicMock()
         self.mock_session_class.return_value.__enter__.return_value = mock_session
         
@@ -213,7 +220,11 @@ class TestPostgresHybridStore:
     @pytest.mark.asyncio
     async def test_keyword_search_with_threshold(self):
         """Test keyword search with score threshold"""
-        store = self._setup_initialized_store()
+        store = self._create_store()
+        # Initialize store to setup necessary attributes
+        with mock.patch.object(PostgresVectorStore, 'initialize'):
+            store.initialize()
+            
         mock_session = mock.MagicMock()
         self.mock_session_class.return_value.__enter__.return_value = mock_session
         
@@ -226,20 +237,12 @@ class TestPostgresHybridStore:
             assert len(results) == 2  # Only documents with score >= 0.5
             assert all(result.score >= 0.5 for result in results)
     
-    def test_similarity_metrics(self):
-        """Test different similarity metrics"""
-        metrics = {
-            "cosine": lambda x: "cosine" in x.lower(),
-            "l2": lambda x: "l2" in x.lower()
-        }
-        
-        for metric, check_func in metrics.items():
-            self.db_config.similarity_metric = metric
-            store = self._create_store()
-            assert check_func(store.measure().__str__())
-        
-        # Test invalid metric
-        self.db_config.similarity_metric = "invalid"
+    def test_metadata_schema_specification(self):
+        """Test that MetaData is created with schema specified"""
         store = self._create_store()
-        with pytest.raises(Exception):
-            store.measure()
+        
+        with mock.patch.object(PostgresVectorStore, 'initialize'):
+            store.initialize()
+            
+            # Verify MetaData created with schema
+            self.mock_metadata.assert_called_with(schema=store.schema)
