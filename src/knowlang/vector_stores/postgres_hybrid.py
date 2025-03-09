@@ -1,7 +1,7 @@
-from typing import Literal, List, Optional
-from sqlalchemy import Column, Index, MetaData, String, Table, Text, column, func, select, text
+from typing import Literal, List
+from sqlalchemy import Column, Index, MetaData, String, Table, column, func, select
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.types import UserDefinedType
 from sqlalchemy.schema import DDL
@@ -223,7 +223,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
                 for id, metadata, rank in results:
                     if rank >= score_threshold:
                         search_results.append(SearchResult(
-                            document=id,
+                            document=metadata.get(self.content_field, ''),
                             metadata=metadata,
                             score=float(rank)
                         ))

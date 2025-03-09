@@ -97,9 +97,11 @@ class CodeQAChatInterface:
                     current_progress = None
 
                 # Add code blocks before final answer if not added yet
-                if not code_blocks_added and result.retrieved_context and result.retrieved_context.metadatas:
+                if not code_blocks_added and result.retrieved_context:
                     total_code_blocks = []
-                    for chunk, metadata in zip(result.retrieved_context.chunks, result.retrieved_context.metadatas):
+                    for search in result.retrieved_context:
+                        chunk = search.document
+                        metadata = search.metadata
                         code_block = self._format_code_block(chunk, metadata)
                         if code_block:
                             total_code_blocks.append(code_block)
