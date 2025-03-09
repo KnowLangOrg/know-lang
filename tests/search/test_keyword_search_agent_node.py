@@ -1,4 +1,3 @@
-# test_keyword_search_agent_node.py
 from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from pydantic_graph import GraphRunContext
@@ -36,6 +35,11 @@ def mock_keyword_store():
     # Return our configured mock
     return store
 
+# KeywordSearchAgentNode._agent_instance, a class variable, is shared across tests
+# This fixture resets it to None after each test to avoid the tests interfering with each other
+@pytest.fixture(autouse=True)
+def reset_agent_instance():
+    KeywordSearchAgentNode._agent_instance = None
 
 @pytest.mark.asyncio
 @patch('knowlang.search.keyword_search_agent_node.Agent')
@@ -55,9 +59,11 @@ async def test_keyword_search_agent_node_success(mock_agent_class, mock_config, 
 
     # Configure search to return specific results
     mock_keyword_store.search.return_value = [
-        SearchResult(document="def keyword_search(): pass", 
-                   metadata={"file_path": "test1.py", "start_line": 1, "end_line": 2}, 
-                   score=0.9)
+        SearchResult(
+            document="def keyword_search(): pass", 
+            metadata={"file_path": "test1.py", "start_line": 1, "end_line": 2}, 
+            score=0.9
+        )
     ]
 
     # Run the node
@@ -159,7 +165,6 @@ async def test_keyword_search_agent_node_max_retries(mock_agent_class, mock_conf
     assert isinstance(ctx.state.retrieved_context, list)
     assert len(ctx.state.retrieved_context) == 0
 
-@pytest.mark.skip(reason="Not Fixed Yet")
 @pytest.mark.asyncio
 @patch('knowlang.search.keyword_search_agent_node.Agent')
 async def test_keyword_search_agent_node_error_handling(mock_agent_class, mock_config, mock_keyword_store):
@@ -181,14 +186,11 @@ async def test_keyword_search_agent_node_error_handling(mock_agent_class, mock_c
     # Run the node and check it still proceeds to the answer node
     next_node = await node.run(ctx)
     
-    
-    # FIXED: Instead of checking for None, check that retrieved_context is an empty list
+    assert isinstance(next_node, AnswerQuestionNode)
     assert isinstance(ctx.state.retrieved_context, list)
     assert len(ctx.state.retrieved_context) == 0
-    assert isinstance(next_node, AnswerQuestionNode)
 
 
-@pytest.mark.skip(reason="Not Fixed Yet")
 @pytest.mark.asyncio
 async def test_extract_keywords_method(mock_config, mock_keyword_store):
     """Test the _extract_keywords method directly"""
