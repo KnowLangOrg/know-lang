@@ -13,6 +13,8 @@ class GraphCodeBertMode(str, Enum):
     BI_ENCODER = "bi-encoder"
     CROSS_ENCODER = "cross-encoder"
 
+GRAPH_CODE_BERT_MAX_LENGTH = 512
+
 @lru_cache(maxsize=8)
 def _get_model_and_tokenizer(
     model_path: str, 
@@ -80,7 +82,7 @@ def generate_embeddings(
                 text,
                 padding="max_length",
                 truncation=True,
-                max_length=512,
+                max_length=GRAPH_CODE_BERT_MAX_LENGTH,
                 return_tensors="pt"
             ).to(device)
             
@@ -123,7 +125,7 @@ def calculate_relevance_scores(
                 code,
                 padding="max_length",
                 truncation=True,
-                max_length=512,
+                max_length=GRAPH_CODE_BERT_MAX_LENGTH,
                 return_tensors="pt"
             ).to(device)
             
