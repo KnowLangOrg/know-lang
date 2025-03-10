@@ -47,9 +47,10 @@ CHAT__MAX_LENGTH_PER_CHUNK=8000
 
 # Embedding Configuration
 # Settings for text embedding generation
-EMBEDDING__MODEL_NAME=mxbai-embed-large
-EMBEDDING__MODEL_PROVIDER=ollama
+EMBEDDING__MODEL_NAME=microsoft/graphcodebert-base
+EMBEDDING__MODEL_PROVIDER=graph_code_bert
 EMBEDDING__API_KEY=your_api_key
+EMBEDDING__DIMENSION=768 # default dimension of graphcodebert
 
 # Chat Analytics Configuration
 # Settings for analytics tracking
