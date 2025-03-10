@@ -13,7 +13,7 @@ from knowlang.chat_bot.chat_graph import (
     ChatStatus,
     stream_chat_progress
 )
-from knowlang.search.keyword_search_agent_node import KeywordSearchAgentNode
+from knowlang.search.search_graph.keyword_search_agent_node import KeywordSearchAgentNode
 
 
 @pytest.mark.asyncio

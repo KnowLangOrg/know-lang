@@ -7,7 +7,7 @@ from knowlang.chat_bot.nodes.base import ChatGraphDeps, ChatGraphState
 from knowlang.configs.config import AppConfig, LLMConfig
 from knowlang.core.types import ModelProvider
 from knowlang.search import SearchResult
-from knowlang.search.keyword_search_agent_node import KeywordSearchAgentNode, KeywordExtractionResult
+from knowlang.search.search_graph.keyword_search_agent_node import KeywordSearchAgentNode, KeywordExtractionResult
 from knowlang.search.keyword_search import KeywordSearchableStore
 from knowlang.search.query import KeywordQuery
 from knowlang.search.base import SearchMethodology
