@@ -25,12 +25,12 @@ class FirstStageNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
             if ctx.deps.config.retrieval.keyword_search.enabled:
                 # Create keyword search graph
                 keyword_graph = Graph(nodes=[KeywordSearchAgentNode])
-                await keyword_graph.run(ctx, state=ctx.state, deps=ctx.deps)
+                await keyword_graph.run(KeywordSearchAgentNode(), state=ctx.state, deps=ctx.deps)
             
             if ctx.deps.config.retrieval.vector_search.enabled:
                 # Create vector search graph
                 vector_graph = Graph(nodes=[VectorSearchAgentNode])
-                await vector_graph.run(ctx, state=ctx.state, deps=ctx.deps)
+                await vector_graph.run(VectorSearchAgentNode(), state=ctx.state, deps=ctx.deps)
 
             
             # If no results found, return early

@@ -205,7 +205,8 @@ Please generate a more general query with broader terms or additional synonyms."
                 score_threshold=score_threshold
             )
             
-            ctx.state.search_results += results
+            if results:
+                ctx.state.search_results += results
 
             # Check if we do have results
             if results or self.attempts >= max_retries - 1:

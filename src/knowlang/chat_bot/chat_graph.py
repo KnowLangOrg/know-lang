@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, List, Optional, Union
 import logfire
 from pydantic import BaseModel
 from pydantic_ai import Agent
@@ -21,7 +21,7 @@ from knowlang.vector_stores import VectorStore
 from knowlang.search import SearchResult
 from knowlang.api import ApiModelRegistry
 from knowlang.chat_bot.nodes.base import ChatGraphState, ChatGraphDeps, ChatResult
-from knowlang.search.search_graph.keyword_search_agent_node import KeywordSearchAgentNode
+from knowlang.search.search_graph.graph import search_graph
 
 LOG = FancyLogger(__name__)
 console = Console()
@@ -47,11 +47,11 @@ class StreamingChatResult(BaseModel):
     @classmethod
     def from_node(cls, node: BaseNode, state: ChatGraphState) -> StreamingChatResult:
         """Create a StreamingChatResult from a node's current state"""
-        if isinstance(node, KeywordSearchAgentNode):
+        if isinstance(node, RetrievalNode):
             return cls(
                 answer="",
                 status=ChatStatus.RETRIEVING,
-                progress_message=f"Searching codebase with: '{state.polished_question or state.original_question}'"
+                progress_message=f"Searching codebase with: '{state.original_question}'"
             )
         elif isinstance(node, AnswerQuestionNode):
             context_msg = f"Found {len(state.retrieved_context)} relevant segments" if state.retrieved_context else "No context found"
@@ -86,6 +86,22 @@ class StreamingChatResult(BaseModel):
             status=ChatStatus.ERROR,
             progress_message=f"An error occurred: {error_msg}"
         )
+
+@dataclass
+class RetrievalNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
+    """Base node for search operations"""
+    async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> Union['AnswerQuestionNode']:
+        from knowlang.search.search_graph.base import SearchDeps, SearchState
+        from knowlang.search.search_graph.graph import FirstStageNode
+        search_graph_result, _history = await search_graph.run(
+            start_node=FirstStageNode(),
+            state=SearchState(query=ctx.state.original_question),
+            deps=SearchDeps(
+                store=ctx.deps.vector_store,
+                config=ctx.deps.config
+        ))
+        ctx.state.retrieved_context = search_graph_result.search_results
+        return AnswerQuestionNode()
 
 
 
@@ -156,7 +172,7 @@ Important: Stay focused on answering the specific question asked.
 
 # Create the graph
 chat_graph = Graph(
-    nodes=[KeywordSearchAgentNode, AnswerQuestionNode]
+    nodes=[RetrievalNode, AnswerQuestionNode]
 )
 
 async def process_chat(
@@ -173,7 +189,7 @@ async def process_chat(
     
     try:
         result, _history = await chat_graph.run(
-            KeywordSearchAgentNode(),
+            RetrievalNode(),
             state=state,
             deps=deps
         )
@@ -199,7 +215,7 @@ async def stream_chat_progress(
     state = ChatGraphState(original_question=question)
     deps = ChatGraphDeps(vector_store=vector_store, config=config)
     
-    start_node = KeywordSearchAgentNode()
+    start_node = RetrievalNode()
     history: list[HistoryStep[ChatGraphState, ChatResult]] = []
 
     try:

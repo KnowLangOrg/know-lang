@@ -164,7 +164,8 @@ Please generate a more permissive query with fewer terms or using more OR logic.
             )
             
             # Store results in state
-            ctx.state.search_results.append(results)
+            if results:
+                ctx.state.search_results += results
             
             # Check if we do have results
             if results or self.attempts >= max_retries - 1:

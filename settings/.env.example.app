@@ -14,12 +14,12 @@ EVALUATOR__EVALUATION_ROUNDS=1
 
 # Reranker Configuration
 # Settings for result reranking
-RERANKER__ENABLED=false
-RERANKER__MODEL_NAME=rerank-2
-RERANKER__MODEL_PROVIDER=voyage
+RERANKER__ENABLED=true
+RERANKER__MODEL_NAME=microsoft/graphcodebert-base
+RERANKER__MODEL_PROVIDER=graph_code_bert
 RERANKER__API_KEY=your_api_key
-RERANKER__TOP_K=4
-RERANKER__RELEVANCE_THRESHOLD=0.5
+RERANKER__TOP_K=5
+RERANKER__RELEVANCE_THRESHOLD=0.1
 
 # Database Configuration
 # ChromaDB and codebase settings
