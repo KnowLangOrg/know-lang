@@ -1,11 +1,11 @@
 import pytest
-from unittest.mock import patch, Mock, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock, MagicMock
 from pydantic_graph import GraphRunContext, End
 
 from knowlang.configs.config import AppConfig, LLMConfig, RerankerConfig
 from knowlang.configs.retrieval_config import MultiStageRetrievalConfig, SearchConfig
 from knowlang.core.types import ModelProvider
-from knowlang.search.base import SearchResult, SearchMethodology
+from knowlang.search.base import SearchResult 
 from knowlang.search.search_graph.base import SearchState, SearchDeps, SearchOutputs
 from knowlang.search.search_graph.graph import FirstStageNode, RerankerNode, search_graph
 
