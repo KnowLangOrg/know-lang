@@ -178,15 +178,15 @@ class DBConfig(BaseSettings):
 
 class RerankerConfig(BaseSettings):
     enabled: bool = Field(
-        default=False,
+        default=True,
         description="Enable reranking"
     )
     model_name: str = Field(
-        default="reranker",
+        default="microsoft/graphcodebert-base",
         description="Name of the reranker model to use"
     )
     model_provider: str = Field(
-        default=ModelProvider.OLLAMA,
+        default=ModelProvider.GRAPH_CODE_BERT,
         description="Model provider (anthropic, openai, ollama, etc)"
     )
     api_key: Optional[str] = Field(

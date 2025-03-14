@@ -4,16 +4,15 @@ from typing import List, Optional, TYPE_CHECKING, Union
 import logfire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
-from pydantic_graph import BaseNode, GraphRunContext
+from pydantic_graph import BaseNode, GraphRunContext, End
 
-from knowlang.chat_bot.nodes.base import ChatGraphDeps, ChatGraphState, ChatResult
+from knowlang.search.base import SearchMethodology
 from knowlang.search.keyword_search import KeywordSearchableStore
 from knowlang.search.query import KeywordQuery
+from knowlang.search.search_graph.base import SearchState, SearchDeps, SearchOutputs
 from knowlang.search import SearchResult
 from knowlang.utils import FancyLogger, create_pydantic_model
 
-if TYPE_CHECKING:
-    from knowlang.chat_bot.chat_graph import AnswerQuestionNode
 
 LOG = FancyLogger(__name__)
 
@@ -23,7 +22,7 @@ class KeywordExtractionResult(BaseModel):
     logic: str = Field(description="The logic type used: 'AND' or 'OR'")
     
 @dataclass
-class KeywordSearchAgentNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
+class KeywordSearchAgentNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
     """Node that uses an agent to extract keywords from user queries for Postgres tsquery search.
     
     This node is recursive - it will call itself with adjusted parameters if too few results are found.
@@ -66,7 +65,7 @@ Output: search & (result | ranking | rank | score)
 If I tell you that previous keywords returned too few results, use more permissive OR logic and fewer terms.
 """
 
-    def _get_agent(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> Agent:
+    def _get_agent(self, ctx: GraphRunContext[SearchState, SearchDeps]) -> Agent:
         """Get or create the agent instance"""
         if self.__class__._agent_instance is None:
             self.__class__._agent_instance = Agent(
@@ -79,7 +78,7 @@ If I tell you that previous keywords returned too few results, use more permissi
         return self.__class__._agent_instance
     
     async def _extract_keywords(self, 
-                               ctx: GraphRunContext[ChatGraphState, ChatGraphDeps],
+                               ctx: GraphRunContext[SearchState, SearchDeps],
                                question: str, 
                                too_few_results: bool = False) -> KeywordExtractionResult:
         """Use an agent to extract keywords from the user's question"""
@@ -129,11 +128,10 @@ Please generate a more permissive query with fewer terms or using more OR logic.
             LOG.warning(f"Keyword search failed: {e}")
             return []
     
-    async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> Union['AnswerQuestionNode', 'KeywordSearchAgentNode']:
-        from knowlang.chat_bot.chat_graph import AnswerQuestionNode
+    async def run(self, ctx: GraphRunContext[SearchState, SearchDeps]) -> Union['End', 'KeywordSearchAgentNode']:
         """Run the keyword search agent node"""
         # Get the query
-        question = ctx.state.polished_question or ctx.state.original_question
+        question = ctx.state.query
         max_retries = ctx.deps.config.retrieval.keyword_search.max_retries
         
         try:
@@ -141,7 +139,7 @@ Please generate a more permissive query with fewer terms or using more OR logic.
             if self.attempts >= max_retries:
                 LOG.warning(f"Reached maximum keyword search attempts ({max_retries})")
                 # Even with no results, proceed to next stage
-                return AnswerQuestionNode()
+                return End(SearchOutputs(search_results=[]))
             
             # Extract keywords
             keyword_result = await self._extract_keywords(
@@ -151,6 +149,9 @@ Please generate a more permissive query with fewer terms or using more OR logic.
             )
             
             LOG.info(f"Extracted keywords: {keyword_result.query} (logic: {keyword_result.logic})")
+
+            # Store into search state
+            ctx.state.refined_queries[SearchMethodology.KEYWORD].append(keyword_result.query)
             
             # Store the query for potential future recursion
             self.previous_query = keyword_result.query
@@ -158,18 +159,19 @@ Please generate a more permissive query with fewer terms or using more OR logic.
             # Perform the search
             results = await self._perform_keyword_search(
                 query=keyword_result.query,
-                vector_store=ctx.deps.vector_store,
+                vector_store=ctx.deps.store,
                 top_k=ctx.deps.config.retrieval.keyword_search.top_k
             )
             
             # Store results in state
-            ctx.state.retrieved_context = results
+            if results:
+                ctx.state.search_results += results
             
             # Check if we do have results
             if results or self.attempts >= max_retries - 1:
                 # Proceed to next stage
                 LOG.info(f"Found {len(results)} results, proceeding to next stage")
-                return AnswerQuestionNode()
+                return End(SearchOutputs(search_results=results))
             else:
                 # Try again with more permissive keywords
                 self.attempts += 1
@@ -181,6 +183,5 @@ Please generate a more permissive query with fewer terms or using more OR logic.
                 
         except Exception as e:
             LOG.error(f"Error in keyword search agent: {e}")
-            ctx.state.retrieved_context = []
             # Proceed to next stage despite error
-            return AnswerQuestionNode()
+            return End(SearchOutputs(search_results=[]))

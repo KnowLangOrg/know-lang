@@ -14,12 +14,12 @@ EVALUATOR__EVALUATION_ROUNDS=1
 
 # Reranker Configuration
 # Settings for result reranking
-RERANKER__ENABLED=false
-RERANKER__MODEL_NAME=rerank-2
-RERANKER__MODEL_PROVIDER=voyage
+RERANKER__ENABLED=true
+RERANKER__MODEL_NAME=microsoft/graphcodebert-base
+RERANKER__MODEL_PROVIDER=graph_code_bert
 RERANKER__API_KEY=your_api_key
-RERANKER__TOP_K=4
-RERANKER__RELEVANCE_THRESHOLD=0.5
+RERANKER__TOP_K=5
+RERANKER__RELEVANCE_THRESHOLD=0.1
 
 # Database Configuration
 # ChromaDB and codebase settings
@@ -29,8 +29,8 @@ DB__CODEBASE_DIRECTORY='.'
 DB__DB_PROVIDER=postgres
 DB__CONNECTION_URL=postgresql://postgres:postgres@localhost:5432/postgres
 # State Store Configuration
-DB__STATE_STORE__STORE_PATH='./statedb/knowlang.db'
-DB__STATE_STORE__PROVIDER=sqlite
+DB__STATE_STORE__PROVIDER=postgres
+DB__STATE_STORE__CONNECTION_URL=postgresql://postgres:postgres@localhost:5432/postgres
 
 # Parser Configuration
 # Settings for code parsing and file patterns
@@ -47,9 +47,10 @@ CHAT__MAX_LENGTH_PER_CHUNK=8000
 
 # Embedding Configuration
 # Settings for text embedding generation
-EMBEDDING__MODEL_NAME=mxbai-embed-large
-EMBEDDING__MODEL_PROVIDER=ollama
+EMBEDDING__MODEL_NAME=microsoft/graphcodebert-base
+EMBEDDING__MODEL_PROVIDER=graph_code_bert
 EMBEDDING__API_KEY=your_api_key
+EMBEDDING__DIMENSION=768 # default dimension of graphcodebert
 
 # Chat Analytics Configuration
 # Settings for analytics tracking
