@@ -71,7 +71,7 @@ class RerankerNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
             reranker = GraphCodeBertReranker(config=ctx.deps.config.reranker)
             
             # Rerank results
-            reranked_results = await reranker.rerank(
+            reranked_results = reranker.rerank(
                 query=ctx.state.query,
                 raw_search_results=ctx.state.search_results
             )
