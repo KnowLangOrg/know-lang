@@ -29,8 +29,8 @@ DB__CODEBASE_DIRECTORY='.'
 DB__DB_PROVIDER=postgres
 DB__CONNECTION_URL=postgresql://postgres:postgres@localhost:5432/postgres
 # State Store Configuration
-DB__STATE_STORE__STORE_PATH='./statedb/knowlang.db'
-DB__STATE_STORE__PROVIDER=sqlite
+DB__STATE_STORE__PROVIDER=postgres
+DB__STATE_STORE__CONNECTION_URL=postgresql://postgres:postgres@localhost:5432/postgres
 
 # Parser Configuration
 # Settings for code parsing and file patterns
