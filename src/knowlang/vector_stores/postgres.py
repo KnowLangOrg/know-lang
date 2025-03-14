@@ -105,7 +105,7 @@ class PostgresVectorStore(VectorStore):
         score = 1.0 - dist  # Convert distance to similarity score
         if score_threshold is None or score >= score_threshold:
             acc.append(SearchResult(
-                document=id,
+                document=meta.get(self.content_field, ""),
                 metadata=meta,
                 score=score
             ))
@@ -143,9 +143,7 @@ class PostgresVectorStore(VectorStore):
     ) -> None:
         self.assert_initialized()
         
-        # Store the document content in metadata if content_field is specified
-        if self.content_field and document:
-            metadata[self.content_field] = document
+        metadata[self.content_field] = document
             
         self.collection.upsert([(id, embedding, metadata)])
 
