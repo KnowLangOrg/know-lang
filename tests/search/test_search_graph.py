@@ -162,7 +162,7 @@ async def test_reranker_node_success(mock_reranker_class, run_context, sample_se
             score=0.95
         )
     ]
-    mock_reranker_instance.rerank = AsyncMock(return_value=reranked_results)
+    mock_reranker_instance.rerank = MagicMock(return_value=reranked_results)
     
     # Create and run the node
     node = RerankerNode()
