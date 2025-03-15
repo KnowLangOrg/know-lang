@@ -8,3 +8,4 @@ dist
 chromadb
 vectordb/
 statedb/
+datasets
