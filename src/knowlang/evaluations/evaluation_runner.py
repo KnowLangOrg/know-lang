@@ -248,7 +248,7 @@ class CodeSearchEvaluator:
                 relevant_code_ids=relevant_code,
                 config=config
             )
-            LOG.debug(f"Query Evaluation Results: \n{result}")
+            LOG.debug(f"Query Evaluation Results: \n{result.model_dump(exclude={'results', 'query_id'})}")
             
             query_results.append(result)
             total_time += result.query_time
