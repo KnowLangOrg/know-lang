@@ -15,11 +15,11 @@ class TestDatasetIndexer:
     @pytest.fixture
     def setup_indexer(self, mock_app_config, mock_vector_store):
         """Set up a DatasetIndexer with a mock vector store."""
-        indexer = DatasetIndexer(mock_app_config)
-        
         # Mock the VectorStoreFactory
         with mock.patch("knowlang.evaluations.indexer.VectorStoreFactory") as mock_factory:
             mock_factory.get.return_value = mock_vector_store
+            indexer = DatasetIndexer(mock_app_config)
+
             yield indexer, mock_vector_store
     
     @pytest.mark.asyncio

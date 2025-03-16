@@ -29,9 +29,21 @@
       "module": "knowlang.cli",
       "args": [
         "--v",
-        "--config", "settings/app_config.json",
+        "--config", "settings/eval_config.json",
         "evaluate",
         "prepare",
+      ]
+    },
+    {
+      "name": "Know Lang Evaluation Run",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "knowlang.cli",
+      "args": [
+        "--v",
+        "--config", "settings/eval_config.json",
+        "evaluate",
+        "run",
       ]
     }
   ]

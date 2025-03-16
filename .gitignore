@@ -9,3 +9,4 @@ chromadb
 vectordb/
 statedb/
 datasets
+evaluation

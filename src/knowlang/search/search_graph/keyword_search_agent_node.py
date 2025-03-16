@@ -148,7 +148,7 @@ Please generate a more permissive query with fewer terms or using more OR logic.
                 too_few_results=(self.attempts > 0)
             )
             
-            LOG.info(f"Extracted keywords: {keyword_result.query} (logic: {keyword_result.logic})")
+            LOG.debug(f"Extracted keywords: {keyword_result.query} (logic: {keyword_result.logic})")
 
             # Store into search state
             ctx.state.refined_queries[SearchMethodology.KEYWORD].append(keyword_result.query)
@@ -175,7 +175,7 @@ Please generate a more permissive query with fewer terms or using more OR logic.
             else:
                 # Try again with more permissive keywords
                 self.attempts += 1
-                LOG.info(f"Too few results ({len(results)}), trying again with attempt {self.attempts}")
+                LOG.debug(f"Too few results ({len(results)}), trying again with attempt {self.attempts}")
                 return KeywordSearchAgentNode(
                     attempts=self.attempts,
                     previous_query=keyword_result.query

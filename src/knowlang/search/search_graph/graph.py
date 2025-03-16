@@ -60,7 +60,7 @@ class RerankerNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
         
         # Check if reranking is enabled
         if not ctx.deps.config.reranker.enabled:
-            LOG.info("Reranking disabled, returning first stage results")
+            LOG.debug("Reranking disabled, returning first stage results")
             return End(SearchOutputs(search_results=ctx.state.search_results))
         
         try:
