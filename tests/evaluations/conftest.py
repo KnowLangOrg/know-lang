@@ -59,14 +59,8 @@ def sample_search_configuration():
 def mock_app_config():
     """Fixture to provide a mock app configuration."""
     config = mock.MagicMock(spec=AppConfig)
-    config.db = mock.MagicMock(spec=DBConfig)
-    config.db.connection_url = "postgresql://user:pass@localhost:5432/testdb"
-    config.db.collection_name = "test_collection"
-    config.db.similarity_metric = "cosine"
-    config.db.content_field = "content"
-    
-    config.embedding = mock.MagicMock(spec=EmbeddingConfig)
-    config.embedding.dimension = 128
+    config.db = DBConfig()
+    config.embedding = EmbeddingConfig()
     
     return config
 
