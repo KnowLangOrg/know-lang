@@ -1,8 +1,9 @@
 import pytest
 from unittest import mock
 from knowlang.evaluations.base import QueryCodePair, SearchConfiguration
-from knowlang.configs import AppConfig, DBConfig, EmbeddingConfig
+from knowlang.configs import AppConfig, RerankerConfig
 from knowlang.search.base import SearchResult
+from knowlang.core.types import ModelProvider
 
 @pytest.fixture
 def temp_dir(tmp_path):
@@ -53,9 +54,9 @@ def sample_search_configuration():
 @pytest.fixture
 def mock_app_config():
     """Fixture to provide a mock app configuration."""
-    config = mock.MagicMock(spec=AppConfig)
-    config.db = DBConfig()
-    config.embedding = EmbeddingConfig()
+    config = AppConfig(
+        reranker=RerankerConfig(model_provider=ModelProvider.TESTING)
+    )
     
     return config
 

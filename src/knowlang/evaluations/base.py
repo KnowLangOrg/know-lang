@@ -1,12 +1,10 @@
 from __future__ import annotations
 from enum import Enum
-from typing import Dict, List, Any, TYPE_CHECKING
+from typing import Dict, List, Any
 import time
-
 from pydantic import BaseModel, Field
 
-if TYPE_CHECKING:
-    from knowlang.search.base import SearchResult
+from knowlang.search.base import SearchResult
 
 class DatasetType(str, Enum):
     """Supported benchmark datasets."""
@@ -89,7 +87,7 @@ class QueryEvaluationResult(BaseModel):
     query_id: str
     query: str
     relevant_code_ids: List[str]
-    results: List['SearchResult'] # Forward reference to avoid circular import
+    results: List[SearchResult]
     query_time: float
     mrr: float = 0.0
     recall_at_1: float = 0.0
