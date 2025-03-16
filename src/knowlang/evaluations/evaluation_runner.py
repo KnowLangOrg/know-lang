@@ -112,10 +112,10 @@ class CodeSearchEvaluator:
             )
             
             # Run the search graph
-            result = await search_graph.run(FirstStageNode(), state=state, deps=deps)
+            result, history = await search_graph.run(FirstStageNode(), state=state, deps=deps)
             
             query_time = time.time() - start_time
-            return result.output.search_results, query_time
+            return result.search_results, query_time
             
         except Exception as e:
             LOG.error(f"Error searching with configuration: {e}")

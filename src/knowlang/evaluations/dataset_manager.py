@@ -1,11 +1,7 @@
-"""
-High-level manager for dataset preparation.
-"""
-
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from knowlang.evaluations.base import DatasetType
+from knowlang.evaluations.types import DatasetType
 from knowlang.evaluations.providers.codesearchnet_provider import CodeSearchNetProvider
 from knowlang.evaluations.dataset_provider import DatasetProvider
 from knowlang.evaluations.indexer import DatasetIndexer, QueryManager

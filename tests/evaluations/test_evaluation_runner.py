@@ -57,9 +57,9 @@ class TestCodeSearchEvaluator:
         # Mock the search graph run
         with mock.patch("knowlang.evaluations.evaluation_runner.search_graph") as mock_graph:
             mock_result = MagicMock()
-            mock_result.output.search_results = sample_search_results
+            mock_result.search_results = sample_search_results
             mock_graph.run = mock.AsyncMock()
-            mock_graph.run.return_value = mock_result
+            mock_graph.run.return_value = mock_result, None
             
             results, query_time = await code_search_evaluator.search_with_configuration(
                 "test query", sample_search_configuration

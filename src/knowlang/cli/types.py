@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Literal, Optional
 
+from knowlang.evaluations.types import DatasetType
+
 
 @dataclass
 class BaseCommandArgs:
@@ -46,3 +48,18 @@ class PrepareDatasetCommandArgs(BaseCommandArgs):
     languages: Optional[List[str]] = field(default_factory=lambda: ['python'])
     split: str = "test"
     skip_indexing: bool = False
+
+@dataclass
+class RunEvaluationCommandArgs(BaseCommandArgs):
+    """Arguments for the run-evaluation command."""
+    command: Literal["evaluate"]
+    subcommand: Literal["run"] = "run"
+    data_dir: Path = Path("datasets/output")
+    output_dir: Path = Path("evaluation/results")
+    config_dir: Path = Path("evaluation/settings")
+    dataset: str = DatasetType.CODESEARCHNET
+    language: str = "python"
+    configuration: str = "baseline"
+    limit: Optional[int] = None
+    grid_search: bool = False
+    list_configurations: bool = False

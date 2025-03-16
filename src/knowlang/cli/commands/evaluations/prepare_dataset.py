@@ -4,7 +4,7 @@ from knowlang.cli.types import PrepareDatasetCommandArgs
 from knowlang.cli.utils import create_config
 from knowlang.configs import AppConfig
 from knowlang.utils import FancyLogger
-from knowlang.evaluations.base import DatasetType
+from knowlang.evaluations.types import DatasetType
 from knowlang.evaluations.dataset_manager import DatasetManager
 
 LOG = FancyLogger(__name__)

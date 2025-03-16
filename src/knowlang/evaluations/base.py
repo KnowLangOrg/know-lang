@@ -1,15 +1,8 @@
-from __future__ import annotations
-from enum import Enum
 from typing import Dict, List, Any
 import time
 from pydantic import BaseModel, Field
 
 from knowlang.search.base import SearchResult
-
-class DatasetType(str, Enum):
-    """Supported benchmark datasets."""
-    CODESEARCHNET = "codesearchnet"
-    COSQA = "cosqa"
 
 
 class QueryCodePair(BaseModel):
