@@ -2,7 +2,7 @@
 import asyncio
 import importlib.metadata
 from typing import Optional, Sequence
-from knowlang.cli.parser import parse_args
+from knowlang.cli.argparser import parse_args
 from knowlang.utils import FancyLogger
 
 
