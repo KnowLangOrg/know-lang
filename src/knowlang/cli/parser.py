@@ -86,36 +86,8 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
     args.command_func = command_func
     return args
 
-def create_parser() -> argparse.ArgumentParser:
-    """Create the main argument parser."""
-    parser = argparse.ArgumentParser(
-        description="KnowLang - Code Understanding Assistant",
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    
-    # Global options
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output"
-    )
-    
-    parser.add_argument(
-        "--config",
-        type=Path,
-        help="Path to custom configuration file",
-        default=None
-    )
-    
-    # Subcommands
-    subparsers = parser.add_subparsers(
-        title="commands",
-        description="Available commands",
-        dest="command"
-    )
-    subparsers.required = True
-    
-    # Parse command
+def _create_parse_parser(subparsers):
+    """Create the parser for the 'parse' command."""
     parse_parser = subparsers.add_parser(
         "parse",
         help="Parse and index a codebase"
@@ -134,8 +106,10 @@ def create_parser() -> argparse.ArgumentParser:
         default=".", # Default to current directory
         help="Path to codebase directory or repository URL"
     )
+    return parse_parser
 
-    # Chat command
+def _create_chat_parser(subparsers):
+    """Create the parser for the 'chat' command."""
     chat_parser = subparsers.add_parser(
         "chat",
         help="Launch the chat interface"
@@ -160,8 +134,10 @@ def create_parser() -> argparse.ArgumentParser:
         type=str,
         help="Server name to listen on (default: 0.0.0.0)"
     )
-    
-    # Serve command
+    return chat_parser
+
+def _create_serve_parser(subparsers):
+    """Create the parser for the 'serve' command."""
     serve_parser = subparsers.add_parser(
         "serve",
         help="Launch the API server"
@@ -189,20 +165,10 @@ def create_parser() -> argparse.ArgumentParser:
         default=1,
         help="Number of worker processes (default: 1)"
     )
+    return serve_parser
 
-    # Evaluate command
-    evaluate_parser = subparsers.add_parser(
-        "evaluate",
-        help="Evaluation tools for code search"
-    )
-    evaluate_subparsers = evaluate_parser.add_subparsers(
-        title="subcommands",
-        description="Evaluation subcommands",
-        dest="subcommand",
-        required=True
-    )
-    
-    # Prepare dataset subcommand
+def _create_prepare_dataset_parser(evaluate_subparsers):
+    """Create the parser for the 'evaluate prepare' command."""
     prepare_parser = evaluate_subparsers.add_parser(
         "prepare",
         help="Prepare benchmark datasets for evaluation"
@@ -245,8 +211,10 @@ def create_parser() -> argparse.ArgumentParser:
         default=PrepareDatasetCommandArgs.skip_indexing,
         help="Skip indexing, only generate query mappings"
     )
+    return prepare_parser
 
-    # Run evaluation subcommand
+def _create_run_evaluation_parser(evaluate_subparsers):
+    """Create the parser for the 'evaluate run' command."""
     run_parser = evaluate_subparsers.add_parser(
         "run",
         help="Run code search evaluations"
@@ -305,6 +273,61 @@ def create_parser() -> argparse.ArgumentParser:
         default=RunEvaluationCommandArgs.list_configurations,
         help="List available search configurations"
     )
+    return run_parser
+
+def _create_evaluate_parser(subparsers):
+    """Create the parser for the 'evaluate' command and its subcommands."""
+    evaluate_parser = subparsers.add_parser(
+        "evaluate",
+        help="Evaluation tools for code search"
+    )
+    evaluate_subparsers = evaluate_parser.add_subparsers(
+        title="subcommands",
+        description="Evaluation subcommands",
+        dest="subcommand",
+        required=True
+    )
+    
+    # Create subcommand parsers
+    _create_prepare_dataset_parser(evaluate_subparsers)
+    _create_run_evaluation_parser(evaluate_subparsers)
+    
+    return evaluate_parser
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create the main argument parser."""
+    parser = argparse.ArgumentParser(
+        description="KnowLang - Code Understanding Assistant",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    # Global options
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Enable verbose output"
+    )
+    
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="Path to custom configuration file",
+        default=None
+    )
+    
+    # Subcommands
+    subparsers = parser.add_subparsers(
+        title="commands",
+        description="Available commands",
+        dest="command"
+    )
+    subparsers.required = True
+    
+    # Create command parsers
+    _create_parse_parser(subparsers)
+    _create_chat_parser(subparsers)
+    _create_serve_parser(subparsers)
+    _create_evaluate_parser(subparsers)
     
     return parser
 
