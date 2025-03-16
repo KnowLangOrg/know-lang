@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from rich.console import Console
 from rich.table import Table
-from tqdm.asyncio import tqdm
+from rich.progress import track
 
 from knowlang.evaluations.base import EvaluationRun, QueryEvaluationResult, SearchConfiguration
 from knowlang.evaluations.indexer import QueryManager
@@ -235,7 +235,7 @@ class CodeSearchEvaluator:
         query_results : List[QueryEvaluationResult] = []
         total_time = 0.0
         
-        for query_id, data in tqdm(selected_queries.items(), desc=f"Evaluating {dataset_name}"):
+        for query_id, data in track(selected_queries.items(), description=f"Evaluating {dataset_name}"):
             query = data["query"]
             relevant_code = data.get("relevant_code", [])
             
@@ -245,6 +245,7 @@ class CodeSearchEvaluator:
                 relevant_code_ids=relevant_code,
                 config=config
             )
+            LOG.debug(f"Query Evaluation Results: \n{result}")
             
             query_results.append(result)
             total_time += result.query_time

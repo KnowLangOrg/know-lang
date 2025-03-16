@@ -185,7 +185,7 @@ Please generate a more general query with broader terms or additional synonyms."
                 too_few_results=(self.attempts > 0)
             )
             
-            LOG.info(f"Refined query: {query_refinement.refined_query} (reason: {query_refinement.explanation})")
+            LOG.debug(f"Refined query: {query_refinement.refined_query} (reason: {query_refinement.explanation})")
             
             # Store the query for potential future recursion
             self.previous_query = query_refinement.refined_query
@@ -216,7 +216,7 @@ Please generate a more general query with broader terms or additional synonyms."
             else:
                 # Try again with broader query
                 self.attempts += 1
-                LOG.info(f"Too few results ({len(results)}), trying again with attempt {self.attempts}")
+                LOG.debug(f"Too few results ({len(results)}), trying again with attempt {self.attempts}")
                 return VectorSearchAgentNode(
                     attempts=self.attempts,
                     previous_query=query_refinement.refined_query
