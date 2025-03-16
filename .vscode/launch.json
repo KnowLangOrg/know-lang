@@ -21,6 +21,17 @@
         "--v",
         "chat"
       ]
+    },
+    {
+      "name": "Know Lang Evaluation Preparation",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "knowlang.cli",
+      "args": [
+        "--v",
+        "evaluate",
+        "prepare"
+      ]
     }
   ]
 }
