@@ -1,7 +1,4 @@
 import json
-import pytest
-from pathlib import Path
-
 from knowlang.evaluations.base import SearchConfiguration
 from knowlang.evaluations.config_manager import SearchConfigurationManager
 

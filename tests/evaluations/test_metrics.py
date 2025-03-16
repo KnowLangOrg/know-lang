@@ -1,6 +1,3 @@
-import pytest
-import numpy as np
-
 from knowlang.evaluations.metrics import MetricsCalculator
 
 class TestMetricsCalculator:

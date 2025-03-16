@@ -1,10 +1,5 @@
-import json
 import pytest
-from pathlib import Path
 from unittest import mock
-
-import numpy as np
-
 from knowlang.evaluations.base import QueryCodePair, SearchConfiguration
 from knowlang.configs import AppConfig, DBConfig, EmbeddingConfig
 from knowlang.search.base import SearchResult

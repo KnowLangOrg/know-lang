@@ -1,8 +1,6 @@
 import json
 import pytest
-from pathlib import Path
 from unittest import mock
-
 from knowlang.evaluations.indexer import DatasetIndexer, QueryManager
 from knowlang.models.types import EmbeddingInputType
 
