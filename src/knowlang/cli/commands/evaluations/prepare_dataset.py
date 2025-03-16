@@ -1,6 +1,7 @@
 from typing import Dict
 
 from knowlang.cli.types import PrepareDatasetCommandArgs
+from knowlang.cli.utils import create_config
 from knowlang.configs import AppConfig
 from knowlang.utils import FancyLogger
 from knowlang.evaluations.base import DatasetType
@@ -8,13 +9,6 @@ from knowlang.evaluations.dataset_manager import DatasetManager
 
 LOG = FancyLogger(__name__)
 
-def create_config(args: PrepareDatasetCommandArgs) -> AppConfig:
-    """Create configuration from file or defaults."""
-    if args.config:
-        with open(args.config, 'r') as file:
-            config_data = file.read()
-            return AppConfig.model_validate_json(config_data)
-    return AppConfig()
 
 async def _prepare_datasets(
     config: AppConfig,
@@ -66,7 +60,7 @@ async def prepare_dataset_command(args: PrepareDatasetCommandArgs) -> None:
         args: Typed command line arguments
     """
     # Load configuration
-    config = create_config(args)
+    config = create_config(args.config)
     
     try:
         # Prepare datasets

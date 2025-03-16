@@ -310,7 +310,7 @@ class TestChatCommand:
             server_name=None
         )
         
-        config = create_config(args)
+        config = create_config(args.config)
         assert isinstance(config, AppConfig)
         assert config.db.persist_directory == Path("test_dir")
 
@@ -326,5 +326,5 @@ class TestChatCommand:
             server_name=None
         )
         
-        config = create_config(args)
+        config = create_config(args.config)
         assert isinstance(config, AppConfig) 
