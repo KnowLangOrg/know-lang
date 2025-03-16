@@ -1,0 +1,23 @@
+services:
+  postgres_eval:
+    image: pgvector/pgvector:pg15
+    container_name: pgvector_eval
+    environment:
+      POSTGRES_USER: postgres_eval
+      POSTGRES_PASSWORD: postgres_eval
+      POSTGRES_DB: evaluation
+    ports:
+      - '5433:5432'  # Using 5433 to avoid conflict with main database
+    volumes:
+      - postgres_eval_data:/var/lib/postgresql/data
+    networks:
+      - eval_network
+
+networks:
+  eval_network:
+    name: eval_network
+    driver: bridge
+
+volumes:
+  postgres_eval_data:
+    name: pgvector_eval_data

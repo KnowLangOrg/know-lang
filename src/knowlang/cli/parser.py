@@ -4,16 +4,21 @@ from pathlib import Path
 from typing import Callable, Dict, Optional, Sequence, Type, Union
 
 from knowlang.cli.commands.chat import chat_command
+from knowlang.cli.commands.evaluations.prepare_dataset import prepare_dataset_command
 from knowlang.cli.commands.parse import parse_command
 from knowlang.cli.commands.serve import serve_command
-from knowlang.cli.types import (BaseCommandArgs, ChatCommandArgs,
-                                ParseCommandArgs, ServeCommandArgs)
+from knowlang.cli.types import (
+    BaseCommandArgs, ChatCommandArgs,
+    ParseCommandArgs, ServeCommandArgs,
+    PrepareDatasetCommandArgs
+)
 
 # Define command configurations
 COMMAND_CONFIGS: Dict[str, tuple[Type[BaseCommandArgs], Callable]] = {
     "parse": (ParseCommandArgs, parse_command),
     "chat": (ChatCommandArgs, chat_command),
     "serve": (ServeCommandArgs, serve_command),
+    "evaluate": (PrepareDatasetCommandArgs, prepare_dataset_command),
 }
 
 def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommandArgs, ChatCommandArgs, ServeCommandArgs]:
@@ -49,6 +54,20 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
             reload=parsed_namespace.reload,
             workers=parsed_namespace.workers
         )
+    elif parsed_namespace.command == "evaluate":
+        if parsed_namespace.subcommand == "prepare":
+            args = args_class(
+                **base_args,
+                subcommand=parsed_namespace.subcommand,
+                data_dir=parsed_namespace.data_dir,
+                output_dir=parsed_namespace.output_dir,
+                dataset=parsed_namespace.dataset,
+                languages=parsed_namespace.languages,
+                split=parsed_namespace.split,
+                skip_indexing=parsed_namespace.skip_indexing
+            )
+        else:
+            raise ValueError(f"Unknown subcommand for evaluate: {parsed_namespace.subcommand}")
     else:
         raise ValueError(f"Unknown command: {parsed_namespace.command}")
         
@@ -158,10 +177,68 @@ def create_parser() -> argparse.ArgumentParser:
         default=1,
         help="Number of worker processes (default: 1)"
     )
+
+    # Evaluate command
+    evaluate_parser = subparsers.add_parser(
+        "evaluate",
+        help="Evaluation tools for code search"
+    )
+    evaluate_subparsers = evaluate_parser.add_subparsers(
+        title="subcommands",
+        description="Evaluation subcommands",
+        dest="subcommand",
+        required=True
+    )
+    
+    # Prepare dataset subcommand
+    prepare_parser = evaluate_subparsers.add_parser(
+        "prepare",
+        help="Prepare benchmark datasets for evaluation"
+    )
+    prepare_parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=PrepareDatasetCommandArgs.data_dir,
+        help="Directory containing benchmark datasets"
+    )
+    prepare_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=PrepareDatasetCommandArgs.output_dir,
+        help="Output directory for query mappings"
+    )
+    prepare_parser.add_argument(
+        "--dataset",
+        type=str,
+        choices=["codesearchnet", "cosqa", "all"],
+        default=PrepareDatasetCommandArgs.dataset,
+        help="Dataset to prepare"
+    )
+    prepare_parser.add_argument(
+        "--languages",
+        default=['python'],
+        type=str,
+        nargs="+",
+        help="Languages to include (e.g., python java)"
+    )
+    prepare_parser.add_argument(
+        "--split",
+        type=str,
+        default=PrepareDatasetCommandArgs.split,
+        help="Dataset split to use (train, valid, test)"
+    )
+    prepare_parser.add_argument(
+        "--skip-indexing",
+        type=bool,
+        default=PrepareDatasetCommandArgs.skip_indexing,
+        help="Skip indexing, only generate query mappings"
+    )
     
     return parser
 
-def parse_args(args: Optional[Sequence[str]] = None) -> Union[ParseCommandArgs, BaseCommandArgs]:
+def parse_args(args: Optional[Sequence[str]] = None) -> Union[
+    ParseCommandArgs, BaseCommandArgs, ServeCommandArgs, PrepareDatasetCommandArgs
+]:
     """Parse command line arguments into typed objects."""
     parser = create_parser()
     parsed_namespace = parser.parse_args(args)

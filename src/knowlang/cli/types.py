@@ -1,7 +1,7 @@
 """Type definitions for CLI arguments."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 
 @dataclass
@@ -34,3 +34,15 @@ class ServeCommandArgs(BaseCommandArgs):
     port: int = 8000
     reload: bool = False
     workers: int = 1
+
+@dataclass
+class PrepareDatasetCommandArgs(BaseCommandArgs):
+    """Arguments for the prepare-dataset command."""
+    command: Literal["evaluate"]
+    subcommand: Literal["prepare"] = "prepare"
+    data_dir: Path = Path("datasets/raw")
+    output_dir: Path = Path("datasets/output")
+    dataset: Literal["codesearchnet", "cosqa", "all"] = "all"
+    languages: Optional[List[str]] = field(default_factory=lambda: ['python'])
+    split: str = "test"
+    skip_indexing: bool = False

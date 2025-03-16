@@ -4,8 +4,8 @@ __pycache__
 .env*
 !.env.example
 logs
-evaluations/
 dist
 chromadb
 vectordb/
 statedb/
+datasets

@@ -1,10 +1,9 @@
 """Command implementation for parsing codebases."""
 from pathlib import Path
-from typing import Optional
 
 from knowlang.cli.display.formatters import get_formatter
 from knowlang.cli.types import ParseCommandArgs
-from knowlang.configs import AppConfig
+from knowlang.cli.utils import create_config
 from knowlang.indexing.codebase_manager import CodebaseManager
 from knowlang.indexing.increment_update import IncrementalUpdater
 from knowlang.indexing.indexing_agent import IndexingAgent
@@ -15,13 +14,6 @@ from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
 
-def create_config(config_path: Optional[Path] = None) -> AppConfig:
-    """Create configuration from file or defaults."""
-    if config_path:
-        with open(config_path, 'r') as file:
-            config_data = file.read()
-            return AppConfig.model_validate_json(config_data)
-    return AppConfig()
 
 async def parse_command(args: ParseCommandArgs) -> None:
     """Execute the parse command.
