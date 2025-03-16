@@ -34,7 +34,7 @@ class DatasetManager:
         
         # Create dataset providers
         self.providers: Dict[DatasetType, DatasetProvider] = {
-            DatasetType.CODESEARCHNET: CodeSearchNetProvider(data_dir / "codesearchnet"),
+            DatasetType.CODESEARCHNET: CodeSearchNetProvider(data_dir / "code_search_net"),
             # DatasetType.COSQA: CoSQAProvider(data_dir / "cosqa"),
         }
     

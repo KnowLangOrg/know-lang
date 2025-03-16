@@ -1,4 +1,5 @@
 import json
+import gzip
 import pytest
 from unittest import mock
 from knowlang.evaluations.providers.codesearchnet_provider import CodeSearchNetProvider
@@ -16,8 +17,8 @@ class TestCodeSearchNetProvider:
         python_dir.mkdir(parents=True)
         
         # Create a test file with sample data
-        test_file = python_dir / "test.jsonl"
-        with open(test_file, "w", encoding="utf-8") as f:
+        test_file = python_dir / "test.jsonl.gz"
+        with gzip.open(test_file, "wt", encoding="utf-8") as f:
             f.write(json.dumps({
                 "docstring": "Sort a list in ascending order",
                 "code": "def sort_list(lst):\n    return sorted(lst)",

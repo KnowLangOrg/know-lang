@@ -1,4 +1,5 @@
 import json
+import gzip
 from pathlib import Path
 from typing import List, Optional
 
@@ -40,12 +41,12 @@ class CodeSearchNetProvider(DatasetProvider):
                     LOG.warning(f"Language directory not found: {lang_dir}")
                     continue
                 
-                file_path = lang_dir / f"{split}.jsonl"
+                file_path = lang_dir / f"{split}.jsonl.gz"
                 if not file_path.exists():
                     LOG.warning(f"Split file not found: {file_path}")
                     continue
                 
-                with open(file_path, "r", encoding="utf-8") as f:
+                with gzip.open(file_path, "rt", encoding="utf-8") as f:
                     for i, line in enumerate(track(
                         list(f), description=f"Loading {language} {split}")):
                         try:

@@ -216,7 +216,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     prepare_parser.add_argument(
         "--languages",
-        default='python',
+        default=['python'],
         type=str,
         nargs="+",
         help="Languages to include (e.g., python java)"
