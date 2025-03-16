@@ -29,8 +29,9 @@
       "module": "knowlang.cli",
       "args": [
         "--v",
+        "--config", "settings/app_config.json",
         "evaluate",
-        "prepare"
+        "prepare",
       ]
     }
   ]
