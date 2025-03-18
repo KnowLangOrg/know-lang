@@ -34,7 +34,7 @@ def _process_graph_code_bert_batch(
     from knowlang.models.graph_code_bert import generate_embeddings
     
     # Generate embeddings
-    return generate_embeddings(inputs)
+    return generate_embeddings(inputs, input_type=input_type)
 
 @register_provider(ModelProvider.OLLAMA)
 def _process_ollama_batch(inputs: List[str], model_name: str, _: Optional[EmbeddingInputType] = None) -> List[EmbeddingVector]:

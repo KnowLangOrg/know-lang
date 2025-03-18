@@ -57,7 +57,6 @@ dfg_function={
 #load parsers
 parsers={}        
 for lang in dfg_function:
-    print(lang)
     if lang == 'python':
         import tree_sitter_python
         LANGUAGE = Language(tree_sitter_python.language())
