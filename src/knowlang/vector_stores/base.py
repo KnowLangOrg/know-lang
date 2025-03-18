@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import reduce
-from typing import Any, Dict, List, Optional, Type, TYPE_CHECKING, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional
 
-from knowlang.configs import DBConfig
-from knowlang.core.types import VectorStoreProvider
+from knowlang.configs.config import AppConfig
 from knowlang.search import SearchResult
 from knowlang.search.base import SearchMethodology
 from knowlang.search.searchable_store import SearchableStore
@@ -41,7 +40,7 @@ class VectorStore(SearchableStore):
 
     @classmethod
     @abstractmethod
-    def create_from_config(config: DBConfig) -> "VectorStore":
+    def create_from_config(config: AppConfig) -> "VectorStore":
         """Create a VectorStore instance from configuration"""
         pass
 

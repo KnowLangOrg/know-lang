@@ -4,15 +4,16 @@ from pathlib import Path
 from typing import Callable, Dict, Optional, Sequence, Type, Union
 
 from knowlang.cli.commands.chat import chat_command
-from knowlang.cli.commands.evaluations.prepare_dataset import prepare_dataset_command
-from knowlang.cli.commands.evaluations.run_evaluation import run_evaluation_command
+from knowlang.cli.commands.evaluations.prepare_dataset import \
+    prepare_dataset_command
+from knowlang.cli.commands.evaluations.run_evaluation import \
+    run_evaluation_command
 from knowlang.cli.commands.parse import parse_command
 from knowlang.cli.commands.serve import serve_command
-from knowlang.cli.types import (
-    BaseCommandArgs, ChatCommandArgs,
-    ParseCommandArgs, ServeCommandArgs,
-    PrepareDatasetCommandArgs, RunEvaluationCommandArgs
-)
+from knowlang.cli.types import (BaseCommandArgs, ChatCommandArgs,
+                                ParseCommandArgs, PrepareDatasetCommandArgs,
+                                RunEvaluationCommandArgs, ServeCommandArgs)
+
 
 def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommandArgs, ChatCommandArgs, ServeCommandArgs]:
     """Convert parsed namespace to typed arguments."""
@@ -30,7 +31,8 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
         args = ParseCommandArgs(
             **base_args,
             path=parsed_namespace.path,
-            output=parsed_namespace.output
+            output=parsed_namespace.output,
+            user_id=parsed_namespace.user_id
         )
     elif parsed_namespace.command == "chat":
         command_func = chat_command
@@ -105,6 +107,12 @@ def _create_parse_parser(subparsers):
         nargs="?", # Make path optional
         default=".", # Default to current directory
         help="Path to codebase directory or repository URL"
+    )
+    parse_parser.add_argument(
+        "--user-id",
+        type=str,
+        default=None,
+        help="User ID to associate with the codebase",
     )
     return parse_parser
 

@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from knowlang.cli.types import RunEvaluationCommandArgs
 from knowlang.cli.utils import create_config
 from knowlang.configs import AppConfig
@@ -90,7 +91,7 @@ async def run_evaluation_command(args: RunEvaluationCommandArgs) -> None:
     
     # Initialize vector store
     try:
-        VectorStoreFactory.get(config.db, config.embedding)
+        VectorStoreFactory.get(config)
     except VectorStoreError as e:
         LOG.error(
             "Vector store initialization failed. Please run 'knowlang evaluate prepare' first to index benchmark datasets."

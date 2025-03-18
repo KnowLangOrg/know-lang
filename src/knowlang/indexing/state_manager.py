@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Optional
-from knowlang.utils import FancyLogger
+
 from knowlang.configs import AppConfig
 from knowlang.indexing.state_store.base import FileState, get_state_store
+from knowlang.utils import FancyLogger
 from knowlang.vector_stores.factory import VectorStoreFactory
 
 LOG = FancyLogger(__name__)
@@ -12,7 +13,8 @@ class StateManager:
     
     def __init__(self, config: AppConfig):
         self.state_store = get_state_store(config.db)
-        self.vector_store = VectorStoreFactory.get(config.db, config.embedding)
+        self.vector_store = VectorStoreFactory.get(config)
+        self.config = config
 
     async def get_file_state(self, file_path: Path) -> Optional[FileState]:
         """Get current state of a file"""

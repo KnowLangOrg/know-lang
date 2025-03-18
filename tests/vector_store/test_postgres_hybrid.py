@@ -1,12 +1,16 @@
-import pytest
 import unittest.mock as mock
-from sqlalchemy import Column, MetaData, Table, String, inspect
+
+import pytest
+from sqlalchemy import Column, MetaData, String, Table, inspect
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
+from knowlang.configs import AppConfig, DBConfig, EmbeddingConfig
 from knowlang.search.base import SearchMethodology, SearchResult
-from knowlang.configs import DBConfig, EmbeddingConfig
 from knowlang.vector_stores.postgres import PostgresVectorStore
-from knowlang.vector_stores.postgres_hybrid import PostgresHybridStore, VectorStoreInitError, Vector
+from knowlang.vector_stores.postgres_hybrid import (PostgresHybridStore,
+                                                    Vector,
+                                                    VectorStoreInitError)
+
 
 class TestPostgresHybridStore:
     """Tests for the PostgresHybridStore implementation"""
@@ -27,6 +31,9 @@ class TestPostgresHybridStore:
         
         self.embedding_config = mock.MagicMock(spec=EmbeddingConfig)
         self.embedding_config.dimension = 128
+        self.app_config = mock.MagicMock(spec=AppConfig)
+        self.app_config.db = self.db_config
+        self.app_config.embedding = self.embedding_config
     
     def _setup_mocks(self):
         """Set up all necessary mocks"""
@@ -82,10 +89,7 @@ class TestPostgresHybridStore:
     
     def _create_store(self) -> PostgresHybridStore:
         """Helper method to create a store instance"""
-        store = PostgresHybridStore.create_from_config(
-            config=self.db_config,
-            embedding_config=self.embedding_config
-        )
+        store = PostgresHybridStore.create_from_config(self.app_config)
         store.collection = self.mock_collection
         return store
     

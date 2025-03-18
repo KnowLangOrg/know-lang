@@ -9,8 +9,8 @@ from typing import Dict, List, Optional, Set
 from rich.progress import track
 from tqdm.asyncio import tqdm
 
-from knowlang.evaluations.base import QueryCodePair
 from knowlang.configs import AppConfig
+from knowlang.evaluations.base import QueryCodePair
 from knowlang.models import generate_embedding
 from knowlang.models.types import EmbeddingInputType
 from knowlang.utils import FancyLogger
@@ -24,7 +24,7 @@ class DatasetIndexer:
     
     def __init__(self, config: AppConfig):
         self.config = config
-        self.vector_store = VectorStoreFactory.get(config.db, config.embedding)
+        self.vector_store = VectorStoreFactory.get(config)
     
     async def initialize(self):
         """Initialize the vector store."""

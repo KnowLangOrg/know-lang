@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Literal, Optional
 import vecs
 from vecs.collection import Record
 
-from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.configs import AppConfig
 from knowlang.utils import FancyLogger
 from knowlang.vector_stores.base import (SearchResult, VectorStore,
                                          VectorStoreError,
@@ -17,19 +17,23 @@ class PostgresVectorStore(VectorStore):
     """Postgres implementation of VectorStore compatible with the pgvector extension using psycopg."""
 
     @classmethod
-    def create_from_config(cls, config: DBConfig, embedding_config: EmbeddingConfig) -> "PostgresVectorStore":
-        if not config.connection_url:
+    def create_from_config(cls, config: AppConfig) -> "PostgresVectorStore":
+        db_config = config.db
+        embedding_config = config.embedding
+        if not db_config.connection_url:
             raise VectorStoreInitError("Connection url not set for PostgresVectorStore.")
         return cls(
-            connection_string=config.connection_url,
-            table_name=config.collection_name,
+            app_config=config,
+            connection_string=db_config.connection_url,
+            table_name=db_config.collection_name,
             embedding_dim=embedding_config.dimension,
-            similarity_metric=config.similarity_metric,
-            content_field=config.content_field
+            similarity_metric=db_config.similarity_metric,
+            content_field=db_config.content_field
         )
 
     def __init__(
         self,
+        app_config: AppConfig,
         connection_string: str,
         table_name: str,
         embedding_dim: int,
@@ -38,6 +42,7 @@ class PostgresVectorStore(VectorStore):
     ):
         super().__init__()
 
+        self.app_config = app_config
         self.connection_string = connection_string
         self.table_name = table_name
         self.embedding_dim = embedding_dim

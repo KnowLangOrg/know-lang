@@ -1,14 +1,18 @@
 from __future__ import annotations
-from typing import Type, Dict, TypeVar, Union, cast, Optional, TYPE_CHECKING
+
+from typing import TYPE_CHECKING, Dict, Type, TypeVar, Union, cast
+
 from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.configs.config import AppConfig
 from knowlang.core.types import VectorStoreProvider
-from knowlang.vector_stores.base import VectorStore, VectorStoreError, VectorStoreInitError
+from knowlang.vector_stores.base import (VectorStore, VectorStoreError,
+                                         VectorStoreInitError)
 
 # for type hinting during development
 if TYPE_CHECKING:
+    from knowlang.vector_stores.chroma import ChromaVectorStore
     from knowlang.vector_stores.postgres import PostgresVectorStore
     from knowlang.vector_stores.postgres_hybrid import PostgresHybridStore
-    from knowlang.vector_stores.chroma import ChromaVectorStore
     T = TypeVar('T', bound=Union["PostgresVectorStore", "PostgresHybridStore", "ChromaVectorStore"])
 else:
     T = TypeVar('T')
@@ -37,15 +41,13 @@ class VectorStoreFactory:
     @classmethod
     def get(
         cls,
-        config: DBConfig,
-        embedding_config: EmbeddingConfig
+        app_config: AppConfig
     ) -> VectorStore:
         """
         Create and initialize a vector store instance or return existing instance
         
         Args:
-            config: Database configuration
-            embedding_config: Embedding configuration
+            app_config: App configuration
             
         Returns:
             Initialized vector store instance
@@ -53,15 +55,16 @@ class VectorStoreFactory:
         Raises:
             VectorStoreInitError: If initialization fails
         """
+        db_config = app_config.db
         # Create a unique key based on the configuration
-        instance_key = f"{config.db_provider}_{config.connection_url}"
+        instance_key = f"{db_config.db_provider}_{db_config.connection_url}"
         
         # Check if an instance with this configuration already exists
         if instance_key not in cls._instances:
             try:
                 # Create new instance
-                store_cls = get_vector_store(config.db_provider)
-                vector_store: VectorStore = store_cls.create_from_config(config, embedding_config)
+                store_cls: Type[VectorStore] = get_vector_store(db_config.db_provider)
+                vector_store: VectorStore = store_cls.create_from_config(app_config)
                 
                 # Initialize the store
                 vector_store.initialize()

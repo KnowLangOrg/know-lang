@@ -27,6 +27,7 @@ async def parse_command(args: ParseCommandArgs) -> None:
     # Update codebase directory in config
     config.db.codebase_directory = Path(args.path).resolve()
     config.db.codebase_url = args.path
+    config.user_id = args.user_id
     
     # Create parser code_parser_factory
     code_parser_factory = CodeParserFactory(config)
