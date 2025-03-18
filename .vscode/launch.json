@@ -44,6 +44,7 @@
         "--config", "settings/eval_config.json",
         "evaluate",
         "run",
+        "--limit", "100",
       ]
     }
   ]
