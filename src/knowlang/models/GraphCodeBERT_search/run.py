@@ -39,8 +39,8 @@ from tqdm import tqdm, trange
 import multiprocessing
 cpu_cont = 16
 
-from parser import DFG_python,DFG_java,DFG_ruby,DFG_go,DFG_php,DFG_javascript
-from parser import (remove_comments_and_docstrings,
+from .DFG import DFG_python,DFG_java,DFG_ruby,DFG_go,DFG_php,DFG_javascript
+from .utils import (remove_comments_and_docstrings,
                    tree_to_token_index,
                    index_to_code_token,
                    tree_to_variable_index)
@@ -63,9 +63,7 @@ for lang in dfg_function:
         LANGUAGE = Language(tree_sitter_python.language())
         parser = Parser(LANGUAGE)
     else:        
-        LANGUAGE = Language('parser/my-languages.so', lang)
-        parser = Parser()
-        parser.set_language(LANGUAGE) 
+        raise NotImplementedError("language not implemented")
     parser = [parser,dfg_function[lang]]    
     parsers[lang]= parser
     
