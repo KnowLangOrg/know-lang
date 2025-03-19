@@ -100,7 +100,7 @@ def setup_parsers():
 def prepare_code_inputs(code, tokenizer, parsers, lang='python', device=None):
     """Prepare code inputs for the GraphCodeBERT model"""
     if device is None:
-        devcie = get_device()
+        device = get_device()
             
     """Prepare code inputs for the GraphCodeBERT model"""
     parser = parsers.get(lang)
@@ -217,7 +217,7 @@ def _get_model_and_tokenizer(
     Load model, tokenizer, and parsers with caching.
     """
     if device is None:
-        devcie = get_device()
+        device = get_device()
     
     cache_key = f"{model_path}_{mode}_{device}"
     
