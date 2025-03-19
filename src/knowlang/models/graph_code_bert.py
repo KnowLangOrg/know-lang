@@ -1,9 +1,7 @@
-import os
-import pickle
 import torch
 import numpy as np
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Optional, Tuple, Any
 from functools import lru_cache
 from transformers import RobertaModel, RobertaTokenizer
 from tree_sitter import Language, Parser
@@ -12,14 +10,19 @@ from tree_sitter import Language, Parser
 from knowlang.models.types import EmbeddingVector, EmbeddingInputType
 from knowlang.models.GraphCodeBERT_search import (
     DFG_python, DFG_java, DFG_ruby, DFG_go, DFG_php, DFG_javascript,
-    remove_comments_and_docstrings, tree_to_token_index,
-    index_to_code_token, tree_to_variable_index,
     extract_dataflow
 )
 
 # Global caches
 _MODEL_CACHE: Dict[str, Tuple[Any, Any, str]] = {}
-_PARSER_CACHE: Dict[str, Any] = {}
+
+def get_device():
+    if torch.cuda.is_available():
+        return "cuda"
+    elif torch.backends.mps.is_available():
+        return "mps"
+    else:
+        return "cpu"
 
 class GraphCodeBertMode(str, Enum):
     """Operational modes for GraphCodeBERT"""
@@ -94,7 +97,11 @@ def setup_parsers():
         
         return parsers
 
-def prepare_code_inputs(code, tokenizer, parsers, lang='python'):
+def prepare_code_inputs(code, tokenizer, parsers, lang='python', device=None):
+    """Prepare code inputs for the GraphCodeBERT model"""
+    if device is None:
+        devcie = get_device()
+            
     """Prepare code inputs for the GraphCodeBERT model"""
     parser = parsers.get(lang)
     if not parser:
@@ -181,7 +188,12 @@ def prepare_code_inputs(code, tokenizer, parsers, lang='python'):
             if a + node_index < len(position_idx):
                 attn_mask[idx + node_index, a + node_index] = True
     
-    return torch.tensor([code_ids]), torch.tensor([attn_mask]), torch.tensor([position_idx])
+    return (
+        # Convert to numpy arrays first, then to tensors with batch dimension
+        torch.tensor(np.array(code_ids), device=device).unsqueeze(0),
+        torch.tensor(np.array(attn_mask), device=device).unsqueeze(0),
+        torch.tensor(np.array(position_idx), device=device).unsqueeze(0)
+    )
 
 def prepare_nl_inputs(query, tokenizer):
     """Prepare natural language inputs for the GraphCodeBERT model"""
@@ -205,7 +217,7 @@ def _get_model_and_tokenizer(
     Load model, tokenizer, and parsers with caching.
     """
     if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        devcie = get_device()
     
     cache_key = f"{model_path}_{mode}_{device}"
     
@@ -229,7 +241,7 @@ def _get_model_and_tokenizer(
     
     return _MODEL_CACHE[cache_key]
 
-def generate_code_embedding(code: str, lang: str = 'python') -> EmbeddingVector:
+def generate_code_embedding(code: str, model_name: str, lang: str = 'python') -> EmbeddingVector:
     """
     Generate embedding for a code snippet using GraphCodeBERT with data flow graph.
     
@@ -241,7 +253,7 @@ def generate_code_embedding(code: str, lang: str = 'python') -> EmbeddingVector:
         Embedding vector
     """
     model, tokenizer, device, parsers = _get_model_and_tokenizer(
-        "microsoft/graphcodebert-base",
+        model_name,
         GraphCodeBertMode.BI_ENCODER
     )
     
@@ -258,7 +270,7 @@ def generate_code_embedding(code: str, lang: str = 'python') -> EmbeddingVector:
         # Return embedding as list
         return code_vec.cpu().numpy()[0].tolist()
 
-def generate_query_embedding(query: str) -> EmbeddingVector:
+def generate_query_embedding(query: str, model_name: str) -> EmbeddingVector:
     """
     Generate embedding for a natural language query using GraphCodeBERT.
     
@@ -269,7 +281,7 @@ def generate_query_embedding(query: str) -> EmbeddingVector:
         Embedding vector
     """
     model, tokenizer, device, _ = _get_model_and_tokenizer(
-        "microsoft/graphcodebert-base",
+        model_name,
         GraphCodeBertMode.BI_ENCODER
     )
     
@@ -287,6 +299,7 @@ def generate_query_embedding(query: str) -> EmbeddingVector:
 def generate_embeddings(
     inputs: List[str],
     input_type: EmbeddingInputType,
+    model_name: str,
     lang: str = 'python'
 ) -> List[EmbeddingVector]:
     """
@@ -304,9 +317,9 @@ def generate_embeddings(
     
     for text in inputs:
         if input_type == EmbeddingInputType.DOCUMENT:
-            embedding = generate_code_embedding(text, lang)
+            embedding = generate_code_embedding(code=text, lang=lang, model_name=model_name)
         else:
-            embedding = generate_query_embedding(text)
+            embedding = generate_query_embedding(query=text, model_name=model_name)
         embeddings.append(embedding)
     
     return embeddings

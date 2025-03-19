@@ -15,7 +15,7 @@ EVALUATOR__EVALUATION_ROUNDS=1
 # Reranker Configuration
 # Settings for result reranking
 RERANKER__ENABLED=true
-RERANKER__MODEL_NAME=microsoft/graphcodebert-base
+RERANKER__MODEL_NAME=gabykim/graphcodebert-codesearch-python
 RERANKER__MODEL_PROVIDER=graph_code_bert
 RERANKER__API_KEY=your_api_key
 RERANKER__TOP_K=5
@@ -47,7 +47,7 @@ CHAT__MAX_LENGTH_PER_CHUNK=8000
 
 # Embedding Configuration
 # Settings for text embedding generation
-EMBEDDING__MODEL_NAME=microsoft/graphcodebert-base
+EMBEDDING__MODEL_NAME=gabykim/graphcodebert-codesearch-python
 EMBEDDING__MODEL_PROVIDER=graph_code_bert
 EMBEDDING__API_KEY=your_api_key
 EMBEDDING__DIMENSION=768 # default dimension of graphcodebert
