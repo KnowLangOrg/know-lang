@@ -2,15 +2,18 @@ import json
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
-from rich.console import Console
-from rich.table import Table
-from rich.progress import track
 
-from knowlang.evaluations.base import EvaluationRun, QueryEvaluationResult, SearchConfiguration
+from rich.console import Console
+from rich.progress import track
+from rich.table import Table
+
+from knowlang.configs import AppConfig, RerankerConfig
+from knowlang.configs.retrieval_config import (MultiStageRetrievalConfig,
+                                               SearchConfig)
+from knowlang.evaluations.base import (EvaluationRun, QueryEvaluationResult,
+                                       SearchConfiguration)
 from knowlang.evaluations.indexer import QueryManager
 from knowlang.evaluations.metrics import MetricsCalculator
-from knowlang.configs import AppConfig, RerankerConfig 
-from knowlang.configs.retrieval_config import SearchConfig, MultiStageRetrievalConfig
 from knowlang.search.base import SearchMethodology, SearchResult
 from knowlang.search.search_graph.base import SearchDeps, SearchState
 from knowlang.search.search_graph.graph import FirstStageNode, search_graph
@@ -33,7 +36,7 @@ class CodeSearchEvaluator:
         self.config = config
         self.data_dir = data_dir
         self.output_dir = output_dir
-        self.vector_store = VectorStoreFactory.get(config.db, config.embedding)
+        self.vector_store = VectorStoreFactory.get(config)
         
         # Make sure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)

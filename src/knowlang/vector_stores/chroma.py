@@ -7,9 +7,10 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 from chromadb.config import Settings
 
 import chromadb
-from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.configs import AppConfig
 from knowlang.core.types import VectorStoreProvider
-from knowlang.vector_stores.base import SearchResult, VectorStore, VectorStoreInitError
+from knowlang.vector_stores.base import (SearchResult, VectorStore,
+                                         VectorStoreInitError)
 from knowlang.vector_stores.factory import register_vector_store
 
 
@@ -18,11 +19,13 @@ class ChromaVectorStore(VectorStore):
     """ChromaDB implementation of VectorStore"""
 
     @classmethod
-    def create_from_config(cls, config: DBConfig, embedding_config: EmbeddingConfig = None) -> "ChromaVectorStore":
+    def create_from_config(cls, config: AppConfig) -> "ChromaVectorStore":
+        db_config = config.db
         return cls(
-            persist_directory=config.persist_directory,
-            collection_name=config.collection_name,
-            similarity_metric=config.similarity_metric
+            app_config=config,
+            persist_directory=db_config.persist_directory,
+            collection_name=db_config.collection_name,
+            similarity_metric=db_config.similarity_metric
         )
 
     def accumulate_result(
@@ -43,10 +46,12 @@ class ChromaVectorStore(VectorStore):
 
     def __init__(
         self, 
+        app_config: AppConfig,
         persist_directory: Path,
         collection_name: str,
         similarity_metric: Literal['cosine'] = 'cosine'
     ):
+        self.app_config = app_config
         self.persist_directory = persist_directory
         self.collection_name = collection_name
         self.similarity_metric = similarity_metric
@@ -88,7 +93,7 @@ class ChromaVectorStore(VectorStore):
     async def query(
         self,
         query_embedding: List[float],
-        top_k: int = 5
+        top_k: int = 5,
     ) -> List[Tuple[str, float, Dict[str, Any]]]:
         results = self.collection.query(
             query_embeddings=[query_embedding],

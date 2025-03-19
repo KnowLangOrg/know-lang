@@ -1,18 +1,15 @@
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
+
+from knowlang.api import ApiModelRegistry
+from knowlang.chat_bot import (ChatAnalytics, ChatStatus, StreamingChatResult,
+                               stream_chat_progress)
 from knowlang.configs import AppConfig
 from knowlang.utils import FancyLogger
 from knowlang.vector_stores.factory import VectorStoreFactory
-from knowlang.chat_bot import (
-    stream_chat_progress, 
-    ChatStatus,
-    ChatAnalytics,
-    StreamingChatResult,
-)
-from knowlang.api import ApiModelRegistry
 
 LOG = FancyLogger(__name__)
 
@@ -58,7 +55,7 @@ async def get_app_config():
 
 # Dependency to get vector store
 async def get_vector_store(config: AppConfig = Depends(get_app_config)):
-    return VectorStoreFactory.get(config.db, config.embedding)
+    return VectorStoreFactory.get(config)
 
 # Dependency to get chat analytics
 async def get_chat_analytics(config: AppConfig = Depends(get_app_config)):

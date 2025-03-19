@@ -1,10 +1,12 @@
-import pytest
 import unittest.mock as mock
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
+import pytest
+
+from knowlang.configs import AppConfig, DBConfig, EmbeddingConfig
 from knowlang.search import SearchResult
-from knowlang.configs import DBConfig, EmbeddingConfig
-from knowlang.vector_stores.base import VectorStore, VectorStoreError, VectorStoreInitError
+from knowlang.vector_stores.base import (VectorStore, VectorStoreError,
+                                         VectorStoreInitError)
 from knowlang.vector_stores.postgres import PostgresVectorStore
 
 
@@ -14,6 +16,7 @@ class TestPostgresVectorStore:
     def setup_method(self):
         """Set up test fixtures"""
         # Mock configs
+        
         self.db_config = mock.MagicMock(spec=DBConfig)
         self.db_config.connection_url = "postgresql://user:pass@localhost:5432/testdb"
         self.db_config.collection_name = "test_collection"
@@ -22,6 +25,10 @@ class TestPostgresVectorStore:
         
         self.embedding_config = mock.MagicMock(spec=EmbeddingConfig)
         self.embedding_config.dimension = 128
+
+        self.app_config = mock.MagicMock(spec=AppConfig)
+        self.app_config.db = self.db_config
+        self.app_config.embedding = self.embedding_config
         
         # Patch vecs module
         self.vecs_patcher = mock.patch("knowlang.vector_stores.postgres.vecs")
@@ -40,10 +47,7 @@ class TestPostgresVectorStore:
     def test_create_from_config(self):
         """Test creating a vector store from config"""
         # Test successful creation
-        store = PostgresVectorStore.create_from_config(
-            config=self.db_config,
-            embedding_config=self.embedding_config
-        )
+        store = PostgresVectorStore.create_from_config(self.app_config)
         assert isinstance(store, PostgresVectorStore)
         assert store.connection_string == self.db_config.connection_url
         assert store.table_name == self.db_config.collection_name
@@ -51,18 +55,16 @@ class TestPostgresVectorStore:
         assert store.content_field == self.db_config.content_field  # Check content_field
         
         # Test error when connection URL is missing
-        self.db_config.connection_url = None
+        self.app_config.db.connection_url = None
         with pytest.raises(VectorStoreInitError):
-            PostgresVectorStore.create_from_config(
-                config=self.db_config,
-                embedding_config=self.embedding_config
-            )
+            PostgresVectorStore.create_from_config(self.app_config)
     
     @pytest.mark.asyncio
     async def test_add_documents_with_content_field(self):
         """Test adding documents with content field"""
         # Create store with content_field set
         store = PostgresVectorStore(
+            app_config=self.app_config,
             connection_string=self.db_config.connection_url,
             table_name=self.db_config.collection_name,
             embedding_dim=self.embedding_config.dimension,
@@ -99,6 +101,7 @@ class TestPostgresVectorStore:
         """Test updating a document with content field"""
         # Create store with content_field set
         store = PostgresVectorStore(
+            app_config=self.app_config,
             connection_string=self.db_config.connection_url,
             table_name=self.db_config.collection_name,
             embedding_dim=self.embedding_config.dimension,
@@ -132,6 +135,7 @@ class TestPostgresVectorStore:
         """Test adding documents without content field"""
         # Create store without content_field
         store = PostgresVectorStore(
+            app_config=self.app_config,
             connection_string=self.db_config.connection_url,
             table_name=self.db_config.collection_name,
             embedding_dim=self.embedding_config.dimension,

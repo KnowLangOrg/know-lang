@@ -1,11 +1,14 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from unittest.mock import AsyncMock
+
 import numpy as np
-from knowlang.vector_stores import VectorStore, VectorStoreError
+
+from knowlang.configs import AppConfig
 from knowlang.search.base import SearchResult
-from knowlang.configs import DBConfig, EmbeddingConfig
+from knowlang.vector_stores import VectorStore, VectorStoreError
 
 
 @dataclass
@@ -32,7 +35,7 @@ class MockVectorStore(VectorStore):
     updated_documents: List[str] = field(default_factory=list)
 
     @classmethod
-    def create_from_config(cls, config: DBConfig, embedding_config: EmbeddingConfig) -> "MockVectorStore":
+    def create_from_config(cls, config: AppConfig) -> "MockVectorStore":
         """Create a mock store instance from configuration"""
         return
     

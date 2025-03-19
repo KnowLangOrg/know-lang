@@ -10,8 +10,8 @@ from knowlang.core.types import ModelProvider, VectorStoreProvider
 
 from .base import generate_model_config
 from .chat_config import ChatbotAnalyticsConfig, ChatConfig
-from .state_store_config import StateStoreConfig
 from .retrieval_config import MultiStageRetrievalConfig
+from .state_store_config import StateStoreConfig
 
 
 def _validate_api_key(v: Optional[str], info: ValidationInfo) -> Optional[str]:
@@ -227,3 +227,4 @@ class AppConfig(BaseSettings):
     embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
     chat_analytics: ChatbotAnalyticsConfig = Field(default_factory=ChatbotAnalyticsConfig)
     retrieval: MultiStageRetrievalConfig = Field(default_factory=MultiStageRetrievalConfig)
+    user_id: Optional[str] = None

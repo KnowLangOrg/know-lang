@@ -1,20 +1,21 @@
-from typing import Literal, List
-from sqlalchemy import Column, Index, MetaData, String, Table, column, func, select
+from typing import List, Literal
+
+from sqlalchemy import (Column, Index, MetaData, String, Table, column,
+                        create_engine, func, inspect, select)
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import create_engine
-from sqlalchemy.types import UserDefinedType
 from sqlalchemy.schema import DDL
-from sqlalchemy import inspect
+from sqlalchemy.types import UserDefinedType
 
-from knowlang.vector_stores.factory import register_vector_store
-from knowlang.vector_stores.base import VectorStoreError, VectorStoreInitError, SearchResult
-from knowlang.vector_stores.postgres import PostgresVectorStore
-from knowlang.search.keyword_search import KeywordSearchableStore
-from knowlang.configs import DBConfig, EmbeddingConfig
-from knowlang.utils import FancyLogger
+from knowlang.configs import AppConfig
 from knowlang.core.types import VectorStoreProvider
 from knowlang.search.base import SearchMethodology
+from knowlang.search.keyword_search import KeywordSearchableStore
+from knowlang.utils import FancyLogger
+from knowlang.vector_stores.base import (SearchResult, VectorStoreError,
+                                         VectorStoreInitError)
+from knowlang.vector_stores.factory import register_vector_store
+from knowlang.vector_stores.postgres import PostgresVectorStore
 
 LOG = FancyLogger(__name__)
 Base = declarative_base()
@@ -32,23 +33,26 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
     @classmethod
     def create_from_config(
         cls, 
-        config: DBConfig, 
-        embedding_config: EmbeddingConfig
+        config: AppConfig,
     ) -> "PostgresHybridStore":
         """Create a hybrid store instance from configuration."""
-        if not config.connection_url:
+        db_config = config.db
+        embedding_config = config.embedding
+        if not db_config.connection_url:
             raise VectorStoreInitError("Connection url not set for PostgresHybridVectorStore.")
         
         return cls(
-            connection_string=config.connection_url,
-            table_name=config.collection_name,
+            app_config=config,
+            connection_string=db_config.connection_url,
+            table_name=db_config.collection_name,
             embedding_dim=embedding_config.dimension,
-            similarity_metric=config.similarity_metric,
-            content_field=config.content_field,
+            similarity_metric=db_config.similarity_metric,
+            content_field=db_config.content_field,
         )
 
     def __init__(
         self,
+        app_config: AppConfig,
         connection_string: str,
         table_name: str,
         embedding_dim: int,
@@ -70,6 +74,7 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
         """
         # Initialize vector store capabilities with content_field
         super().__init__(
+            app_config=app_config,
             connection_string=connection_string,
             table_name=table_name,
             embedding_dim=embedding_dim,

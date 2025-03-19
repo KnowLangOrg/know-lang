@@ -5,7 +5,7 @@ import gradio as gr
 from gradio import ChatMessage
 
 from knowlang.configs import AppConfig
-from knowlang.utils import RateLimiter, FancyLogger
+from knowlang.utils import FancyLogger, RateLimiter
 from knowlang.vector_stores.factory import VectorStoreFactory
 
 from .chat_graph import ChatStatus, stream_chat_progress
@@ -35,7 +35,7 @@ class CodeContext:
 class CodeQAChatInterface:
     def __init__(self, config: AppConfig):
         self.config = config
-        self.vector_store = VectorStoreFactory.get(config.db, config.embedding)
+        self.vector_store = VectorStoreFactory.get(config)
         self.rate_limiter = RateLimiter()
         self.chat_analytics = ChatAnalytics(config.chat_analytics)
     
