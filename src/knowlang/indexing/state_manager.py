@@ -12,7 +12,7 @@ class StateManager:
     """Manages file states and their associated chunks"""
     
     def __init__(self, config: AppConfig):
-        self.state_store = get_state_store(config.db)
+        self.state_store = get_state_store(config)
         self.vector_store = VectorStoreFactory.get(config)
         self.config = config
 

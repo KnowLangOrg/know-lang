@@ -8,11 +8,11 @@ from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String,
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
-from knowlang.utils import FancyLogger
-from knowlang.configs import DBConfig
+from knowlang.configs import AppConfig, DBConfig
 from knowlang.core.types import StateStoreProvider
 from knowlang.indexing.file_utils import (compute_file_hash, get_absolute_path,
                                           get_relative_path)
+from knowlang.utils import FancyLogger
 
 from .base import (FileChange, FileState, StateChangeType, StateStore,
                    register_state_store)
@@ -47,9 +47,10 @@ class ChunkStateModel(Base):
 @register_state_store(StateStoreProvider.POSTGRES)
 class SQLAlchemyStateStore(StateStore):
     """SQLAlchemy-based state storage implementation supporting both SQLite and PostgreSQL"""
-    def __init__(self, config: DBConfig):
+    def __init__(self, config: AppConfig):
         """Initialize database with configuration and create schema if needed"""
-        self.config = DBConfig.model_validate(config)
+        self.app_config = config
+        self.config = DBConfig.model_validate(config.db)
         
         # Validate store type
         if config.state_store.provider not in (StateStoreProvider.SQLITE, StateStoreProvider.POSTGRES):
