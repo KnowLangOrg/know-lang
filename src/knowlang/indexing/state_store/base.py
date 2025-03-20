@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Set, Type
 
 from pydantic import BaseModel
 
-from knowlang.configs import DBConfig
+from knowlang.configs import AppConfig
 
 
 # ----------------- Data Models and Enums -----------------
@@ -35,8 +35,9 @@ class FileChange(BaseModel):
 
 class StateStore(ABC):
     """Abstract base class for state storage implementations."""
-    def __init__(self, config: DBConfig):
-        self.config = config
+    def __init__(self, config: AppConfig):
+        self.app_config = config
+        self.config = config.db
 
     @abstractmethod
     async def get_file_state(self, file_path: Path) -> Optional[FileState]:
@@ -68,9 +69,9 @@ def register_state_store(provider: str):
         return cls
     return decorator
 
-def get_state_store(config: DBConfig) -> StateStore:
+def get_state_store(config: AppConfig) -> StateStore:
     """Factory method to retrieve a state store instance based on configuration."""
-    provider = config.state_store.provider
+    provider = config.db.state_store.provider
     if provider not in STATE_STORE_REGISTRY:
         raise ValueError(f"State store provider {provider} is not registered.")
     store_cls = STATE_STORE_REGISTRY[provider]

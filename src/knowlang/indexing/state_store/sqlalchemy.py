@@ -8,11 +8,11 @@ from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String,
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
-from knowlang.utils import FancyLogger
-from knowlang.configs import DBConfig
+from knowlang.configs import AppConfig, DBConfig
 from knowlang.core.types import StateStoreProvider
 from knowlang.indexing.file_utils import (compute_file_hash, get_absolute_path,
                                           get_relative_path)
+from knowlang.utils import FancyLogger
 
 from .base import (FileChange, FileState, StateChangeType, StateStore,
                    register_state_store)
@@ -47,16 +47,17 @@ class ChunkStateModel(Base):
 @register_state_store(StateStoreProvider.POSTGRES)
 class SQLAlchemyStateStore(StateStore):
     """SQLAlchemy-based state storage implementation supporting both SQLite and PostgreSQL"""
-    def __init__(self, config: DBConfig):
+    def __init__(self, config: AppConfig):
         """Initialize database with configuration and create schema if needed"""
-        self.config = DBConfig.model_validate(config)
+        self.app_config = config
+        self.config = DBConfig.model_validate(config.db)
         
         # Validate store type
-        if config.state_store.provider not in (StateStoreProvider.SQLITE, StateStoreProvider.POSTGRES):
-            raise ValueError(f"Invalid store type: {config.state_store.provider}")
+        if self.config.state_store.provider not in (StateStoreProvider.SQLITE, StateStoreProvider.POSTGRES):
+            raise ValueError(f"Invalid store type: {self.config.state_store.provider}")
             
         # Initialize database connection
-        connection_args = config.state_store.get_connection_args()
+        connection_args = self.config.state_store.get_connection_args()
         self.engine = create_engine(
             connection_args.pop('url'),
             **connection_args
@@ -66,7 +67,7 @@ class SQLAlchemyStateStore(StateStore):
         # Create database schema if it doesn't exist
         Base.metadata.create_all(self.engine)
         
-        LOG.info(f"Initialized {config.state_store.provider} state store schema at {self.config.state_store.store_path}")
+        LOG.info(f"Initialized {self.config.state_store.provider} state store schema at {self.config.state_store.store_path}")
 
     def _compute_file_hash(self, file_path: Path) -> str:
         """Compute SHA-256 hash of file contents"""
