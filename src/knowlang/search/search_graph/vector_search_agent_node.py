@@ -91,6 +91,15 @@ If I tell you that previous query returned too few results, make the query more 
             too_few_results: bool = False
         ) -> QueryRefinementResult:
         """Use an agent to refine the user's question for vector search"""
+        # Check if query refinement is enabled
+        if not ctx.deps.config.retrieval.vector_search.query_refinement:
+            # No refinement, use the original query
+            LOG.debug(f"Query refinement disabled, using original query: {question}")
+            return QueryRefinementResult(
+                refined_query=question,
+                explanation="Query refinement disabled"
+            )
+
         query_agent = self._get_agent(ctx)
         
         prompt = question
@@ -102,13 +111,12 @@ Please generate a more general query with broader terms or additional synonyms."
             
         result = await query_agent.run(prompt)
         refined_query = result.data.strip()
-        ctx.state.refined_queries[SearchMethodology.VECTOR].append(refined_query)
         
         # For the first attempt, we might want to log the explanation
         explanation = "Initial query refinement" if not too_few_results else "Generating broader query due to few results"
         
         return QueryRefinementResult(refined_query=refined_query, explanation=explanation)
-    
+
     async def _generate_embeddings(self, 
             ctx: GraphRunContext[SearchState, SearchDeps], 
             text: str
@@ -186,6 +194,8 @@ Please generate a more general query with broader terms or additional synonyms."
             )
             
             LOG.debug(f"Refined query: {query_refinement.refined_query} (reason: {query_refinement.explanation})")
+
+            ctx.state.refined_queries[SearchMethodology.VECTOR].append(query_refinement.refined_query)
             
             # Store the query for potential future recursion
             self.previous_query = query_refinement.refined_query
