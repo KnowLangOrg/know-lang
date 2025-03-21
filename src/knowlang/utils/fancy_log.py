@@ -44,7 +44,7 @@ class FancyLogger(logging.Logger):
             console=console,
             show_time=True,
             show_path=config.show_path,
-            markup=True,
+            markup=False,
             rich_tracebacks=config.rich_tracebacks,
             tracebacks_show_locals=config.tracebacks_show_locals
         )

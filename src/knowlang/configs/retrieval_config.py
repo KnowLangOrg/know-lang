@@ -15,6 +15,10 @@ class SearchConfig(BaseModel):
         default=0.0, 
         description="Minimum relevance score to include a document"
     )
+    query_refinement: bool = Field(
+        default=False, 
+        description="Enable query refinement"
+    )
     max_retries: int = Field(
         default=5, 
         description="Maximum number of retries for retrieval"

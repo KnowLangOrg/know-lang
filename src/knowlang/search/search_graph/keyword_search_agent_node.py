@@ -78,10 +78,17 @@ If I tell you that previous keywords returned too few results, use more permissi
         return self.__class__._agent_instance
     
     async def _extract_keywords(self, 
-                               ctx: GraphRunContext[SearchState, SearchDeps],
-                               question: str, 
-                               too_few_results: bool = False) -> KeywordExtractionResult:
+            ctx: GraphRunContext[SearchState, SearchDeps],
+            question: str, 
+            too_few_results: bool = False
+        ) -> KeywordExtractionResult:
         """Use an agent to extract keywords from the user's question"""
+        # Check if query refinement is enabled
+        if not ctx.deps.config.retrieval.keyword_search.query_refinement:
+            # No refinement, use the original query
+            LOG.debug(f"Query refinement disabled, using original query: {question}")
+            return KeywordExtractionResult(query=question, logic="AND")
+        
         keyword_agent = self._get_agent(ctx)
         
         prompt = question

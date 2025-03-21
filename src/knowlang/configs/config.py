@@ -182,7 +182,7 @@ class RerankerConfig(BaseSettings):
         description="Enable reranking"
     )
     model_name: str = Field(
-        default="microsoft/graphcodebert-base",
+        default="KnowLang/graphcodebert-codesearch-python",
         description="Name of the reranker model to use"
     )
     model_provider: str = Field(

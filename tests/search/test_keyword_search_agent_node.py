@@ -23,7 +23,8 @@ def mock_config():
         retrieval=MultiStageRetrievalConfig(
             keyword_search=SearchConfig(
                 top_k=10,
-                max_retries=2
+                max_retries=2,
+                query_refinement=True  # Default to True for backward compatibility
             )
         )
     )
@@ -76,6 +77,9 @@ def reset_agent_instance():
 @patch('knowlang.search.search_graph.keyword_search_agent_node.Agent')
 async def test_keyword_search_agent_node_success(mock_agent_class, run_context, mock_keyword_store):
     """Test that KeywordSearchAgentNode extracts keywords and performs search successfully"""
+    # Explicitly set query_refinement to True
+    run_context.deps.config.retrieval.keyword_search.query_refinement = True
+    
     node = KeywordSearchAgentNode()
     
     # Mock keyword extraction
@@ -122,6 +126,9 @@ async def test_keyword_search_agent_node_success(mock_agent_class, run_context, 
 @patch('knowlang.search.search_graph.keyword_search_agent_node.Agent')
 async def test_keyword_search_agent_node_recursive(mock_agent_class, run_context, mock_keyword_store):
     """Test that KeywordSearchAgentNode calls itself recursively if no results found"""
+    # Explicitly set query_refinement to True
+    run_context.deps.config.retrieval.keyword_search.query_refinement = True
+    
     node = KeywordSearchAgentNode()
     
     # Mock keyword extraction
@@ -166,6 +173,9 @@ async def test_keyword_search_agent_node_recursive(mock_agent_class, run_context
 @patch('knowlang.search.search_graph.keyword_search_agent_node.Agent')
 async def test_keyword_search_agent_node_max_retries(mock_agent_class, run_context):
     """Test that KeywordSearchAgentNode stops recursing after max retries"""
+    # Explicitly set query_refinement to True
+    run_context.deps.config.retrieval.keyword_search.query_refinement = True
+    
     node = KeywordSearchAgentNode(attempts=1, previous_query="first & query")
     
     # Mock keyword extraction
@@ -218,21 +228,37 @@ async def test_extract_keywords_method(mock_config, run_context):
         mock_agent = mock_agent_class.return_value
         mock_agent.run = AsyncMock()
         
+        # Test with query_refinement=True
+        run_context.deps.config.retrieval.keyword_search.query_refinement = True
+        
         # Test AND logic detection
         mock_agent.run.return_value = Mock(data="keyword & search & strategy")
         result = await node._extract_keywords(run_context, "test")
         assert isinstance(result, KeywordExtractionResult)
         assert result.logic == "AND"
+        assert mock_agent.run.called
+        mock_agent.run.reset_mock()
         
         # Test OR logic detection
         mock_agent.run.return_value = Mock(data="keyword | search | strategy")
         result = await node._extract_keywords(run_context, "test")
         assert result.logic == "OR"
+        assert mock_agent.run.called
+        mock_agent.run.reset_mock()
         
         # Test mixed logic (should default to OR)
         mock_agent.run.return_value = Mock(data="keyword & (search | strategy)")
         result = await node._extract_keywords(run_context, "test")
         assert result.logic == "OR"
+        assert mock_agent.run.called
+        mock_agent.run.reset_mock()
+        
+        # Test with query_refinement=False
+        run_context.deps.config.retrieval.keyword_search.query_refinement = False
+        result = await node._extract_keywords(run_context, "original query")
+        assert result.query == "original query"
+        assert result.logic == "AND"
+        assert not mock_agent.run.called
 
 
 @pytest.mark.asyncio
@@ -267,3 +293,48 @@ async def test_perform_keyword_search_method(mock_keyword_store):
     assert isinstance(kwargs["query"], KeywordQuery)
     assert kwargs["query"].text == "test query"
     assert kwargs["query"].top_k == 10
+
+
+@pytest.mark.asyncio
+@patch('knowlang.search.search_graph.keyword_search_agent_node.Agent')
+async def test_keyword_search_agent_node_no_refinement(mock_agent_class, run_context, mock_keyword_store):
+    """Test that KeywordSearchAgentNode doesn't use LLM when query_refinement is False"""
+    # Set query_refinement to False
+    run_context.deps.config.retrieval.keyword_search.query_refinement = False
+    
+    node = KeywordSearchAgentNode()
+    
+    # Set up mock agent - this should not be called
+    mock_agent = mock_agent_class.return_value
+    mock_agent.run = AsyncMock()
+    
+    # Configure search to return specific results
+    search_results = [
+        SearchResult(
+            document="def keyword_search(): pass", 
+            metadata={"file_path": "test1.py", "start_line": 1, "end_line": 2}, 
+            score=0.9
+        )
+    ]
+    mock_keyword_store.search.return_value = search_results
+
+    # Run the node
+    result = await node.run(run_context)
+
+    # Verify result is an End node with SearchOutputs
+    assert isinstance(result, End)
+    output = result.data
+    assert len(output.search_results) == 1
+    
+    # Verify the original query was used
+    assert len(run_context.state.refined_queries[SearchMethodology.KEYWORD]) == 1
+    assert run_context.state.refined_queries[SearchMethodology.KEYWORD][0] == run_context.state.query
+    
+    # Verify agent was NOT called - critical test!
+    mock_agent.run.assert_not_called()
+    
+    # Verify search was called with the right parameters
+    args, kwargs = mock_keyword_store.search.call_args
+    assert kwargs["strategy_name"] == SearchMethodology.KEYWORD
+    assert isinstance(kwargs["query"], KeywordQuery)
+    assert kwargs["query"].text == run_context.state.query  # Original query used
