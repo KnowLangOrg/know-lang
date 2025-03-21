@@ -1,4 +1,4 @@
-from unittest.mock import patch, Mock
+from unittest.mock import MagicMock, patch, call
 import pytest
 
 from knowlang.configs import RerankerConfig
@@ -50,11 +50,11 @@ def sample_search_results():
     ]
 
 
-@patch("knowlang.models.graph_code_bert.calculate_relevance_scores")
-def test_rerank_successful(mock_calculate_scores, reranker_config, sample_search_results):
+@patch("knowlang.models.graph_code_bert.calculate_similarity")
+def test_rerank_successful(mock_calculate_scores : MagicMock, reranker_config, sample_search_results):
     """Test successful reranking of search results."""
     # Configure mock to return some scores
-    mock_calculate_scores.return_value = [0.95, 0.85, 0.65, 0.45]
+    mock_calculate_scores.side_effect = [0.95, 0.85, 0.65, 0.45]
     
     # Create reranker
     reranker = GraphCodeBertReranker(reranker_config)
@@ -70,17 +70,15 @@ def test_rerank_successful(mock_calculate_scores, reranker_config, sample_search
     assert reranked_results[2].score == 0.65
     
     # Verify function calls
-    mock_calculate_scores.assert_called_once_with(
-        query=query, 
-        code_snippets=[result.document for result in sample_search_results]
-    )
+    mock_calculate_scores.assert_has_calls(call(query, result.document) for result in sample_search_results)
 
 
-@patch("knowlang.models.graph_code_bert.calculate_relevance_scores")
-def test_reranker_threshold_filtering(mock_calculate_scores, reranker_config, sample_search_results):
+
+@patch("knowlang.models.graph_code_bert.calculate_similarity")
+def test_reranker_threshold_filtering(mock_calculate_scores : MagicMock, reranker_config, sample_search_results):
     """Test that reranker filters results below the relevance threshold."""
     # Configure mock to return scores, with some below threshold
-    mock_calculate_scores.return_value = [0.95, 0.85, 0.45, 0.35]  # Last two below threshold (0.5)
+    mock_calculate_scores.side_effect = [0.95, 0.85, 0.45, 0.35]  # Last two below threshold (0.5)
     
     # Create reranker
     reranker = GraphCodeBertReranker(reranker_config)
@@ -121,11 +119,11 @@ def test_reranker_empty_results(reranker_config):
     assert reranked_results == []
 
 
-@patch("knowlang.models.graph_code_bert.calculate_relevance_scores")
-def test_reranker_result_ordering(mock_calculate_scores, reranker_config, sample_search_results):
+@patch("knowlang.models.graph_code_bert.calculate_similarity")
+def test_reranker_result_ordering(mock_calculate_scores : MagicMock, reranker_config, sample_search_results):
     """Test that results are properly ordered by score."""
     # Configure mock to return scores in non-descending order
-    mock_calculate_scores.return_value = [0.75, 0.95, 0.85, 0.65]
+    mock_calculate_scores.side_effect = [0.75, 0.95, 0.85, 0.65]
     
     # Create reranker
     reranker = GraphCodeBertReranker(reranker_config)

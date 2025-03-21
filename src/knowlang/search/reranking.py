@@ -36,13 +36,10 @@ class GraphCodeBertReranker:
         contents = [result.document for result in raw_search_results]
         
         # Import here to avoid circular imports
-        from knowlang.models.graph_code_bert import calculate_relevance_scores
+        from knowlang.models.graph_code_bert import calculate_similarity
         
         # Score query-code pairs using cross-encoder
-        scores = calculate_relevance_scores(
-            query=query, 
-            code_snippets=contents,
-        )
+        scores = [calculate_similarity(query, content) for content in contents]
         
         # Create results with scores
         ranked_results : List[SearchResult] = []
