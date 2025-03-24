@@ -65,10 +65,10 @@ class RerankerNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
         
         try:
             # Import the reranker implementation
-            from knowlang.search.reranking import GraphCodeBertReranker
+            from knowlang.search.reranking import KnowLangReranker
             
             # Set up reranker
-            reranker = GraphCodeBertReranker(config=ctx.deps.config.reranker)
+            reranker = KnowLangReranker(config=ctx.deps.config.reranker)
             
             # Rerank results
             reranked_results = reranker.rerank(

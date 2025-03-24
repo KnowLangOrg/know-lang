@@ -201,6 +201,10 @@ class RerankerConfig(BaseSettings):
         default=0.5,
         description="Minimum relevance score to include a document in reranking"
     )
+    max_sequence_length: int = Field(
+        default=256,
+        description="Maximum sequence length for the reranker model"
+    )
 
     @field_validator('api_key', mode='after')
     @classmethod

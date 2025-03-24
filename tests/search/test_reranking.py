@@ -4,7 +4,7 @@ import pytest
 from knowlang.configs import RerankerConfig
 from knowlang.core.types import ModelProvider
 from knowlang.search.base import SearchResult
-from knowlang.search.reranking import GraphCodeBertReranker
+from knowlang.search.reranking import KnowLangReranker
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def test_rerank_successful(mock_calculate_scores : MagicMock, reranker_config, s
     mock_calculate_scores.side_effect = [0.95, 0.85, 0.65, 0.45]
     
     # Create reranker
-    reranker = GraphCodeBertReranker(reranker_config)
+    reranker = KnowLangReranker(reranker_config)
     
     # Run reranker
     query = "how to search code"
@@ -81,7 +81,7 @@ def test_reranker_threshold_filtering(mock_calculate_scores : MagicMock, reranke
     mock_calculate_scores.side_effect = [0.95, 0.85, 0.45, 0.35]  # Last two below threshold (0.5)
     
     # Create reranker
-    reranker = GraphCodeBertReranker(reranker_config)
+    reranker = KnowLangReranker(reranker_config)
     
     # Run reranker
     reranked_results = reranker.rerank("search query", sample_search_results)
@@ -98,7 +98,7 @@ def test_reranker_disabled(reranker_config, sample_search_results):
     reranker_config.enabled = False
     
     # Create reranker
-    reranker = GraphCodeBertReranker(reranker_config)
+    reranker = KnowLangReranker(reranker_config)
     
     # Run reranker
     reranked_results = reranker.rerank("search query", sample_search_results)
@@ -110,7 +110,7 @@ def test_reranker_disabled(reranker_config, sample_search_results):
 def test_reranker_empty_results(reranker_config):
     """Test reranker handles empty result list."""
     # Create reranker
-    reranker = GraphCodeBertReranker(reranker_config)
+    reranker = KnowLangReranker(reranker_config)
     
     # Run reranker with empty list
     reranked_results = reranker.rerank("search query", [])
@@ -126,7 +126,7 @@ def test_reranker_result_ordering(mock_calculate_scores : MagicMock, reranker_co
     mock_calculate_scores.side_effect = [0.75, 0.95, 0.85, 0.65]
     
     # Create reranker
-    reranker = GraphCodeBertReranker(reranker_config)
+    reranker = KnowLangReranker(reranker_config)
     
     # Run reranker
     reranked_results = reranker.rerank("search query", sample_search_results)

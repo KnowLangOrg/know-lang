@@ -12,17 +12,11 @@ from knowlang.models.GraphCodeBERT_search import (
     DFG_python, DFG_java, DFG_ruby, DFG_go, DFG_php, DFG_javascript,
     extract_dataflow
 )
+from knowlang.models.utils import get_device
 
 # Global caches
 _MODEL_CACHE: Dict[str, Tuple[Any, Any, str]] = {}
 
-def get_device():
-    if torch.cuda.is_available():
-        return "cuda"
-    elif torch.backends.mps.is_available():
-        return "mps"
-    else:
-        return "cpu"
 
 class GraphCodeBertMode(str, Enum):
     """Operational modes for GraphCodeBERT"""

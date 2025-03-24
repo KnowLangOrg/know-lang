@@ -146,7 +146,7 @@ async def test_first_stage_node_exception(mock_graph_run, run_context):
 
 
 @pytest.mark.asyncio
-@patch("knowlang.search.reranking.GraphCodeBertReranker")
+@patch("knowlang.search.reranking.KnowLangReranker")
 async def test_reranker_node_success(mock_reranker_class, run_context, sample_search_results):
     """Test RerankerNode with successful reranking."""
     # Configure initial state
@@ -195,7 +195,7 @@ async def test_reranker_node_no_results(run_context):
 
 
 @pytest.mark.asyncio
-@patch("knowlang.search.reranking.GraphCodeBertReranker")
+@patch("knowlang.search.reranking.KnowLangReranker")
 async def test_reranker_node_disabled(mock_reranker_class, run_context, sample_search_results):
     """Test RerankerNode when reranking is disabled."""
     # Configure initial state
@@ -217,7 +217,7 @@ async def test_reranker_node_disabled(mock_reranker_class, run_context, sample_s
 
 
 @pytest.mark.asyncio
-@patch("knowlang.search.reranking.GraphCodeBertReranker")
+@patch("knowlang.search.reranking.KnowLangReranker")
 async def test_reranker_node_exception(mock_reranker_class, run_context, sample_search_results):
     """Test RerankerNode handles exceptions gracefully."""
     # Configure initial state
