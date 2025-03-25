@@ -94,6 +94,7 @@ class CodeSearchEvaluator:
             
             # Create reranker config
             reranker_config = RerankerConfig(
+                model_name=config.reranker_model_name,
                 enabled=config.reranking_enabled,
                 top_k=config.reranker_top_k,
                 relevance_threshold=config.reranker_threshold,
