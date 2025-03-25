@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import lru_cache
 import os
 from typing import List, Any
 from knowlang.configs import RerankerConfig
@@ -7,7 +8,7 @@ from knowlang.search.base import SearchResult
 
 
 from enum import Enum
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Tuple
 import torch
 import torch.nn as nn
 from pydantic import BaseModel, Field
@@ -19,21 +20,89 @@ from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
 
+_RERANKER_CACHE: Dict[str, Tuple[Any, Any, str]] = {}
+
+
+
+class RerankerType(str, Enum):
+    """Enum for reranker types."""
+    POINTWISE = "pointwise"
+    PAIRWISE = "pairwise"
+
+
+@lru_cache(maxsize=4)
+def _get_tokenizer_and_model(
+    model_name: str,
+    config: Optional[RobertaConfig] = None,
+    reranker_type: RerankerType = RerankerType.PAIRWISE,
+    device: str = get_device()
+) -> Tuple[Any, Any, str]:
+    """
+    Load tokenizer and model with caching.
+    
+    Args:
+        model_name: Name of the model to load
+        config: Optional model configuration
+        reranker_type: Type of reranker (pointwise or pairwise)
+        device: Device to load the model on
+        
+    Returns:
+        Tuple of (tokenizer, model, device)
+    """
+    cache_key = f"{model_name}_{reranker_type}_{device}"
+    
+    if cache_key not in _RERANKER_CACHE:
+        LOG.info(f"Loading reranker model and tokenizer for {model_name}")
+        
+        # Load tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+        
+        # Create model config if not provided
+        if config is None:
+            model_config = RobertaConfig.from_pretrained(
+                model_name,
+                num_labels=2,
+                finetuning_task="reranking"
+            )
+        else:
+            model_config = config
+            
+        # Load model
+        model = CodeBERTReranker.from_pretrained(
+            model_path=model_name,
+            config=model_config,
+            reranker_type=reranker_type,
+            device=device
+        )
+        
+        # Cache model and tokenizer
+        _RERANKER_CACHE[cache_key] = (tokenizer, model, device)
+        LOG.info(f"Reranker model and tokenizer loaded successfully")
+    else:
+        LOG.debug(f"Using cached reranker model and tokenizer for {model_name}")
+    
+    return _RERANKER_CACHE[cache_key]
+
+
 class KnowLangReranker:
     """Base class for KnowLang rerankers."""
     def __init__(self, config: RerankerConfig):
         """Initialize the reranker with a configuration."""
         self.config = config
-        self.tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
-        self.reranker = CodeBERTReranker.from_pretrained(
-            model_path=config.model_name,
-            config= RobertaConfig.from_pretrained(
-                config.model_name,
-                num_labels=2,
-                finetuning_task="reranking"
-            ),  
+
+        if not config.enabled:
+            # Skip loading model and tokenizer if reranking is disabled
+            self.tokenizer = None
+            self.reranker = None
+            self.device = None
+            return
+            
+        # Get tokenizer and model from cache
+        self.tokenizer, self.reranker, self.device = _get_tokenizer_and_model(
+            model_name=config.model_name,
+            reranker_type=RerankerType.PAIRWISE,  # Default to pairwise reranking
+            device=get_device()
         )
-        self.device = get_device()
     
     def _get_score(self, query_tokens, search_result: SearchResult) -> float:
         """Get the relevance score for a search result."""
@@ -90,11 +159,6 @@ class KnowLangReranker:
 
         return ranked_results
 
-
-class RerankerType(str, Enum):
-    """Enum for reranker types."""
-    POINTWISE = "pointwise"
-    PAIRWISE = "pairwise"
 
 
 class CodeBERTReranker(nn.Module):
