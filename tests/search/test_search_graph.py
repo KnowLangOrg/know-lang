@@ -146,6 +146,7 @@ async def test_first_stage_node_exception(mock_graph_run, run_context):
 
 
 @pytest.mark.asyncio
+@pytest.mark.asyncio
 @patch("knowlang.search.reranking.KnowLangReranker")
 async def test_reranker_node_success(mock_reranker_class, run_context, sample_search_results):
     """Test RerankerNode with successful reranking."""
@@ -172,10 +173,10 @@ async def test_reranker_node_success(mock_reranker_class, run_context, sample_se
     assert isinstance(result, End)
     assert result.data.search_results == reranked_results
     
-    # Verify reranker was called
+    # Verify reranker was called with correct parameters
     mock_reranker_instance.rerank.assert_called_once_with(
         query=run_context.state.query,
-        raw_search_results=sample_search_results
+        results=sample_search_results  # Changed from raw_search_results to results
     )
 
 

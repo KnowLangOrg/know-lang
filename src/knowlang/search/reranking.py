@@ -149,6 +149,10 @@ class KnowLangReranker:
     def rerank(self, query: str, results: List[SearchResult]) -> List[SearchResult]:
         """Rerank search results based on the query."""
 
+        if not self.config.enabled:
+            LOG.debug("Reranking disabled, returning original results")
+            return results
+
         query_tokens = self.tokenizer.tokenize(query)
         ranked_results = results.copy()
         for result in ranked_results:
