@@ -73,7 +73,7 @@ class RerankerNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
             # Rerank results
             reranked_results = reranker.rerank(
                 query=ctx.state.query,
-                raw_search_results=ctx.state.search_results
+                results=ctx.state.search_results
             )
             
             LOG.info(f"Reranking complete: {len(reranked_results)} of {len(ctx.state.search_results)} results kept")

@@ -69,11 +69,13 @@ class KnowLangReranker:
         attention_mask = attention_mask + [0] * padding_length
         token_type_ids = token_type_ids + [0] * padding_length
         
-        return self.reranker.get_score(
-            input_ids = torch.tensor(input_ids, dtype=torch.long, device=self.device),
-            attention_mask = torch.tensor(attention_mask, dtype=torch.long, device=self.device),
-            token_type_ids = torch.tensor(token_type_ids, dtype=torch.long, device=self.device),
+        score = self.reranker.get_score(
+            input_ids = torch.tensor([input_ids], dtype=torch.long, device=self.device),
+            attention_mask = torch.tensor([attention_mask], dtype=torch.long, device=self.device),
+            token_type_ids = torch.tensor([token_type_ids], dtype=torch.long, device=self.device),
         )
+
+        return score.item()
 
     def rerank(self, query: str, results: List[SearchResult]) -> List[SearchResult]:
         """Rerank search results based on the query."""
@@ -135,7 +137,7 @@ class CodeBERTReranker(nn.Module):
             reranker_type=reranker_type
         )
         
-        if not os.path.isfile(model_path):
+        if not os.path.exists(model_path):
             LOG.info(f"Model path not found: {model_path}, attempting to download from Hugging Face Hub")
             from huggingface_hub import hf_hub_download
 
@@ -148,7 +150,10 @@ class CodeBERTReranker(nn.Module):
             LOG.info(f"Model downloaded from {model_path}")
 
         # Load state dict
-        state_dict = torch.load(model_path)
+        model_bin_path = os.path.join(model_path, 'pytorch_model.bin')
+        if not os.path.exists(model_bin_path):
+            raise ValueError(f"Model path not found: {model_path}")
+        state_dict = torch.load(model_bin_path)
         
         
         # Handle loading based on reranker type
