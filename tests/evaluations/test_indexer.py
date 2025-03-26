@@ -1,8 +1,10 @@
 import json
 import pytest
 from unittest import mock
+from knowlang.evaluations.base import QueryCodePair
 from knowlang.evaluations.indexer import DatasetIndexer, QueryManager
 from knowlang.models.types import EmbeddingInputType
+from knowlang.evaluations.types import DatasetSplitType
 
 class TestDatasetIndexer:
     """Tests for the DatasetIndexer."""
@@ -63,10 +65,14 @@ class TestQueryManager:
         with open(file_path, "r", encoding="utf-8") as f:
             query_map = json.load(f)
         
+        for query_id, query_data in query_map.items():
+            query_map[query_id] = QueryCodePair.model_validate_json(query_data)
+        
         assert "query1" in query_map
         assert "query2" in query_map
-        assert query_map["query1"]["query"] == "How to sort a list in Python"
-        assert "code1" in query_map["query1"]["relevant_code"]
+        assert query_map["query1"].query == "How to sort a list in Python"
+        assert query_map["query1"].dataset_split == DatasetSplitType.TEST.value  # Verify split is saved
+        assert query_map["query2"].dataset_split == DatasetSplitType.TRAIN.value  # Verify split is saved
     
     def test_load_query_mappings(self, temp_dir, sample_query_code_pairs):
         """Test loading query mappings."""
@@ -80,5 +86,5 @@ class TestQueryManager:
         query_map = manager.load_query_mappings("test_dataset")
         
         assert "query1" in query_map
-        assert query_map["query1"]["query"] == "How to sort a list in Python"
-        assert "code1" in query_map["query1"]["relevant_code"]
+        assert query_map["query1"].query == "How to sort a list in Python"
+        assert query_map["query1"].dataset_split == DatasetSplitType.TEST.value  # Verify split is loaded

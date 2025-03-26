@@ -3,6 +3,7 @@ import time
 from pydantic import BaseModel, Field
 
 from knowlang.search.base import SearchResult
+from knowlang.evaluations.types import DatasetSplitType
 
 
 class QueryCodePair(BaseModel):
@@ -14,7 +15,7 @@ class QueryCodePair(BaseModel):
     language: str
     metadata: Dict[str, Any] = Field(default_factory=dict)
     is_relevant: bool = True  # For datasets with relevance judgments
-
+    dataset_split: DatasetSplitType
 
 class DatasetStats(BaseModel):
     """Statistics about the dataset being processed."""
