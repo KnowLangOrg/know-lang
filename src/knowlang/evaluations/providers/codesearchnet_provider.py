@@ -43,7 +43,7 @@ class CodeSearchNetProvider(DatasetProvider):
         for language in languages:
             try:
                 for split in splits:
-                    split_value = split.value
+                    split_value = split.value if isinstance(split, DatasetSplitType) else split
                     lang_dir = self.dataset_dir / language / "final" / "jsonl" / split_value
                     if not lang_dir.exists():
                         LOG.warning(f"Language/split directory not found: {lang_dir}")

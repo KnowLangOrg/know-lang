@@ -62,7 +62,7 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
                 output_dir=parsed_namespace.output_dir,
                 dataset=parsed_namespace.dataset,
                 languages=parsed_namespace.languages,
-                split=parsed_namespace.split,
+                splits=parsed_namespace.splits,
                 skip_indexing=parsed_namespace.skip_indexing
             )
         elif parsed_namespace.subcommand == "run":
@@ -208,9 +208,10 @@ def _create_prepare_dataset_parser(evaluate_subparsers):
         help="Languages to include (e.g., python java)"
     )
     prepare_parser.add_argument(
-        "--split",
+        "--splits",
+        default=['test', 'train', 'valid'],
         type=str,
-        default=PrepareDatasetCommandArgs.split,
+        nargs="+",
         help="Dataset split to use (train, valid, test)"
     )
     prepare_parser.add_argument(

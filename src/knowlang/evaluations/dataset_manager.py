@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from knowlang.evaluations.types import DatasetType
+from knowlang.evaluations.types import DatasetSplitType, DatasetType
 from knowlang.evaluations.providers.codesearchnet_provider import CodeSearchNetProvider
 from knowlang.evaluations.dataset_provider import DatasetProvider
 from knowlang.evaluations.indexer import DatasetIndexer, QueryManager
@@ -30,15 +30,15 @@ class DatasetManager:
         
         # Create dataset providers
         self.providers: Dict[DatasetType, DatasetProvider] = {
-            DatasetType.CODESEARCHNET: CodeSearchNetProvider(data_dir / "code_search_net"),
+            DatasetType.CODESEARCHNET: CodeSearchNetProvider(data_dir),
             # DatasetType.COSQA: CoSQAProvider(data_dir / "cosqa"),
         }
     
     async def prepare_dataset(
         self, 
         dataset_type: DatasetType,
+        splits: List[DatasetSplitType] = None,
         languages: Optional[List[str]] = None,
-        split: str = "test"
     ) -> Dict:
         """
         Prepare a dataset for evaluation.
@@ -63,8 +63,8 @@ class DatasetManager:
         
         try:
             # Load dataset
-            LOG.info(f"Loading {dataset_type} dataset (split: {split})")
-            pairs = await provider.load(languages=languages, split=split)
+            LOG.info(f"Loading {dataset_type} dataset (split: {splits})")
+            pairs = await provider.load(languages=languages, splits=splits)
             
             if not pairs:
                 LOG.warning(f"No data loaded for {dataset_type}")
