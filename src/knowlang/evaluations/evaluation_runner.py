@@ -339,7 +339,7 @@ class CodeSearchEvaluator:
         dataset_name: str = DatasetType.CODESEARCHNET,
         language: str = 'python',
         vector_top_k: int = 100,
-        neg_examples: int = 3,
+        neg_examples: int = 2,
         limit: Optional[int] = None,
         output_dir: Optional[Path] = None
     ) -> Dict[str, int]:
@@ -447,8 +447,8 @@ class CodeSearchEvaluator:
             }
             
             # Check if we have enough results for this query (positive + neg_examples)
-            if len(results) < neg_examples + 1:
-                LOG.warning(f"Not enough search results for query {query_id}. Found {len(results)}, need at least {neg_examples + 1}.")
+            if len(results) < neg_examples:
+                LOG.warning(f"Not enough search results for query {query_id}. Found {len(results)}, need at least {neg_examples}.")
                 continue
             
             # First, find the positive example (ground truth)
