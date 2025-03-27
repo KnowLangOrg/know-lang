@@ -214,7 +214,7 @@ class CodeSearchEvaluator:
         # Filter queries by language if specified
         language_queries = {
             qid: data for qid, data in query_map.items()
-            if data.get("language") == language or language == "all"
+            if data.language == language or language == "all"
         }
         
         if not language_queries:
@@ -243,8 +243,8 @@ class CodeSearchEvaluator:
         total_time = 0.0
         
         for query_id, data in track(selected_queries.items(), description=f"Evaluating {dataset_name}"):
-            query = data["query"]
-            relevant_code = data.get("relevant_code", [])
+            query = data.query
+            relevant_code = [data.code_id]
             
             result = await self.evaluate_query(
                 query_id=query_id,
