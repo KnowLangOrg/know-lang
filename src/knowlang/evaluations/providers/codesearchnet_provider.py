@@ -1,8 +1,6 @@
 import json
 import gzip
-from pathlib import Path
 from typing import List, Optional
-
 from rich.progress import track
 
 from knowlang.evaluations.base import QueryCodePair, DatasetStats
@@ -84,6 +82,7 @@ class CodeSearchNetProvider(DatasetProvider):
                                                 "path": data.get("path", ""),
                                                 "func_name": data.get("func_name", ""),
                                                 "original_string": data.get("original_string", ""),
+                                                "code_tokens": data.get("code_tokens", []),
                                             },
                                             dataset_split=split_value
                                         )

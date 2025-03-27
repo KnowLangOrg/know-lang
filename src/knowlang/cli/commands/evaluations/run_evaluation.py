@@ -58,6 +58,14 @@ async def run_evaluation(
         # Run grid search
         grid_search = EvaluationGridSearch(evaluator, config_manager)
         await grid_search.run_grid_search(args.dataset, args.language, args.limit)
+    elif args.generate_reranking_data:
+        # Generate reranking data
+        await evaluator.generate_training_data(
+            args.dataset, 
+            args.language, 
+            limit=args.limit, 
+            output_dir=args.output_dir,
+        )
     else:
         # Single configuration evaluation
         search_config = config_manager.load_configuration(args.configuration)

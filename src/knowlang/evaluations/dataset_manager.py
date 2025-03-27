@@ -83,7 +83,7 @@ class DatasetManager:
                 "pairs_loaded": len(pairs),
                 "indexed_snippets": len(indexed_ids),
                 "languages": list(set(p.language for p in pairs)),
-                "split": split
+                "splits": splits
             }
             
         except Exception as e:

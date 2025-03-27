@@ -59,6 +59,7 @@ class SearchConfiguration(BaseModel):
     keyword_search_top_k: int = 50
     vector_search_top_k: int = 50
     reranker_top_k: int = 10
+    filter : Dict[str, Any] = Field(default_factory=dict)
 
 
 class EvaluationRun(BaseModel):

@@ -162,7 +162,7 @@ class QueryManager:
         
         LOG.info(f"Saved query mappings to {output_path}")
     
-    def load_query_mappings(self, dataset_name: str) -> Dict:
+    def load_query_mappings(self, dataset_name: str) -> Dict[str, QueryCodePair]:
         """
         Load query-code mappings from a file.
         

@@ -63,4 +63,5 @@ class RunEvaluationCommandArgs(BaseCommandArgs):
     configuration: str = "baseline"
     limit: Optional[int] = None
     grid_search: bool = False
+    generate_reranking_data: bool = False
     list_configurations: bool = False

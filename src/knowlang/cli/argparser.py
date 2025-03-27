@@ -78,7 +78,8 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
                 configuration=parsed_namespace.configuration,
                 limit=parsed_namespace.limit,
                 grid_search=parsed_namespace.grid_search,
-                list_configurations=parsed_namespace.list_configurations
+                list_configurations=parsed_namespace.list_configurations,
+                generate_reranking_data=parsed_namespace.generate_reranking_data
             )
         else:
             raise ValueError(f"Unknown subcommand for evaluate: {parsed_namespace.subcommand}")
@@ -281,6 +282,11 @@ def _create_run_evaluation_parser(evaluate_subparsers):
         action="store_true",
         default=RunEvaluationCommandArgs.list_configurations,
         help="List available search configurations"
+    )
+    run_parser.add_argument(
+        "--generate-reranking-data",
+        action="store_true",
+        help="Generate data for reranking evaluation"
     )
     return run_parser
 
