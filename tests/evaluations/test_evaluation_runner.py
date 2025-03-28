@@ -6,7 +6,8 @@ from unittest.mock import MagicMock
 
 from knowlang.configs import AppConfig
 from knowlang.evaluations.evaluation_runner import CodeSearchEvaluator
-from knowlang.evaluations.base import QueryEvaluationResult, EvaluationRun, SearchConfiguration
+from knowlang.evaluations.base import QueryCodePair, QueryEvaluationResult, EvaluationRun, SearchConfiguration
+from knowlang.evaluations.types import DatasetSplitType
 from knowlang.search.base import SearchResult
 
 class TestCodeSearchEvaluator:
@@ -106,16 +107,27 @@ class TestCodeSearchEvaluator:
         """Test evaluating a dataset."""
         # Create a mock query map
         query_map = {
-            "query1": {
-                "query": "test query 1",
-                "language": "python",
-                "relevant_code": ["code1"]
-            },
-            "query2": {
-                "query": "test query 2",
-                "language": "python",
-                "relevant_code": ["code2"]
-            }
+            "query1": QueryCodePair(
+                query_id="query1",
+                query="test query 1",
+                code_id="code1",
+                code="def test_func(): pass",
+                language="python",
+                is_relevant=True,
+                metadata={"repo": "sample_repo", "path": "sample_path"},
+                dataset_split=DatasetSplitType.TEST.value
+            ),
+        
+            "query2": QueryCodePair(
+                query_id="query2",
+                query="test query 2",
+                code_id="code2",
+                code="def another_func(): pass",
+                language="python",
+                is_relevant=True,
+                metadata={"repo": "sample_repo", "path": "sample_path"},
+                dataset_split=DatasetSplitType.TEST.value
+            )
         }
         
         # Mock methods
