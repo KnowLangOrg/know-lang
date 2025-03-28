@@ -46,6 +46,21 @@
         "run",
         "--limit", "100",
       ]
+    },
+    {
+      "name": "Generate Reranking Data",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "knowlang.cli",
+      "args": [
+        "--v",
+        "--config", "settings/eval_config.json",
+        "evaluate",
+        "run",
+        "--limit", "10",
+        "--output", "datasets/reranking_dataset",
+        "--generate-reranking-data"
+      ]
     }
   ]
 }

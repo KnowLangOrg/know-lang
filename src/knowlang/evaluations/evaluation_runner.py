@@ -1,7 +1,7 @@
 import json
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from rich.console import Console
 from rich.progress import track
@@ -14,6 +14,7 @@ from knowlang.evaluations.base import (EvaluationRun, QueryEvaluationResult,
                                        SearchConfiguration)
 from knowlang.evaluations.indexer import QueryManager
 from knowlang.evaluations.metrics import MetricsCalculator
+from knowlang.evaluations.types import DatasetSplitType, DatasetType
 from knowlang.search.base import SearchMethodology, SearchResult
 from knowlang.search.search_graph.base import SearchDeps, SearchState
 from knowlang.search.search_graph.graph import FirstStageNode, search_graph
@@ -84,11 +85,13 @@ class CodeSearchEvaluator:
                     enabled=config.keyword_search_enabled,
                     top_k=config.keyword_search_top_k,
                     score_threshold=config.keyword_search_threshold,
+                    filter=config.filter,
                 ),
                 vector_search=SearchConfig(
                     enabled=config.vector_search_enabled,
                     top_k=config.vector_search_top_k,
                     score_threshold=config.vector_search_threshold,
+                    filter=config.filter,
                 )
             )
             
@@ -211,7 +214,7 @@ class CodeSearchEvaluator:
         # Filter queries by language if specified
         language_queries = {
             qid: data for qid, data in query_map.items()
-            if data.get("language") == language or language == "all"
+            if data.language == language or language == "all"
         }
         
         if not language_queries:
@@ -222,6 +225,12 @@ class CodeSearchEvaluator:
                 language=language,
                 num_queries=0
             )
+        
+        # Limit the dataset split type
+        selected_queries = {
+            qid: data for qid, data in language_queries.items()
+            if data.dataset_split == config.dataset_split
+        }
         
         # Limit number of queries if specified
         if limit and limit < len(language_queries):
@@ -240,8 +249,8 @@ class CodeSearchEvaluator:
         total_time = 0.0
         
         for query_id, data in track(selected_queries.items(), description=f"Evaluating {dataset_name}"):
-            query = data["query"]
-            relevant_code = data.get("relevant_code", [])
+            query = data.query
+            relevant_code = [data.code_id]
             
             result = await self.evaluate_query(
                 query_id=query_id,
@@ -330,3 +339,179 @@ class CodeSearchEvaluator:
         table.add_row("Avg Query Time", f"{run.avg_query_time:.4f} seconds")
         
         console.print(table)
+        
+    async def generate_training_data(
+        self,
+        dataset_name: str = DatasetType.CODESEARCHNET,
+        language: str = 'python',
+        vector_top_k: int = 100,
+        neg_examples: int = 2,
+        limit: Optional[int] = None,
+        output_dir: Optional[Path] = None
+    ) -> Dict[str, int]:
+        """
+        Generate training data for reranker model from search results.
+        
+        This method:
+        1. Runs queries through the first-stage retrieval (GraphCodeBERT)
+        2. Identifies ground truth (relevant) results (label=1)
+        3. Identifies hard negatives (high similarity, non-relevant results) (label=0)
+        4. Saves the data to JSONL files split by dataset_split (train/valid/test)
+        
+        Args:
+            dataset_name: Name of the dataset
+            language: Programming language filter
+            vector_top_k: Number of results to retrieve from vector search
+            neg_examples: Number of negative examples to include per query (default: 3)
+            limit: Optional limit on number of queries to process
+            output_dir: Directory to save JSONL files (defaults to self.output_dir)
+            
+        Returns:
+            Dictionary with counts of examples by split
+        """
+        await self.initialize()
+        
+        # Set output directory
+        output_dir = output_dir or self.output_dir
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Load query mappings
+        query_map = self.query_manager.load_query_mappings(dataset_name)
+        if not query_map:
+            LOG.error(f"No query mappings found for {dataset_name}")
+            return {"error": "No query mappings found"}
+        
+        # Filter queries by language if specified
+        language_queries = {
+            qid: data for qid, data in query_map.items()
+            if data.language == language or language == "all"
+        }
+        
+        if not language_queries:
+            LOG.warning(f"No queries found for language {language}")
+            return {"error": "No queries found for language"}
+        
+        # Limit number of queries if specified
+        if limit and limit < len(language_queries):
+            import random
+            query_ids = list(language_queries.keys())
+            random.shuffle(query_ids)
+            selected_queries = {qid: language_queries[qid] for qid in query_ids[:limit]}
+        else:
+            selected_queries = language_queries
+        
+        LOG.info(f"Generating training data for {len(selected_queries)} queries for {dataset_name} ({language})")
+        
+        # Create a configuration for vector search only (first-stage retrieval)
+        vector_config = SearchConfiguration(
+            name="vector_only_for_training",
+            description="Vector search only for generating training data",
+            keyword_search_enabled=False,
+            vector_search_enabled=True,
+            reranking_enabled=False,
+            vector_search_top_k=vector_top_k,
+            vector_search_threshold=0.0  # No threshold to get all results
+        )
+        
+        # Initialize counters for each split
+        examples_count = {
+            DatasetSplitType.TRAIN.value: 0,
+            DatasetSplitType.VALID.value: 0,
+            DatasetSplitType.TEST.value: 0,
+            "unknown": 0
+        }
+        
+        # Create output files for each split
+        file_paths = {}
+        for split in [DatasetSplitType.TRAIN.value, DatasetSplitType.VALID.value, DatasetSplitType.TEST.value, "unknown"]:
+            file_path = output_dir / f"{dataset_name}_{language}_{split}_reranker_training.jsonl"
+            file_paths[split] = file_path
+            # Create or truncate the file
+            with open(file_path, "w", encoding="utf-8") as f:
+                pass
+        
+        # Process each query
+        for query_id, data in track(selected_queries.items(), description=f"Generating data for {dataset_name}"):
+            query = data.query
+            ground_truth_id = data.code_id
+            
+            # Get the split from query mapping
+            query_split = data.dataset_split.value
+            
+            # Configure the Search Filter
+            vector_config.filter = {"dataset_split" : {"$eq": query_split}}
+            
+            # Run vector search to get candidates (hard negatives will come from these results)
+            results, _ = await self.search_with_configuration(query, vector_config)
+            
+            # Group examples by split
+            split_examples = {
+                DatasetSplitType.TRAIN.value: [],
+                DatasetSplitType.VALID.value: [],
+                DatasetSplitType.TEST.value: [],
+                "unknown": []
+            }
+            
+            # Check if we have enough results for this query (positive + neg_examples)
+            if len(results) < neg_examples:
+                LOG.warning(f"Not enough search results for query {query_id}. Found {len(results)}, need at least {neg_examples}.")
+                continue
+            
+            # First, find the positive example (ground truth)
+            positive_example = None
+            negative_examples = []
+            
+            for result in results:
+                code_id = result.metadata.get("id")
+                code = result.document
+                
+                # Get dataset_split from result metadata or fall back to query split
+                dataset_split = result.metadata.get("dataset_split", query_split)
+                
+                # If we still don't have a valid split, use "unknown"
+                if dataset_split not in [s.value for s in DatasetSplitType]:
+                    dataset_split = "unknown"
+                
+                # Create JSON entry
+                json_entry = {
+                    "label": 1 if code_id == ground_truth_id else 0,
+                    "query_id": query_id,
+                    "url": code_id,
+                    "query": query,
+                    "code": code
+                }
+                
+                # Separate positive and negative examples
+                if code_id == ground_truth_id:
+                    positive_example = (json_entry, dataset_split)
+                else:
+                    negative_examples.append((json_entry, dataset_split))
+            
+            # Skip if no positive example found
+            if positive_example is None:
+                LOG.warning(f"No positive example found for query {query_id}. Skipping.")
+                continue
+            
+            # Limit negative examples to the desired number
+            negative_examples = negative_examples[:neg_examples]
+            
+            # Add positive example first
+            json_entry, dataset_split = positive_example
+            json_line = json.dumps(json_entry) + "\n"
+            split_examples[dataset_split].append(json_line)
+            examples_count[dataset_split] += 1
+            
+            # Then add negative examples
+            for json_entry, dataset_split in negative_examples:
+                json_line = json.dumps(json_entry) + "\n"
+                split_examples[dataset_split].append(json_line)
+                examples_count[dataset_split] += 1
+            
+            # Write examples to appropriate files
+            for split, examples in split_examples.items():
+                if examples:  # Only write if we have examples for this split
+                    with open(file_paths[split], "a", encoding="utf-8") as f:
+                        f.writelines(examples)
+        
+        LOG.info(f"Generated training data: {examples_count}")
+        return examples_count

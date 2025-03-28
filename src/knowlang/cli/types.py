@@ -43,11 +43,11 @@ class PrepareDatasetCommandArgs(BaseCommandArgs):
     """Arguments for the prepare-dataset command."""
     command: Literal["evaluate"]
     subcommand: Literal["prepare"] = "prepare"
-    data_dir: Path = Path("datasets/raw")
+    data_dir: Path = Path("datasets/code_search_net/data")
     output_dir: Path = Path("datasets/output")
     dataset: Literal["codesearchnet", "cosqa", "all"] = "all"
     languages: Optional[List[str]] = field(default_factory=lambda: ['python'])
-    split: str = "test"
+    splits: Optional[str] = field(default_factory=lambda: ['test', 'train', 'valid'])
     skip_indexing: bool = False
 
 @dataclass
@@ -63,4 +63,5 @@ class RunEvaluationCommandArgs(BaseCommandArgs):
     configuration: str = "baseline"
     limit: Optional[int] = None
     grid_search: bool = False
+    generate_reranking_data: bool = False
     list_configurations: bool = False

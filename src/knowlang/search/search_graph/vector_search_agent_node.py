@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 import logfire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
@@ -143,7 +143,8 @@ Please generate a more general query with broader terms or additional synonyms."
         embedding: List[float],
         vector_store: VectorStore,
         top_k: int,
-        score_threshold: float
+        score_threshold: float,
+        filter : Optional[Dict[str, Any]] = None
     ) -> List[SearchResult]:
         """Perform vector search using the generated embeddings"""
         try:
@@ -157,7 +158,8 @@ Please generate a more general query with broader terms or additional synonyms."
             # Use vector search
             results = await vector_store.search(
                 query=vector_query,
-                strategy_name=SearchMethodology.VECTOR
+                strategy_name=SearchMethodology.VECTOR,
+                filter=filter,
             )
             
             logfire.info('vector search results: {embedding_size} -> {count} results', 
@@ -212,7 +214,8 @@ Please generate a more general query with broader terms or additional synonyms."
                 embedding=embedding,
                 vector_store=ctx.deps.store,
                 top_k=top_k,
-                score_threshold=score_threshold
+                score_threshold=score_threshold,
+                filter=ctx.deps.config.retrieval.vector_search.filter
             )
             
             if results:

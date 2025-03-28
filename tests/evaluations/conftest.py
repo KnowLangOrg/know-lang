@@ -1,6 +1,7 @@
 import pytest
 from unittest import mock
 from knowlang.evaluations.base import QueryCodePair, SearchConfiguration
+from knowlang.evaluations.types import DatasetSplitType
 from knowlang.configs import AppConfig, RerankerConfig
 from knowlang.search.base import SearchResult
 from knowlang.core.types import ModelProvider
@@ -21,7 +22,11 @@ def sample_query_code_pairs():
             code="def sort_list(lst):\n    return sorted(lst)",
             language="python",
             is_relevant=True,
-            metadata={"repo": "sample_repo", "path": "sample_path"}
+            metadata={
+                "repo": "sample_repo", 
+                "path": "sample_path",
+            },
+            dataset_split=DatasetSplitType.TEST.value
         ),
         QueryCodePair(
             query_id="query2",
@@ -30,7 +35,11 @@ def sample_query_code_pairs():
             code="def find_element(lst, element):\n    return element in lst",
             language="python",
             is_relevant=True,
-            metadata={"repo": "sample_repo", "path": "sample_path"}
+            metadata={
+                "repo": "sample_repo", 
+                "path": "sample_path",
+            },
+            dataset_split=DatasetSplitType.TRAIN.value
         )
     ]
 
@@ -66,17 +75,17 @@ def sample_search_results():
     return [
         SearchResult(
             document="def sort_list(lst):\n    return sorted(lst)",
-            metadata={"id": "code1", "language": "python"},
+            metadata={"id": "code1", "language": "python", "dataset_split": DatasetSplitType.TEST.value},
             score=0.95
         ),
         SearchResult(
             document="def find_element(lst, element):\n    return element in lst",
-            metadata={"id": "code2", "language": "python"},
+            metadata={"id": "code2", "language": "python", "dataset_split": DatasetSplitType.TRAIN.value},
             score=0.85
         ),
         SearchResult(
             document="def append_element(lst, element):\n    lst.append(element)",
-            metadata={"id": "code3", "language": "python"},
+            metadata={"id": "code3", "language": "python", "dataset_split": DatasetSplitType.VALID.value},
             score=0.75
         )
     ]

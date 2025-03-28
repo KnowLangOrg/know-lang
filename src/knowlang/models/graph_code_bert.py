@@ -3,7 +3,7 @@ import numpy as np
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, Any
 from functools import lru_cache
-from transformers import RobertaModel, RobertaTokenizer
+from transformers import RobertaModel, AutoTokenizer
 from tree_sitter import Language, Parser
 
 
@@ -217,7 +217,7 @@ def _get_model_and_tokenizer(
     
     if cache_key not in _MODEL_CACHE:
         # Load tokenizer
-        tokenizer = RobertaTokenizer.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
         
         # Load base model
         base_model = RobertaModel.from_pretrained(model_path)

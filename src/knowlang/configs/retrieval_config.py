@@ -23,6 +23,10 @@ class SearchConfig(BaseModel):
         default=5, 
         description="Maximum number of retries for retrieval"
     )
+    filter: dict = Field(
+        default_factory=dict, 
+        description="Filter for retrieval"
+    )
 
 class MultiStageRetrievalConfig(BaseModel):
     """Configuration for two-stage retrieval"""

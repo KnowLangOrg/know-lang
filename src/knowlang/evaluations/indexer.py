@@ -85,7 +85,7 @@ class DatasetIndexer:
                             "language": pair.language,
                             "content": content,
                             "queries": [pair.query],  # Store the original query for reference
-                            "dataset_type": "benchmark",
+                            "dataset_split": pair.dataset_split,
                             "id": pair.code_id  # Ensure ID is in metadata for retrieval
                         }
                         
@@ -153,14 +153,7 @@ class QueryManager:
         query_map = {}
         for pair in pairs:
             if pair.query_id not in query_map:
-                query_map[pair.query_id] = {
-                    "query": pair.query,
-                    "language": pair.language,
-                    "relevant_code": []
-                }
-            
-            if pair.is_relevant:
-                query_map[pair.query_id]["relevant_code"].append(pair.code_id)
+                query_map[pair.query_id] = pair.model_dump_json()
         
         # Save as JSON
         output_path = self.output_dir / f"{dataset_name}_query_map.json"
@@ -169,7 +162,7 @@ class QueryManager:
         
         LOG.info(f"Saved query mappings to {output_path}")
     
-    def load_query_mappings(self, dataset_name: str) -> Dict:
+    def load_query_mappings(self, dataset_name: str) -> Dict[str, QueryCodePair]:
         """
         Load query-code mappings from a file.
         
@@ -186,6 +179,7 @@ class QueryManager:
         
         with open(input_path, "r", encoding="utf-8") as f:
             query_map = json.load(f)
+            query_map = {k: QueryCodePair.model_validate_json(v) for k, v in query_map.items()}
         
         LOG.info(f"Loaded query mappings from {input_path}")
         return query_map

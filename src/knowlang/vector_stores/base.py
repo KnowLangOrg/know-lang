@@ -84,13 +84,15 @@ class VectorStore(SearchableStore):
         self,
         query_embedding: List[float],
         top_k: int = 5,
-        score_threshold: Optional[float] = None
+        score_threshold: Optional[float] = None,
+        **kwargs
     ) -> List[SearchResult]:
         """Search for similar documents"""
         self.assert_initialized()
         records = await self.query(
             query_embedding=query_embedding,
-            top_k=top_k
+            top_k=top_k,
+            **kwargs
         )
         return reduce(
             lambda acc, record: self.accumulate_result(acc, record, score_threshold),

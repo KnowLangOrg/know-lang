@@ -120,14 +120,16 @@ class PostgresVectorStore(VectorStore):
     async def query(
         self,
         query_embedding: List[float],
-        top_k: int = 5
+        top_k: int = 5,
+        filter: Optional[Dict[str, Any]] = None
     ) -> List[SearchResult]:
         return self.collection.query(
             data=query_embedding,
             limit=top_k,
             measure=self.measure(),
             include_value=True,
-            include_metadata=True
+            include_metadata=True,
+            filters=filter
         )
 
     async def delete(self, ids: List[str]) -> None:

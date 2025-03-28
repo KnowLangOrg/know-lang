@@ -47,7 +47,7 @@ async def _prepare_datasets(
         result = await manager.prepare_dataset(
             dataset_type=dataset_type,
             languages=args.languages,
-            split=args.split
+            splits=args.splits
         )
         results[str(dataset_type)] = result
     
