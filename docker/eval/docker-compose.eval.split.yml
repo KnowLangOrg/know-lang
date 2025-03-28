@@ -1,0 +1,55 @@
+services:
+  postgres_eval_train:
+    image: pgvector/pgvector:pg15
+    container_name: pgvector_eval_train
+    environment:
+      POSTGRES_USER: postgres_eval
+      POSTGRES_PASSWORD: postgres_eval
+      POSTGRES_DB: evaluation_train
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_eval_train_data:/var/lib/postgresql/data
+    networks:
+      - eval_network
+
+  postgres_eval_valid:
+    image: pgvector/pgvector:pg15
+    container_name: pgvector_eval_valid
+    environment:
+      POSTGRES_USER: postgres_eval
+      POSTGRES_PASSWORD: postgres_eval
+      POSTGRES_DB: evaluation_valid
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres_eval_valid_data:/var/lib/postgresql/data
+    networks:
+      - eval_network
+
+  postgres_eval_test:
+    image: pgvector/pgvector:pg15
+    container_name: pgvector_eval_test
+    environment:
+      POSTGRES_USER: postgres_eval
+      POSTGRES_PASSWORD: postgres_eval
+      POSTGRES_DB: evaluation_test
+    ports:
+      - '5435:5432'
+    volumes:
+      - postgres_eval_test_data:/var/lib/postgresql/data
+    networks:
+      - eval_network
+
+networks:
+  eval_network:
+    name: eval_network
+    driver: bridge
+
+volumes:
+  postgres_eval_train_data:
+    name: pgvector_eval_train_data
+  postgres_eval_valid_data:
+    name: pgvector_eval_valid_data
+  postgres_eval_test_data:
+    name: pgvector_eval_test_data

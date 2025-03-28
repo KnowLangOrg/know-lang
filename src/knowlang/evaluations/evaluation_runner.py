@@ -226,6 +226,12 @@ class CodeSearchEvaluator:
                 num_queries=0
             )
         
+        # Limit the dataset split type
+        selected_queries = {
+            qid: data for qid, data in language_queries.items()
+            if data.dataset_split == config.dataset_split
+        }
+        
         # Limit number of queries if specified
         if limit and limit < len(language_queries):
             # Take a random sample for more representative results

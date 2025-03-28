@@ -59,7 +59,12 @@ class SearchConfiguration(BaseModel):
     keyword_search_top_k: int = 50
     vector_search_top_k: int = 50
     reranker_top_k: int = 10
-    filter : Dict[str, Any] = Field(default_factory=dict)
+    dataset_split: DatasetSplitType = DatasetSplitType.TEST
+
+    @property
+    def filter(self) -> Dict[str, Any]:
+        """Return the filter for the evaluation run."""
+        return {"dataset_split": {"$eq": self.dataset_split.value}}
 
 
 class EvaluationRun(BaseModel):
