@@ -8,7 +8,7 @@ class SearchConfig(BaseModel):
         description="Enable retrieval"
     )
     top_k: int = Field(
-        default=10, 
+        default=50, 
         description="Number of candidates to retrieve"
     )
     score_threshold: float = Field(

@@ -52,7 +52,7 @@ class SearchConfiguration(BaseModel):
     keyword_search_enabled: bool = True
     vector_search_enabled: bool = True
     reranking_enabled: bool = True
-    reranker_model_name: str = "microsoft/graphcodebert-base"
+    reranker_model_name: str = "KnowLang/RerankerCodeBERT"
     keyword_search_threshold: float = 0.0
     vector_search_threshold: float = 0.6
     reranker_threshold: float = 0.5

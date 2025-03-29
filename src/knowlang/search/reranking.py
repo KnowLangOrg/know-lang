@@ -12,7 +12,11 @@ from typing import Dict, Optional, Union, Tuple
 import torch
 import torch.nn as nn
 from pydantic import BaseModel, Field
-from transformers import RobertaConfig, RobertaModel, RobertaForSequenceClassification, AutoTokenizer
+from transformers import (
+    RobertaConfig, RobertaModel, 
+    RobertaForSequenceClassification, AutoTokenizer, 
+    PreTrainedTokenizerFast
+)
 from transformers.modeling_outputs import SequenceClassifierOutput
 
 from knowlang.models.utils import get_device
@@ -36,7 +40,7 @@ def _get_tokenizer_and_model(
     config: Optional[RobertaConfig] = None,
     reranker_type: RerankerType = RerankerType.PAIRWISE,
     device: str = get_device()
-) -> Tuple[Any, Any, str]:
+) -> Tuple[PreTrainedTokenizerFast, CodeBERTReranker, str]:
     """
     Load tokenizer and model with caching.
     
@@ -161,7 +165,7 @@ class KnowLangReranker:
         # Sort results by score in descending order
         ranked_results.sort(key=lambda x: x.score, reverse=True)
 
-        return ranked_results
+        return ranked_results[:self.config.top_k]
 
 
 
@@ -218,9 +222,12 @@ class CodeBERTReranker(nn.Module):
             LOG.info(f"Model downloaded from {model_path}")
 
         # Load state dict
-        model_bin_path = os.path.join(model_path, 'pytorch_model.bin')
-        if not os.path.exists(model_bin_path):
-            raise ValueError(f"Model path not found: {model_path}")
+        if os.path.isdir(model_path):
+            model_bin_path = os.path.join(model_path, 'pytorch_model.bin')
+        elif os.path.isfile(model_path):
+            model_bin_path = model_path
+        else:
+            raise ValueError(f"Model path not found neither in: {model_path}, nor in {model_path}/pytorch_model.bin")
         state_dict = torch.load(model_bin_path)
         
         
@@ -269,7 +276,7 @@ class CodeBERTReranker(nn.Module):
         Initialize the reranker model
         
         Args:
-            model_name_or_path: Path to pretrained model or model name (e.g., 'microsoft/codebert-base')
+            model_name_or_path: Path to pretrained model or model name
             config: Model configuration (RobertaConfig)
             margin: Margin for pairwise ranking loss
             reranker_type: 'pointwise' or 'pairwise' reranking approach

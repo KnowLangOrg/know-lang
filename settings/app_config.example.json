@@ -16,7 +16,7 @@
     },
     "reranker": {
       "enabled": true,
-      "model_name": "microsoft/graphcodebert-base",
+      "model_name": "KnowLang/RerankerCodeBERT",
       "model_provider": "graph_code_bert",
       "api_key": "your_api_key",
       "top_k": 5,
@@ -68,7 +68,7 @@
       "max_length_per_chunk": 8000
     },
     "embedding": {
-      "model_name": "microsoft/graphcodebert-base",
+      "model_name": "KnowLang/graphcodebert-codesearch-python",
       "model_provider": "graph_code_bert",
       "api_key": "your_api_key",
       "dimension": 768,
