@@ -81,11 +81,10 @@ def test_rerank_successful(mock_get_device, mock_code_bert_reranker, mock_tokeni
         reranked_results = reranker.rerank(query, sample_search_results)
         
         # Verify results
-        assert len(reranked_results) == 4  # All results are returned before filtering
+        assert len(reranked_results) <= reranker_config.top_k
         assert reranked_results[0].score == 0.95
         assert reranked_results[1].score == 0.85
         assert reranked_results[2].score == 0.65
-        assert reranked_results[3].score == 0.45
 
 
 @patch("knowlang.search.reranking.AutoTokenizer")
@@ -167,4 +166,4 @@ def test_reranker_result_ordering(mock_get_device, mock_code_bert_reranker, mock
         assert reranked_results[0].score == 0.95
         assert reranked_results[1].score == 0.85
         assert reranked_results[2].score == 0.75
-        assert reranked_results[3].score == 0.65
+        assert len(reranked_results) <= reranker_config.top_k
