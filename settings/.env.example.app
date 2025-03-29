@@ -14,7 +14,7 @@ EVALUATOR__EVALUATION_ROUNDS=1
 
 # Reranker Configuration
 # Settings for result reranking
-RERANKER__ENABLED=true
+RERANKER__ENABLED=false
 RERANKER__MODEL_NAME=KnowLang/RerankerCodeBERT
 RERANKER__MODEL_PROVIDER=graph_code_bert
 RERANKER__API_KEY=your_api_key

@@ -178,7 +178,8 @@ class DBConfig(BaseSettings):
 
 class RerankerConfig(BaseSettings):
     enabled: bool = Field(
-        default=True,
+        # The reranker is disabled by default, since the reranker should be fine-tuned against each codebase
+        default=False,
         description="Enable reranking"
     )
     model_name: str = Field(
