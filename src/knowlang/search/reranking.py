@@ -158,7 +158,9 @@ class KnowLangReranker:
             return results
 
         query_tokens = self.tokenizer.tokenize(query)
-        ranked_results = results.copy()
+        
+        # deep copy through pydantic
+        ranked_results = [r.model_copy(deep=True) for r in results]
         for result in ranked_results:
             result.score = self._get_score(query_tokens, result)
         
