@@ -93,11 +93,11 @@ class ParserConfig(BaseSettings):
 class EmbeddingConfig(BaseSettings):
     """Shared embedding configuration"""
     model_name: str = Field(
-        default="mxbai-embed-large",
+        default="nomic-ai/CodeRankEmbed",
         description="Name of the embedding model"
     )
     model_provider: ModelProvider = Field(
-        default=ModelProvider.OLLAMA,
+        default=ModelProvider.NOMIC_AI,
         description="Provider for embeddings"
     )
     dimension: int = Field(
