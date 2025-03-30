@@ -68,8 +68,8 @@
       "max_length_per_chunk": 8000
     },
     "embedding": {
-      "model_name": "KnowLang/graphcodebert-codesearch-python",
-      "model_provider": "graph_code_bert",
+      "model_name": "nomic-ai/CodeRankEmbed",
+      "model_provider": "nomic-ai",
       "api_key": "your_api_key",
       "dimension": 768,
       "settings": {}

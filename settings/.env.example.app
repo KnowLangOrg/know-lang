@@ -47,8 +47,8 @@ CHAT__MAX_LENGTH_PER_CHUNK=8000
 
 # Embedding Configuration
 # Settings for text embedding generation
-EMBEDDING__MODEL_NAME=KnowLang/graphcodebert-codesearch-python
-EMBEDDING__MODEL_PROVIDER=graph_code_bert
+EMBEDDING__MODEL_NAME=nomic-ai/CodeRankEmbed
+EMBEDDING__MODEL_PROVIDER=nomic-ai
 EMBEDDING__API_KEY=your_api_key
 EMBEDDING__DIMENSION=768 # default dimension of graphcodebert
 
