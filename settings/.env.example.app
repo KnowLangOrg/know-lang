@@ -14,7 +14,7 @@ EVALUATOR__EVALUATION_ROUNDS=1
 
 # Reranker Configuration
 # Settings for result reranking
-RERANKER__ENABLED=true
+RERANKER__ENABLED=false
 RERANKER__MODEL_NAME=KnowLang/RerankerCodeBERT
 RERANKER__MODEL_PROVIDER=graph_code_bert
 RERANKER__API_KEY=your_api_key
@@ -57,3 +57,5 @@ EMBEDDING__DIMENSION=768 # default dimension of graphcodebert
 CHAT_ANALYTICS__ENABLED=false
 CHAT_ANALYTICS__PROVIDER=mixpanel
 CHAT_ANALYTICS__API_KEY=your_api_key
+
+RETRIEVAL__VECTOR_SEARCH__TOP_K=50

@@ -178,11 +178,12 @@ class DBConfig(BaseSettings):
 
 class RerankerConfig(BaseSettings):
     enabled: bool = Field(
-        default=True,
+        # The reranker is disabled by default, since the reranker should be fine-tuned against each codebase
+        default=False,
         description="Enable reranking"
     )
     model_name: str = Field(
-        default="KnowLang/graphcodebert-codesearch-python",
+        default="KnowLang/RerankerCodeBERT",
         description="Name of the reranker model to use"
     )
     model_provider: str = Field(
@@ -194,7 +195,7 @@ class RerankerConfig(BaseSettings):
         description="API key for the model provider"
     )
     top_k: int = Field(
-        default=4,
+        default=10,
         description="Number of most relevant documents to return from reranking"
     )
     relevance_threshold: float = Field(
