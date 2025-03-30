@@ -4,7 +4,7 @@ from typing import Generator
 import git
 import pytest
 from knowlang.configs import AppConfig, DBConfig, LanguageConfig, ParserConfig
-from tests.parser.languages.python.python_files import TEST_FILES
+from tests.parser.languages.ts.ts_files import TEST_FILES
 
 
 @pytest.fixture
@@ -23,11 +23,11 @@ def test_config() -> Generator[AppConfig, None, None]:
         yield AppConfig(
             parser=ParserConfig(
                 languages={
-                    "python": LanguageConfig(
-                        file_extensions=[".py"],
-                        tree_sitter_language="python",
+                    "typescript": LanguageConfig(
+                        file_extensions=[".ts", ".tsx"],
+                        tree_sitter_language="typescript",
                         max_file_size=1_000_000,
-                        chunk_types=["class_definition", "function_definition"]
+                        chunk_types=["class_declaration", "function_declaration", "interface_declaration", "type_alias_declaration"]
                     )
                 }
             ),

@@ -5172,6 +5172,27 @@ files = [
 core = ["tree-sitter (>=0.22,<1.0)"]
 
 [[package]]
+name = "tree-sitter-typescript"
+version = "0.23.2"
+description = "TypeScript and TSX grammars for tree-sitter"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "tree_sitter_typescript-0.23.2-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:3cd752d70d8e5371fdac6a9a4df9d8924b63b6998d268586f7d374c9fba2a478"},
+    {file = "tree_sitter_typescript-0.23.2-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:c7cc1b0ff5d91bac863b0e38b1578d5505e718156c9db577c8baea2557f66de8"},
+    {file = "tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4b1eed5b0b3a8134e86126b00b743d667ec27c63fc9de1b7bb23168803879e31"},
+    {file = "tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e96d36b85bcacdeb8ff5c2618d75593ef12ebaf1b4eace3477e2bdb2abb1752c"},
+    {file = "tree_sitter_typescript-0.23.2-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:8d4f0f9bcb61ad7b7509d49a1565ff2cc363863644a234e1e0fe10960e55aea0"},
+    {file = "tree_sitter_typescript-0.23.2-cp39-abi3-win_amd64.whl", hash = "sha256:3f730b66396bc3e11811e4465c41ee45d9e9edd6de355a58bbbc49fa770da8f9"},
+    {file = "tree_sitter_typescript-0.23.2-cp39-abi3-win_arm64.whl", hash = "sha256:05db58f70b95ef0ea126db5560f3775692f609589ed6f8dd0af84b7f19f1cbb7"},
+    {file = "tree_sitter_typescript-0.23.2.tar.gz", hash = "sha256:7b167b5827c882261cb7a50dfa0fb567975f9b315e87ed87ad0a0a3aedb3834d"},
+]
+
+[package.extras]
+core = ["tree-sitter (>=0.23,<1.0)"]
+
+[[package]]
 name = "triton"
 version = "3.2.0"
 description = "A language and compiler for custom Deep Learning operations"
@@ -5797,4 +5818,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.13"
-content-hash = "4c7f7812c9d5f6f31ad34c6933ff0bfbab74799e8a5e66b27a326cf9200e93e5"
+content-hash = "10725ddc3d2399d2eaa592a54fe2a4343345658fa79bd7990842ccbb3f677333"
