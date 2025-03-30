@@ -83,6 +83,7 @@ class ModelProvider(str, Enum):
     OLLAMA = "ollama"
     VOYAGE = "voyage"
     GRAPH_CODE_BERT = "graph_code_bert"
+    NOMIC_AI = "nomic-ai"
     TESTING = "testing"
 
 class VectorStoreProvider(str, Enum):

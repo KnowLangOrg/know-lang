@@ -14,6 +14,11 @@ def register_provider(provider: ModelProvider):
     return decorator
 
 
+@register_provider(ModelProvider.NOMIC_AI)
+def _process_nomic_sentence_batch(inputs: List[str], model_name: str, input_type: Optional[EmbeddingInputType] = None) -> List[EmbeddingVector]:
+    from knowlang.models.nomic_ai.model import generate_embeddings
+    return generate_embeddings(inputs, model_name=model_name, input_type=input_type)
+
 @register_provider(ModelProvider.GRAPH_CODE_BERT)
 def _process_graph_code_bert_batch(
     inputs: List[str], 
