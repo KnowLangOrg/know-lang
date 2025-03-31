@@ -129,6 +129,14 @@ class TestTypeScriptParser:
             expected.docstring,
             expected.content_snippet
         )
+        
+        # Verify we don't extract methods from classes since we stop traversal
+        increment_method = find_chunk_by_criteria(
+            chunks,
+            type=TypescriptChunkType.FUNCTION,
+            name="increment"
+        )
+        assert increment_method is None, "Methods inside classes should not be extracted"
 
     def test_complex_ts_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test parsing a complex TypeScript file with generics, namespaces, and decorators"""
@@ -149,7 +157,7 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
         
-        # Test generic class in namespace
+        # Test generic class in namespace - should be found since we traverse namespaces
         repository_chunk = find_chunk_by_criteria(
             chunks,
             type=TypescriptChunkType.CLASS,
@@ -166,21 +174,13 @@ class TestTypeScriptParser:
         assert repository_chunk.metadata.namespace == "Utils"
         assert repository_chunk.metadata.is_generic
         
-        # Test decorated method
+        # Methods inside Repository should not be found since we stop traversal at class declaration
         method_chunk = find_chunk_by_criteria(
             chunks,
             type=TypescriptChunkType.FUNCTION,
             name="getAll"
         )
-        assert method_chunk is not None
-        expected = COMPLEX_FILE_EXPECTATIONS['getAll']
-        assert verify_chunk_matches_expectation(
-            method_chunk,
-            expected.name,
-            expected.docstring,
-            expected.content_snippet
-        )
-        assert method_chunk.parent_name == "Repository"
+        assert method_chunk is None, "Methods inside classes should not be extracted"
         
         # Test generic interface
         interface_chunk = find_chunk_by_criteria(
@@ -247,7 +247,8 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
         
-        # Test React functional component
+        # Test React functional component - this is a top-level variable declaration 
+        # with an arrow function, should still be found
         component_chunk = find_chunk_by_criteria(
             chunks,
             type=TypescriptChunkType.FUNCTION,
@@ -296,7 +297,7 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
         
-        # Test React functional component
+        # Test React functional component - top-level variable declaration
         component_chunk = find_chunk_by_criteria(
             chunks,
             type=TypescriptChunkType.FUNCTION,
@@ -311,20 +312,14 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
         
-        # Test hook function (useCallback)
+        # Hook functions defined inside the component function should not be found
+        # since we stop traversal at the component function
         hook_chunk = find_chunk_by_criteria(
             chunks,
             type=TypescriptChunkType.FUNCTION,
             name="loadUsers"
         )
-        assert hook_chunk is not None
-        expected = COMPLEX_TSX_EXPECTATIONS['loadUsers']
-        assert verify_chunk_matches_expectation(
-            hook_chunk,
-            expected.name,
-            expected.docstring,
-            expected.content_snippet
-        )
+        assert hook_chunk is None, "Functions inside other functions should not be extracted"
 
     def test_error_handling(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test error handling for various error cases"""

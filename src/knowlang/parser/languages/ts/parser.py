@@ -96,7 +96,11 @@ class TypeScriptParser(LanguageParser):
 
     def _process_class(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
         """Process a class node and return a CodeChunk"""
-        name = node.child_by_field_name("name").text.decode('utf-8')
+        name_node = node.child_by_field_name("name")
+        if not name_node:
+            raise ValueError(f"Could not find class name in node: {node.__str__()}")
+            
+        name = name_node.text.decode('utf-8')
                 
         if not name:
             raise ValueError(f"Could not find class name in node: {node.__str__()}")
@@ -128,7 +132,11 @@ class TypeScriptParser(LanguageParser):
     
     def _process_interface(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
         """Process an interface node and return a CodeChunk"""
-        name = node.child_by_field_name("name").text.decode('utf-8')
+        name_node = node.child_by_field_name("name")
+        if not name_node:
+            raise ValueError(f"Could not find interface name in node: {node.__str__()}")
+            
+        name = name_node.text.decode('utf-8')
                 
         if not name:
             raise ValueError(f"Could not find interface name in node: {node.__str__()}")
@@ -152,7 +160,11 @@ class TypeScriptParser(LanguageParser):
     
     def _process_type_alias(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
         """Process a type alias node and return a CodeChunk"""
-        name = node.child_by_field_name("name").text.decode('utf-8')
+        name_node = node.child_by_field_name("name")
+        if not name_node:
+            raise ValueError(f"Could not find type alias name in node: {node.__str__()}")
+            
+        name = name_node.text.decode('utf-8')
                 
         if not name:
             raise ValueError(f"Could not find type alias name in node: {node.__str__()}")
@@ -181,34 +193,15 @@ class TypeScriptParser(LanguageParser):
         
         # Handle different function types
         if node.type == "function_declaration":
-            name = node.child_by_field_name("name").text.decode('utf-8')
-        elif node.type == "method_definition":
-            for child in node.children:
-                if child.type in ("property_identifier", "identifier"):
-                    name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                    break
-        elif node.type == "arrow_function":
-            # For arrow functions assigned to variables, try to find the variable name
-            parent = node.parent
-            if parent and parent.type == "variable_declarator":
-                for child in parent.children:
-                    if child.type == "identifier":
-                        name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                        break
-                # For property assignments, use the property name
-                if not name and parent.parent and parent.parent.type == "pair":
-                    for child in parent.parent.children:
-                        if child.type == "property_identifier":
-                            name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                            break
+            name_node = node.child_by_field_name("name")
+            if name_node:
+                name = name_node.text.decode('utf-8')
         elif node.type == "lexical_declaration":
             # For const/let declarations with arrow functions
             for child in node.children:
                 if child.type == "variable_declarator":
-                    for subchild in child.children:
-                        if subchild.type == "identifier":
-                            name = source_code[subchild.start_byte:subchild.end_byte].decode('utf-8')
-                            break
+                    name = child.child_by_field_name("name").text.decode('utf-8')
+                    break
         
         if not name:
             # If we still can't find a name, use a placeholder
@@ -218,11 +211,6 @@ class TypeScriptParser(LanguageParser):
         decorators = []
         # For method_definition, decorators are typically at the parent level
         current_node = node
-        if node.type == "method_definition" and node.parent and node.parent.type == "class_body":
-            for child in node.parent.children:
-                if child.type == "decorator" and child.next_sibling == node:
-                    decorator_text = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                    decorators.append(decorator_text)
         
         # For function_declaration, decorators are directly associated
         if node.type == "function_declaration":
@@ -231,9 +219,9 @@ class TypeScriptParser(LanguageParser):
                     decorator_text = source_code[child.start_byte:child.end_byte].decode('utf-8')
                     decorators.append(decorator_text)
         
+        # Determine parent class for methods - this is no longer needed since we don't extract methods
         parent_name = None
 
-        
         return CodeChunk(
             language=self.language_name,
             type=TypescriptChunkType.FUNCTION,
@@ -284,24 +272,21 @@ class TypeScriptParser(LanguageParser):
                 try:
                     if node.type == "class_declaration":
                         chunks.append(self._process_class(node, source_code, relative_path))
-                        return
+                        return  # Stop traversal for class nodes
                     elif node.type == "interface_declaration":
                         chunks.append(self._process_interface(node, source_code, relative_path))
-                        return
+                        return  # Stop traversal for interface nodes
                     elif node.type == "type_alias_declaration":
                         chunks.append(self._process_type_alias(node, source_code, relative_path))
-                        return
-                    elif node.type in ("function_declaration", "method_definition"):
+                        return  # Stop traversal for type alias nodes
+                    elif node.type in ("function_declaration", "method_definition", "lexical_declaration"):
                         chunks.append(self._process_function(node, source_code, relative_path))
-                        return
-                    elif node.type == "variable_declaration" or node.type == "lexical_declaration":
-                        # Look for arrow functions assigned to variables
-                        for declarator in node.children:
-                            if declarator.type == "variable_declarator":
-                                for child in declarator.children:
-                                    if child.type == "arrow_function":
-                                        chunks.append(self._process_function(declarator, source_code, relative_path))
-                                        return
+                        return  # Stop traversal for function nodes
+                    elif node.type == "namespace_declaration" or node.type == "module":
+                        # Special case for namespaces - we want to continue traversal
+                        # to find classes/functions/interfaces inside them
+                        # but don't create a chunk for the namespace itself
+                        pass  # Continue traversal for namespaces
                 except ValueError as e:
                     LOG.warning(f"Failed to process node: {str(e)}")
                 
