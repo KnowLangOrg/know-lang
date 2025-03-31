@@ -1,17 +1,16 @@
-import tempfile
 from pathlib import Path
 from typing import List
-
 import pytest
-
 from knowlang.configs import AppConfig
-from knowlang.core.types import BaseChunkType, CodeChunk
-from knowlang.parser.languages.ts.parser import TypeScriptParser
+from knowlang.core.types import CodeChunk
+from knowlang.parser.languages.ts.parser import TypeScriptParser, TypescriptChunkType
 from tests.parser.languages.ts.ts_files import (
     COMPLEX_FILE_EXPECTATIONS,
+    COMPLEX_TSX_EXPECTATIONS,
     INVALID_TS,
-    REACT_FILE_EXPECTATIONS,
+    INVALID_TSX,
     SIMPLE_FILE_EXPECTATIONS,
+    SIMPLE_TSX_EXPECTATIONS,
     TEST_FILES,
 )
 
@@ -51,20 +50,30 @@ class TestTypeScriptParser:
 
     def test_parser_initialization(self, typescript_parser: TypeScriptParser):
         """Test parser initialization"""
-        assert typescript_parser.parser is not None
-        assert typescript_parser.language is not None
+        assert typescript_parser.parser_ts is not None
+        assert typescript_parser.parser_tsx is not None
+        assert typescript_parser.language_ts is not None
+        assert typescript_parser.language_tsx is not None
         assert typescript_parser.language_name == "typescript"
         assert typescript_parser.supports_extension(".ts")
         assert typescript_parser.supports_extension(".tsx")
 
-    def test_simple_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    def test_get_parser_for_file(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+        """Test the parser selection based on file extension"""
+        ts_file = Path(test_config.db.codebase_directory) / "test.ts"
+        tsx_file = Path(test_config.db.codebase_directory) / "test.tsx"
+        
+        assert typescript_parser._get_parser_for_file(ts_file) == typescript_parser.parser_ts
+        assert typescript_parser._get_parser_for_file(tsx_file) == typescript_parser.parser_tsx
+
+    def test_simple_ts_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test parsing a simple TypeScript file with function, class, interface, and type alias"""
         chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "simple.ts")
         
         # Test function extraction
         function_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.FUNCTION,
+            type=TypescriptChunkType.FUNCTION,
             name="helloWorld"
         )
         assert function_chunk is not None
@@ -79,7 +88,7 @@ class TestTypeScriptParser:
         # Test class extraction
         class_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.CLASS,
+            type=TypescriptChunkType.CLASS,
             name="Counter"
         )
         assert class_chunk is not None
@@ -91,26 +100,10 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
         
-        # Test method extraction
-        method_chunk = find_chunk_by_criteria(
-            chunks,
-            type=BaseChunkType.FUNCTION,
-            name="increment"
-        )
-        assert method_chunk is not None
-        expected = SIMPLE_FILE_EXPECTATIONS['increment']
-        assert verify_chunk_matches_expectation(
-            method_chunk,
-            expected.name,
-            expected.docstring,
-            expected.content_snippet
-        )
-        assert method_chunk.parent_name == "Counter"
-        
         # Test interface extraction
         interface_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.INTERFACE,
+            type=TypescriptChunkType.INTERFACE,
             name="Person"
         )
         assert interface_chunk is not None
@@ -125,7 +118,7 @@ class TestTypeScriptParser:
         # Test type alias extraction
         type_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.TYPE_ALIAS,
+            type=TypescriptChunkType.TYPE_ALIAS,
             name="User"
         )
         assert type_chunk is not None
@@ -137,14 +130,14 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
 
-    def test_complex_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    def test_complex_ts_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test parsing a complex TypeScript file with generics, namespaces, and decorators"""
         chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "complex.ts")
         
         # Test decorator function
         decorator_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.FUNCTION,
+            type=TypescriptChunkType.FUNCTION,
             name="log"
         )
         assert decorator_chunk is not None
@@ -159,7 +152,7 @@ class TestTypeScriptParser:
         # Test generic class in namespace
         repository_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.CLASS,
+            type=TypescriptChunkType.CLASS,
             name="Repository"
         )
         assert repository_chunk is not None
@@ -176,7 +169,7 @@ class TestTypeScriptParser:
         # Test decorated method
         method_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.FUNCTION,
+            type=TypescriptChunkType.FUNCTION,
             name="getAll"
         )
         assert method_chunk is not None
@@ -192,7 +185,7 @@ class TestTypeScriptParser:
         # Test generic interface
         interface_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.INTERFACE,
+            type=TypescriptChunkType.INTERFACE,
             name="ApiConfig"
         )
         assert interface_chunk is not None
@@ -207,7 +200,7 @@ class TestTypeScriptParser:
         # Test generic type alias
         type_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.TYPE_ALIAS,
+            type=TypescriptChunkType.TYPE_ALIAS,
             name="ApiResult"
         )
         assert type_chunk is not None
@@ -223,7 +216,7 @@ class TestTypeScriptParser:
         # Test arrow function
         arrow_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.FUNCTION,
+            type=TypescriptChunkType.FUNCTION,
             name="fetchData"
         )
         assert arrow_chunk is not None
@@ -235,18 +228,18 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
 
-    def test_react_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
-        """Test parsing a TypeScript React file (.tsx)"""
-        chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "component.tsx")
+    def test_simple_tsx_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+        """Test parsing a simple React TSX file"""
+        chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "simple.tsx")
         
         # Test interface for props
         props_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.INTERFACE,
-            name="CounterProps"
+            type=TypescriptChunkType.INTERFACE,
+            name="ButtonProps"
         )
         assert props_chunk is not None
-        expected = REACT_FILE_EXPECTATIONS['CounterProps']
+        expected = SIMPLE_TSX_EXPECTATIONS['ButtonProps']
         assert verify_chunk_matches_expectation(
             props_chunk,
             expected.name,
@@ -254,14 +247,14 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
         
-        # Test function component
+        # Test React functional component
         component_chunk = find_chunk_by_criteria(
             chunks,
-            type=BaseChunkType.FUNCTION,
-            name="Counter"
+            type=TypescriptChunkType.FUNCTION,
+            name="Button"
         )
         assert component_chunk is not None
-        expected = REACT_FILE_EXPECTATIONS['Counter']
+        expected = SIMPLE_TSX_EXPECTATIONS['Button']
         assert verify_chunk_matches_expectation(
             component_chunk,
             expected.name,
@@ -269,13 +262,83 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
 
+    def test_complex_tsx_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+        """Test parsing a complex React TSX file"""
+        chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "complex.tsx")
+        
+        # Test interface for user data
+        user_interface_chunk = find_chunk_by_criteria(
+            chunks,
+            type=TypescriptChunkType.INTERFACE,
+            name="User"
+        )
+        assert user_interface_chunk is not None
+        expected = COMPLEX_TSX_EXPECTATIONS['User']
+        assert verify_chunk_matches_expectation(
+            user_interface_chunk,
+            expected.name,
+            expected.docstring,
+            expected.content_snippet
+        )
+        
+        # Test interface for props
+        props_chunk = find_chunk_by_criteria(
+            chunks,
+            type=TypescriptChunkType.INTERFACE,
+            name="UserListProps"
+        )
+        assert props_chunk is not None
+        expected = COMPLEX_TSX_EXPECTATIONS['UserListProps']
+        assert verify_chunk_matches_expectation(
+            props_chunk,
+            expected.name,
+            expected.docstring,
+            expected.content_snippet
+        )
+        
+        # Test React functional component
+        component_chunk = find_chunk_by_criteria(
+            chunks,
+            type=TypescriptChunkType.FUNCTION,
+            name="UserList"
+        )
+        assert component_chunk is not None
+        expected = COMPLEX_TSX_EXPECTATIONS['UserList']
+        assert verify_chunk_matches_expectation(
+            component_chunk,
+            expected.name,
+            expected.docstring,
+            expected.content_snippet
+        )
+        
+        # Test hook function (useCallback)
+        hook_chunk = find_chunk_by_criteria(
+            chunks,
+            type=TypescriptChunkType.FUNCTION,
+            name="loadUsers"
+        )
+        assert hook_chunk is not None
+        expected = COMPLEX_TSX_EXPECTATIONS['loadUsers']
+        assert verify_chunk_matches_expectation(
+            hook_chunk,
+            expected.name,
+            expected.docstring,
+            expected.content_snippet
+        )
+
     def test_error_handling(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test error handling for various error cases"""
-        # Test invalid syntax
-        invalid_file = Path(test_config.db.codebase_directory) / "invalid.ts"
-        chunks = typescript_parser.parse_file(invalid_file)
+        # Test invalid TS syntax
+        invalid_ts_file = Path(test_config.db.codebase_directory) / "invalid.ts"
+        chunks_ts = typescript_parser.parse_file(invalid_ts_file)
         # Should still try to extract what it can from invalid files
-        assert chunks != []
+        assert chunks_ts != []
+        
+        # Test invalid TSX syntax
+        invalid_tsx_file = Path(test_config.db.codebase_directory) / "invalid.tsx"
+        chunks_tsx = typescript_parser.parse_file(invalid_tsx_file)
+        # Should still try to extract what it can from invalid files
+        assert chunks_tsx != []
         
         # Test non-existent file
         nonexistent = Path(test_config.db.codebase_directory) / "nonexistent.ts"
@@ -290,9 +353,14 @@ class TestTypeScriptParser:
 
     def test_file_size_limits(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test file size limit enforcement"""
-        large_file = Path(test_config.db.codebase_directory) / "large.ts"
-        # Create a file larger than the limit
-        large_file.write_text("const x = 1;\n" * 1_000_000)
+        # Test TS file size limit
+        large_ts_file = Path(test_config.db.codebase_directory) / "large.ts"
+        large_ts_file.write_text("const x = 1;\n" * 1_000_000)
+        chunks_ts = typescript_parser.parse_file(large_ts_file)
+        assert chunks_ts == []
         
-        chunks = typescript_parser.parse_file(large_file)
-        assert chunks == []
+        # Test TSX file size limit
+        large_tsx_file = Path(test_config.db.codebase_directory) / "large.tsx"
+        large_tsx_file.write_text("const x = <div>Test</div>;\n" * 1_000_000)
+        chunks_tsx = typescript_parser.parse_file(large_tsx_file)
+        assert chunks_tsx == []

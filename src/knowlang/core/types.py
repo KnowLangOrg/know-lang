@@ -10,7 +10,7 @@ class LanguageEnum(str, Enum):
     CPP = "cpp"
     TYPESCRIPT = "typescript"
 
-class BaseChunkType(str, Enum):
+class BaseChunkType():
     """Base chunk types common across languages"""
     CLASS = "class"
     FUNCTION = "function"
@@ -45,7 +45,7 @@ class CodeLocation(BaseModel):
 
 class CodeChunk(BaseModel):
     """Generic code chunk that works across languages"""
-    type: BaseChunkType
+    type: str
     language: LanguageEnum
     location: CodeLocation
     content: str

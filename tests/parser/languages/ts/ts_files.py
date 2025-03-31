@@ -152,52 +152,144 @@ const fetchData = async <T>(url: string): Promise<T> => {
 };
 """
 
-# TypeScript React component
-REACT_TS = """
-import React, { useState, useEffect } from 'react';
+# Simple React component with JSX (TSX)
+SIMPLE_TSX = """
+import React, { useState } from 'react';
 
 /**
- * Props for the Counter component
+ * Props for Button component
  */
-interface CounterProps {
-    initialValue?: number;
-    step?: number;
+interface ButtonProps {
+  onClick: () => void;
+  label: string;
+  disabled?: boolean;
 }
 
 /**
- * A simple counter component
+ * A simple button component
  */
-const Counter: React.FC<CounterProps> = ({ initialValue = 0, step = 1 }) => {
-    const [count, setCount] = useState(initialValue);
-    
-    /**
-     * Increment the counter
-     */
-    const increment = () => {
-        setCount(prev => prev + step);
-    };
-    
-    /**
-     * Decrement the counter
-     */
-    const decrement = () => {
-        setCount(prev => prev - step);
-    };
-    
-    useEffect(() => {
-        document.title = `Count: ${count}`;
-    }, [count]);
-    
-    return (
-        <div>
-            <h1>Count: {count}</h1>
-            <button onClick={increment}>+</button>
-            <button onClick={decrement}>-</button>
-        </div>
-    );
+const Button: React.FC<ButtonProps> = ({ onClick, label, disabled = false }) => {
+  return (
+    <button 
+      onClick={onClick} 
+      disabled={disabled}
+      className="primary-button"
+    >
+      {label}
+    </button>
+  );
 };
 
-export default Counter;
+export default Button;
+"""
+
+# Complex React component with JSX (TSX)
+COMPLEX_TSX = """
+import React, { useState, useEffect, useCallback } from 'react';
+
+/**
+ * User data structure
+ */
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+/**
+ * Props for the UserList component
+ */
+interface UserListProps {
+  initialUsers?: User[];
+  onUserSelect?: (user: User) => void;
+}
+
+/**
+ * A component that displays a list of users with filtering
+ */
+const UserList: React.FC<UserListProps> = ({ 
+  initialUsers = [], 
+  onUserSelect 
+}) => {
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [filter, setFilter] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  
+  /**
+   * Load users from API
+   */
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  /**
+   * Filter users by name
+   */
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(filter.toLowerCase())
+  );
+  
+  /**
+   * Handle user selection
+   */
+  const handleUserClick = (user: User) => {
+    if (onUserSelect) {
+      onUserSelect(user);
+    }
+  };
+  
+  useEffect(() => {
+    if (initialUsers.length === 0) {
+      loadUsers();
+    }
+  }, [initialUsers.length, loadUsers]);
+  
+  return (
+    <div className="user-list-container">
+      <div className="filter-container">
+        <input
+          type="text"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter users..."
+          className="filter-input"
+        />
+      </div>
+      
+      {loading ? (
+        <div className="loading">Loading users...</div>
+      ) : (
+        <ul className="user-list">
+          {filteredUsers.map(user => (
+            <li 
+              key={user.id} 
+              onClick={() => handleUserClick(user)}
+              className="user-item"
+            >
+              <div className="user-name">{user.name}</div>
+              <div className="user-email">{user.email}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+      
+      {filteredUsers.length === 0 && !loading && (
+        <div className="no-results">No users found</div>
+      )}
+    </div>
+  );
+};
+
+export default UserList;
 """
 
 # Invalid TypeScript syntax
@@ -211,6 +303,22 @@ class InvalidClass {
 }
 """
 
+# Invalid TSX syntax
+INVALID_TSX = """
+import React from 'react';
+
+const InvalidComponent = () => {
+  return (
+    <div>
+      <h1>Hello,</h1>
+      <p>This component has invalid JSX syntax
+    </div>  // Missing closing tag for <p>
+  );
+};
+
+export default InvalidComponent;
+"""
+
 # Test file expectations
 SIMPLE_FILE_EXPECTATIONS = {
     'helloWorld': ChunkExpectation(
@@ -222,11 +330,6 @@ SIMPLE_FILE_EXPECTATIONS = {
         name='Counter',
         docstring='A simple counter class',
         content_snippet='class Counter {'
-    ),
-    'increment': ChunkExpectation(
-        name='increment',
-        docstring='Increment the counter\n@returns The new count',
-        content_snippet='increment(): number {'
     ),
     'Person': ChunkExpectation(
         name='Person',
@@ -278,16 +381,39 @@ COMPLEX_FILE_EXPECTATIONS = {
     )
 }
 
-REACT_FILE_EXPECTATIONS = {
-    'CounterProps': ChunkExpectation(
-        name='CounterProps',
-        docstring='Props for the Counter component',
-        content_snippet='interface CounterProps {'
+SIMPLE_TSX_EXPECTATIONS = {
+    'ButtonProps': ChunkExpectation(
+        name='ButtonProps',
+        docstring='Props for Button component',
+        content_snippet='interface ButtonProps {'
     ),
-    'Counter': ChunkExpectation(
-        name='Counter',
-        docstring='A simple counter component',
-        content_snippet='const Counter: React.FC<CounterProps> = ({ initialValue = 0, step = 1 }) => {'
+    'Button': ChunkExpectation(
+        name='Button',
+        docstring='A simple button component',
+        content_snippet='const Button: React.FC<ButtonProps> = ({ onClick, label, disabled = false }) => {'
+    )
+}
+
+COMPLEX_TSX_EXPECTATIONS = {
+    'User': ChunkExpectation(
+        name='User',
+        docstring='User data structure',
+        content_snippet='interface User {'
+    ),
+    'UserListProps': ChunkExpectation(
+        name='UserListProps',
+        docstring='Props for the UserList component',
+        content_snippet='interface UserListProps {'
+    ),
+    'UserList': ChunkExpectation(
+        name='UserList',
+        docstring='A component that displays a list of users with filtering',
+        content_snippet='const UserList: React.FC<UserListProps> = ({'
+    ),
+    'loadUsers': ChunkExpectation(
+        name='loadUsers',
+        docstring='Load users from API',
+        content_snippet='const loadUsers = useCallback(async () => {'
     )
 }
 
@@ -295,6 +421,8 @@ REACT_FILE_EXPECTATIONS = {
 TEST_FILES = {
     'simple.ts': SIMPLE_TS,
     'complex.ts': COMPLEX_TS,
-    'component.tsx': REACT_TS,
-    'invalid.ts': INVALID_TS
+    'simple.tsx': SIMPLE_TSX,
+    'complex.tsx': COMPLEX_TSX,
+    'invalid.ts': INVALID_TS,
+    'invalid.tsx': INVALID_TSX
 }

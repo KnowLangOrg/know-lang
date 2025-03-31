@@ -10,16 +10,34 @@ from knowlang.utils import convert_to_relative_path, FancyLogger
 
 LOG = FancyLogger(__name__)
 
+class TypescriptChunkType(BaseChunkType):
+    """TypeScript-specific chunk types"""
+    INTERFACE = "interface"
+    TYPE_ALIAS = "type_alias"
+
+
 class TypeScriptParser(LanguageParser):
     """TypeScript-specific implementation of LanguageParser"""
     
     def setup(self) -> None:
-        """Initialize tree-sitter with TypeScript language support"""
+        """Initialize tree-sitter with TypeScript language support for both TS and TSX"""
         self.language_name = LanguageEnum.TYPESCRIPT
-        # Use the TypeScript parser from tree_sitter_typescript
-        self.language = Language(tree_sitter_typescript.language_tsx)
-        self.parser = Parser(self.language)
+        # Initialize two different parsers for TS and TSX
+        self.language_ts = Language(tree_sitter_typescript.language_typescript())
+        self.language_tsx = Language(tree_sitter_typescript.language_tsx())
+        
+        # Create two separate parsers
+        self.parser_ts = Parser(self.language_ts)
+        self.parser_tsx = Parser(self.language_tsx)
+        
         self.language_config = self.config.parser.languages["typescript"]
+    
+    def _get_parser_for_file(self, file_path: Path) -> Parser:
+        """Get the appropriate parser based on file extension"""
+        if file_path.suffix.lower() == ".tsx":
+            return self.parser_tsx
+        else:
+            return self.parser_ts
     
     def _get_preceding_docstring(self, node: Node, source_code: bytes) -> Optional[str]:
         """Extract docstring from JSDoc comments"""
@@ -78,14 +96,10 @@ class TypeScriptParser(LanguageParser):
 
     def _process_class(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
         """Process a class node and return a CodeChunk"""
-        name = None
-        for child in node.children:
-            if child.type == "identifier":
-                name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                break
+        name = node.child_by_field_name("name").text.decode('utf-8')
                 
         if not name:
-            raise ValueError(f"Could not find class name in node: {node.sexp()}")
+            raise ValueError(f"Could not find class name in node: {node.__str__()}")
         
         # Check if this is a decorated class
         decorators = []
@@ -96,7 +110,7 @@ class TypeScriptParser(LanguageParser):
         
         return CodeChunk(
             language=self.language_name,
-            type=BaseChunkType.CLASS,
+            type=TypescriptChunkType.CLASS,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
@@ -114,18 +128,14 @@ class TypeScriptParser(LanguageParser):
     
     def _process_interface(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
         """Process an interface node and return a CodeChunk"""
-        name = None
-        for child in node.children:
-            if child.type == "identifier":
-                name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                break
+        name = node.child_by_field_name("name").text.decode('utf-8')
                 
         if not name:
-            raise ValueError(f"Could not find interface name in node: {node.sexp()}")
+            raise ValueError(f"Could not find interface name in node: {node.__str__()}")
         
         return CodeChunk(
             language=self.language_name,
-            type=BaseChunkType.INTERFACE,  # Assuming INTERFACE is defined in BaseChunkType
+            type=TypescriptChunkType.INTERFACE,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
@@ -142,18 +152,14 @@ class TypeScriptParser(LanguageParser):
     
     def _process_type_alias(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
         """Process a type alias node and return a CodeChunk"""
-        name = None
-        for child in node.children:
-            if child.type == "identifier":
-                name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                break
+        name = node.child_by_field_name("name").text.decode('utf-8')
                 
         if not name:
-            raise ValueError(f"Could not find type alias name in node: {node.sexp()}")
+            raise ValueError(f"Could not find type alias name in node: {node.__str__()}")
         
         return CodeChunk(
             language=self.language_name,
-            type=BaseChunkType.TYPE_ALIAS,  # Assuming TYPE_ALIAS is defined in BaseChunkType
+            type=TypescriptChunkType.TYPE_ALIAS,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
@@ -175,10 +181,7 @@ class TypeScriptParser(LanguageParser):
         
         # Handle different function types
         if node.type == "function_declaration":
-            for child in node.children:
-                if child.type == "identifier":
-                    name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                    break
+            name = node.child_by_field_name("name").text.decode('utf-8')
         elif node.type == "method_definition":
             for child in node.children:
                 if child.type in ("property_identifier", "identifier"):
@@ -197,6 +200,14 @@ class TypeScriptParser(LanguageParser):
                     for child in parent.parent.children:
                         if child.type == "property_identifier":
                             name = source_code[child.start_byte:child.end_byte].decode('utf-8')
+                            break
+        elif node.type == "lexical_declaration":
+            # For const/let declarations with arrow functions
+            for child in node.children:
+                if child.type == "variable_declarator":
+                    for subchild in child.children:
+                        if subchild.type == "identifier":
+                            name = source_code[subchild.start_byte:subchild.end_byte].decode('utf-8')
                             break
         
         if not name:
@@ -220,22 +231,12 @@ class TypeScriptParser(LanguageParser):
                     decorator_text = source_code[child.start_byte:child.end_byte].decode('utf-8')
                     decorators.append(decorator_text)
         
-        # Determine parent class for methods
         parent_name = None
-        if node.type == "method_definition":
-            current = node.parent
-            while current:
-                if current.type == "class_declaration":
-                    for child in current.children:
-                        if child.type == "identifier":
-                            parent_name = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                            break
-                    break
-                current = current.parent
+
         
         return CodeChunk(
             language=self.language_name,
-            type=BaseChunkType.FUNCTION,
+            type=TypescriptChunkType.FUNCTION,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
@@ -267,10 +268,12 @@ class TypeScriptParser(LanguageParser):
             with open(file_path, 'rb') as f:
                 source_code = f.read()
             
-            if not self.parser:
+            # Select the appropriate parser based on file extension
+            parser = self._get_parser_for_file(file_path)
+            if not parser:
                 raise RuntimeError("Parser not initialized. Call setup() first.")
                 
-            tree = self.parser.parse(source_code)
+            tree = parser.parse(source_code)
             chunks: List[CodeChunk] = []
             
             # Get the relative path for location information
@@ -281,19 +284,24 @@ class TypeScriptParser(LanguageParser):
                 try:
                     if node.type == "class_declaration":
                         chunks.append(self._process_class(node, source_code, relative_path))
+                        return
                     elif node.type == "interface_declaration":
                         chunks.append(self._process_interface(node, source_code, relative_path))
+                        return
                     elif node.type == "type_alias_declaration":
                         chunks.append(self._process_type_alias(node, source_code, relative_path))
+                        return
                     elif node.type in ("function_declaration", "method_definition"):
                         chunks.append(self._process_function(node, source_code, relative_path))
-                    elif node.type == "variable_declaration":
+                        return
+                    elif node.type == "variable_declaration" or node.type == "lexical_declaration":
                         # Look for arrow functions assigned to variables
                         for declarator in node.children:
                             if declarator.type == "variable_declarator":
                                 for child in declarator.children:
                                     if child.type == "arrow_function":
-                                        chunks.append(self._process_function(child, source_code, relative_path))
+                                        chunks.append(self._process_function(declarator, source_code, relative_path))
+                                        return
                 except ValueError as e:
                     LOG.warning(f"Failed to process node: {str(e)}")
                 
@@ -311,4 +319,4 @@ class TypeScriptParser(LanguageParser):
     
     def supports_extension(self, ext: str) -> bool:
         """Check if this parser supports a given file extension"""
-        return ext.lower() in self.language_config.file_extensionss
+        return ext.lower() in self.language_config.file_extensions
