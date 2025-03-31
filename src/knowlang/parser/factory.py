@@ -5,6 +5,7 @@ from knowlang.configs import AppConfig
 from knowlang.parser.base.parser import LanguageParser
 from knowlang.parser.languages.cpp.parser import CppParser
 from knowlang.parser.languages.python.parser import PythonParser
+from knowlang.parser.languages.ts.parser import TypeScriptParser
 
 
 class CodeParserFactory():
@@ -20,6 +21,7 @@ class CodeParserFactory():
         return {
             "python": PythonParser,
             'cpp': CppParser,
+            'typescript': TypeScriptParser,
             # Add more languages here
         }
     

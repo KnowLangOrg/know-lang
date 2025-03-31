@@ -7,7 +7,7 @@ import pytest
 from knowlang.configs import AppConfig
 from knowlang.core.types import BaseChunkType, CodeChunk
 from knowlang.parser.languages.python.parser import PythonParser
-from tests.test_data.python_files import (COMPLEX_FILE_EXPECTATIONS,
+from tests.parser.languages.python.python_files import (COMPLEX_FILE_EXPECTATIONS,
                                           INVALID_SYNTAX,
                                           SIMPLE_FILE_EXPECTATIONS, TEST_FILES,
                                           DECORATED_FILE_EXPECTATIONS)

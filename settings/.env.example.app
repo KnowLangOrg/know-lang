@@ -34,7 +34,7 @@ DB__STATE_STORE__CONNECTION_URL=postgresql://postgres:postgres@localhost:5432/po
 
 # Parser Configuration
 # Settings for code parsing and file patterns
-PARSER__LANGUAGES='{"python": {"enabled": true, "file_extensions": [".py"], "tree_sitter_language": "python", "chunk_types": ["class_definition", "function_definition"], "max_file_size": 1000000}}'
+PARSER__LANGUAGES='{"python": {"enabled": true, "file_extensions": [".py"], "tree_sitter_language": "python", "chunk_types": ["class_definition", "function_definition"], "max_file_size": 1000000}, "cpp": {"enabled": true, "file_extensions": [".cpp", ".h", ".hpp", ".cc"], "tree_sitter_language": "cpp", "chunk_types": ["class_definition", "function_definition"], "max_file_size": 1000000}, "typescript": {"enabled": true, "file_extensions": [".ts", ".tsx"], "tree_sitter_language": "typescript", "chunk_types": ["class_definition", "function_definition"], "max_file_size": 1000000}}'
 PARSER__PATH_PATTERNS='{"include": ["**/*"], "exclude": ["**/venv/**", "**/.git/**", "**/__pycache__/**", "**/tests/**"]}'
 
 # Chat Configuration
