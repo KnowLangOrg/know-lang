@@ -28,7 +28,7 @@ class TableFormatter:
         
         for chunk in chunks:
             table.add_row(
-                chunk.type.value,
+                chunk.type,
                 chunk.name or "N/A",
                 chunk.location.file_path,
                 f"{chunk.location.start_line}-{chunk.location.end_line}",
