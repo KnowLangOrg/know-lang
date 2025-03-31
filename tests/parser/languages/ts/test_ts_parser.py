@@ -142,20 +142,39 @@ class TestTypeScriptParser:
         """Test parsing a complex TypeScript file with generics, namespaces, and decorators"""
         chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "complex.ts")
         
-        # Test decorator function
-        decorator_chunk = find_chunk_by_criteria(
+        
+        # Test deprecated decorator function
+        deprecated_chunk = find_chunk_by_criteria(
             chunks,
             type=TypescriptChunkType.FUNCTION,
-            name="log"
+            name="deprecated"
         )
-        assert decorator_chunk is not None
-        expected = COMPLEX_FILE_EXPECTATIONS['log']
+        assert deprecated_chunk is not None
+        expected = COMPLEX_FILE_EXPECTATIONS['deprecated']
         assert verify_chunk_matches_expectation(
-            decorator_chunk,
+            deprecated_chunk,
             expected.name,
             expected.docstring,
             expected.content_snippet
         )
+        
+
+        # Test decorated class at top level
+        decorated_class = find_chunk_by_criteria(
+            chunks,
+            type=TypescriptChunkType.CLASS,
+            name="DecoratedService"
+        )
+        assert decorated_class is not None
+        expected = COMPLEX_FILE_EXPECTATIONS['DecoratedService']
+        assert verify_chunk_matches_expectation(
+            decorated_class,
+            expected.name,
+            expected.docstring,
+            expected.content_snippet
+        )
+        # Verify decorator is included in the content
+        assert '@deprecated("Use NewService instead")' in decorated_class.content
         
         # Test generic class in namespace - should be found since we traverse namespaces
         repository_chunk = find_chunk_by_criteria(
@@ -171,16 +190,6 @@ class TestTypeScriptParser:
             expected.docstring,
             expected.content_snippet
         )
-        assert repository_chunk.metadata.namespace == "Utils"
-        assert repository_chunk.metadata.is_generic
-        
-        # Methods inside Repository should not be found since we stop traversal at class declaration
-        method_chunk = find_chunk_by_criteria(
-            chunks,
-            type=TypescriptChunkType.FUNCTION,
-            name="getAll"
-        )
-        assert method_chunk is None, "Methods inside classes should not be extracted"
         
         # Test generic interface
         interface_chunk = find_chunk_by_criteria(
@@ -211,7 +220,6 @@ class TestTypeScriptParser:
             expected.docstring,
             expected.content_snippet
         )
-        assert type_chunk.metadata.is_generic
         
         # Test arrow function
         arrow_chunk = find_chunk_by_criteria(

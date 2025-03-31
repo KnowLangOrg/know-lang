@@ -105,13 +105,6 @@ class TypeScriptParser(LanguageParser):
         if not name:
             raise ValueError(f"Could not find class name in node: {node.__str__()}")
         
-        # Check if this is a decorated class
-        decorators = []
-        for child in node.children:
-            if child.type == "decorator":
-                decorator_text = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                decorators.append(decorator_text)
-        
         return CodeChunk(
             language=self.language_name,
             type=TypescriptChunkType.CLASS,
@@ -125,8 +118,6 @@ class TypeScriptParser(LanguageParser):
             docstring=self._get_preceding_docstring(node, source_code),
             metadata=CodeMetadata(
                 namespace=self._get_namespace_context(node, source_code),
-                is_generic=self._is_generic_type(node),
-                decorators=decorators if decorators else None
             )
         )
     
@@ -207,18 +198,6 @@ class TypeScriptParser(LanguageParser):
             # If we still can't find a name, use a placeholder
             name = f"anonymous_function_{node.start_point[0]}_{node.start_point[1]}"
         
-        # Check for decorators
-        decorators = []
-        # For method_definition, decorators are typically at the parent level
-        current_node = node
-        
-        # For function_declaration, decorators are directly associated
-        if node.type == "function_declaration":
-            for child in node.children:
-                if child.type == "decorator":
-                    decorator_text = source_code[child.start_byte:child.end_byte].decode('utf-8')
-                    decorators.append(decorator_text)
-        
         # Determine parent class for methods - this is no longer needed since we don't extract methods
         parent_name = None
 
@@ -236,8 +215,6 @@ class TypeScriptParser(LanguageParser):
             docstring=self._get_preceding_docstring(node, source_code),
             metadata=CodeMetadata(
                 namespace=self._get_namespace_context(node, source_code),
-                is_generic=self._is_generic_type(node),
-                decorators=decorators if decorators else None
             )
         )
 

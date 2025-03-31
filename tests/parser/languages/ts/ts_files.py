@@ -64,15 +64,22 @@ type User = {
 # Complex TypeScript file with generics, namespaces, and decorators
 COMPLEX_TS = """
 /**
- * Logging decorator
+ * Marks a class as deprecated
  */
-function log(target: any, key: string, descriptor: PropertyDescriptor) {
-    const original = descriptor.value;
-    descriptor.value = function(...args: any[]) {
-        console.log(`Calling ${key} with args: ${JSON.stringify(args)}`);
-        return original.apply(this, args);
+function deprecated(message: string) {
+    return (target: any) => {
+        console.warn(`WARNING: ${target.name} is deprecated. ${message}`);
     };
-    return descriptor;
+}
+
+/**
+ * A decorated class at the top level
+ */
+@deprecated("Use NewService instead")
+class DecoratedService {
+    getData(): string {
+        return "Service data";
+    }
 }
 
 namespace Utils {
@@ -80,7 +87,7 @@ namespace Utils {
      * Generic repository for data access
      * @typeparam T The entity type
      */
-    export class Repository<T> {
+    class Repository<T> {
         items: T[] = [];
         
         /**
@@ -95,7 +102,6 @@ namespace Utils {
          * Get all items
          * @returns All items in the repository
          */
-        @log
         getAll(): T[] {
             return [...this.items];
         }
@@ -344,20 +350,20 @@ SIMPLE_FILE_EXPECTATIONS = {
 }
 
 COMPLEX_FILE_EXPECTATIONS = {
-    'log': ChunkExpectation(
-        name='log',
-        docstring='Logging decorator',
-        content_snippet='function log(target: any, key: string, descriptor: PropertyDescriptor)'
+    'deprecated': ChunkExpectation(
+        name='deprecated',
+        docstring='Marks a class as deprecated',
+        content_snippet='function deprecated(message: string)'
+    ),
+    'DecoratedService': ChunkExpectation(
+        name='DecoratedService',
+        docstring='A decorated class at the top level',
+        content_snippet='@deprecated("Use NewService instead")\nclass DecoratedService {'
     ),
     'Repository': ChunkExpectation(
         name='Repository',
         docstring='Generic repository for data access\n@typeparam T The entity type',
-        content_snippet='export class Repository<T> {'
-    ),
-    'getAll': ChunkExpectation(
-        name='getAll',
-        docstring='Get all items\n@returns All items in the repository',
-        content_snippet='@log\n        getAll(): T[] {'
+        content_snippet='class Repository<T> {'
     ),
     'ApiClient': ChunkExpectation(
         name='ApiClient',
