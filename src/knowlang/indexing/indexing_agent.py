@@ -55,7 +55,7 @@ Provide a clean, concise and focused summary. Don't include unnecessary nor gene
     async def summarize_chunk(self, chunk: CodeChunk) -> str:
         """Summarize a single code chunk using the LLM"""
         prompt = f"""
-        Analyze this {chunk.type.value} code chunk:
+        Analyze this {chunk.type} code chunk:
         
         {chunk.content}
         
