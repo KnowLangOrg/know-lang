@@ -79,7 +79,20 @@ class ParserConfig(BaseSettings):
             "python": LanguageConfig(
                 file_extensions=[".py"],
                 tree_sitter_language="python",
-                chunk_types=["class_definition", "function_definition"]
+                chunk_types=["class_definition", "function_definition"],
+                max_file_size=1_000_000
+            ),
+            "typescript": LanguageConfig(
+                file_extensions=[".ts", ".tsx"],
+                tree_sitter_language="typescript",
+                chunk_types=["class_definition", "function_definition"],
+                max_file_size=1_000_000
+            ),
+            "cpp": LanguageConfig(
+                file_extensions=[".cpp", ".h", ".hpp", ".cc"],
+                tree_sitter_language="cpp",
+                chunk_types=["class_definition", "function_definition"],
+                max_file_size=1_000_000
             )
         }
     )
