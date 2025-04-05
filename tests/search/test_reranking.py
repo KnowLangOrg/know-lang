@@ -55,7 +55,8 @@ def sample_search_results():
 @patch("knowlang.search.reranking.AutoTokenizer")
 @patch("knowlang.search.reranking.CodeBERTReranker")
 @patch("knowlang.search.reranking.get_device", return_value="cpu")
-def test_rerank_successful(mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
+@patch("knowlang.search.reranking.RobertaConfig")
+def test_rerank_successful(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test successful reranking of search results."""
     # Set up mock tokenizer
     mock_tokenizer_instance = MagicMock()
@@ -71,6 +72,8 @@ def test_rerank_successful(mock_get_device, mock_code_bert_reranker, mock_tokeni
     mock_code_bert_reranker.from_pretrained.return_value = mock_model_instance
     # Configure the model to return different scores for different inputs
     mock_model_instance.get_score.side_effect = lambda **kwargs: torch.tensor([0.95]), torch.tensor([0.85]), torch.tensor([0.65]), torch.tensor([0.45])
+
+    mock_roberta_config.from_pretrained.return_value = MagicMock()
     
     # Create reranker with our mocks
     with patch.object(KnowLangReranker, '_get_score', side_effect=[0.95, 0.85, 0.65, 0.45]):
@@ -90,7 +93,8 @@ def test_rerank_successful(mock_get_device, mock_code_bert_reranker, mock_tokeni
 @patch("knowlang.search.reranking.AutoTokenizer")
 @patch("knowlang.search.reranking.CodeBERTReranker")
 @patch("knowlang.search.reranking.get_device", return_value="cpu")
-def test_reranker_threshold_filtering(mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
+@patch("knowlang.search.reranking.RobertaConfig")
+def test_reranker_threshold_filtering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test that reranker filters results below the relevance threshold."""
     # Set up mock tokenizer and model like in previous test
     mock_tokenizer_instance = MagicMock()
@@ -103,6 +107,8 @@ def test_reranker_threshold_filtering(mock_get_device, mock_code_bert_reranker, 
     
     mock_model_instance = MagicMock()
     mock_code_bert_reranker.from_pretrained.return_value = mock_model_instance
+
+    mock_roberta_config.from_pretrained.return_value = MagicMock()
     
     # Create reranker with our mocks
     with patch.object(KnowLangReranker, '_get_score', side_effect=[0.95, 0.85, 0.45, 0.35]):
@@ -141,7 +147,8 @@ def test_reranker_disabled(reranker_config, sample_search_results):
 @patch("knowlang.search.reranking.AutoTokenizer")
 @patch("knowlang.search.reranking.CodeBERTReranker")
 @patch("knowlang.search.reranking.get_device", return_value="cpu")
-def test_reranker_result_ordering(mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
+@patch("knowlang.search.reranking.RobertaConfig")
+def test_reranker_result_ordering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test that results are properly ordered by score."""
     # Set up mock tokenizer
     mock_tokenizer_instance = MagicMock()
@@ -154,6 +161,8 @@ def test_reranker_result_ordering(mock_get_device, mock_code_bert_reranker, mock
     
     mock_model_instance = MagicMock()
     mock_code_bert_reranker.from_pretrained.return_value = mock_model_instance
+
+    mock_roberta_config.from_pretrained.return_value = MagicMock()
     
     # Create reranker with our mocks
     with patch.object(KnowLangReranker, '_get_score', side_effect=[0.75, 0.95, 0.85, 0.65]):
