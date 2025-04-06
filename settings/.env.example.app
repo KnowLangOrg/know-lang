@@ -38,12 +38,9 @@ PARSER__LANGUAGES='{"python": {"enabled": true, "file_extensions": [".py"], "tre
 PARSER__PATH_PATTERNS='{"include": ["**/*"], "exclude": ["**/venv/**", "**/.git/**", "**/__pycache__/**", "**/tests/**"]}'
 
 # Chat Configuration
-# Settings for the chat interface and context handling
-CHAT__MAX_CONTEXT_CHUNKS=5
-CHAT__SIMILARITY_THRESHOLD=0.7
-CHAT__INTERFACE_TITLE='KnowLang Codebase Assistant'
-CHAT__INTERFACE_DESCRIPTION="Ask questions about the codebase and I'll help you understand it!"
-CHAT__MAX_LENGTH_PER_CHUNK=8000
+CHAT__LLM__MODEL_NAME=llama3.2
+CHAT__LLM__MODEL_PROVIDER=ollama
+CHAT__LLM__API_KEY=your_api_key
 
 # Embedding Configuration
 # Settings for text embedding generation

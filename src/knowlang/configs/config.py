@@ -6,31 +6,16 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
+from knowlang.configs.llm_config import LLMConfig
 from knowlang.core.types import ModelProvider, VectorStoreProvider
 
-from .base import generate_model_config
+from .base import _validate_api_key, generate_model_config
 from .chat_config import ChatbotAnalyticsConfig, ChatConfig
 from .retrieval_config import MultiStageRetrievalConfig
 from .state_store_config import StateStoreConfig
 
 
-def _validate_api_key(v: Optional[str], info: ValidationInfo) -> Optional[str]:
-    """Validate API key is present when required"""
-    if info.data['model_provider'] in [
-        ModelProvider.OPENAI, 
-        ModelProvider.ANTHROPIC,
-        ModelProvider.VOYAGE
-    ]:
-        if not v:
-            raise ValueError(f"API key required for {info.data['model_provider']}")
-        elif info.data['model_provider'] == ModelProvider.ANTHROPIC:
-            os.environ["ANTHROPIC_API_KEY"] = v
-        elif info.data['model_provider'] == ModelProvider.OPENAI:
-            os.environ["OPENAI_API_KEY"] = v
-        elif info.data['model_provider'] == ModelProvider.VOYAGE:
-            os.environ["VOYAGE_API_KEY"] = v
-            
-    return v
+
 
 class PathPatterns(BaseSettings):
     include: List[str] = Field(
@@ -124,29 +109,6 @@ class EmbeddingConfig(BaseSettings):
     api_key: Optional[str] = Field(
         default=None,
         description="API key for the model provider"
-    )
-
-    @field_validator('api_key', mode='after')
-    @classmethod
-    def validate_api_key(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
-        return _validate_api_key(v, info)
-
-class LLMConfig(BaseSettings):
-    model_name: str = Field(
-        default="llama3.2",
-        description="Name of the LLM model to use"
-    )
-    model_provider: str = Field(
-        default=ModelProvider.OLLAMA,
-        description="Model provider (anthropic, openai, ollama, etc)"
-    )
-    api_key: Optional[str] = Field(
-        default=None,
-        description="API key for the model provider"
-    )
-    model_settings: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional model settings"
     )
 
     @field_validator('api_key', mode='after')
