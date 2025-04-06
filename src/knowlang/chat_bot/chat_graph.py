@@ -108,7 +108,7 @@ class RetrievalNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
 @dataclass
 class AnswerQuestionNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
     """Node that generates the final answer"""
-    system_prompt = """
+    default_system_prompt = """
 You are an expert code assistant helping developers understand complex codebases. Follow these rules strictly:
 
 1. ALWAYS answer the user's question - this is your primary task
@@ -129,12 +129,13 @@ You are an expert code assistant helping developers understand complex codebases
 Remember: Your primary goal is answering the user's specific question, not explaining the entire codebase."""
 
     async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> End[ChatResult]:
+        chat_config = ctx.deps.config.chat
         answer_agent = Agent(
             create_pydantic_model(
-                model_provider=ctx.deps.config.llm.model_provider,
-                model_name=ctx.deps.config.llm.model_name
+                model_provider=chat_config.llm.model_provider,
+                model_name=chat_config.llm.model_name,
             ),
-            system_prompt=self.system_prompt
+            system_prompt=self.default_system_prompt if chat_config.llm.system_prompt is None else chat_config.llm.system_prompt,
         )
         
         if not ctx.state.retrieved_context:
@@ -146,7 +147,7 @@ Remember: Your primary goal is answering the user's specific question, not expla
 
         context = ctx.state.retrieved_context
         for single_context in context:
-            chunk = truncate_chunk(single_context.document, ctx.deps.config.chat.max_length_per_chunk)
+            chunk = truncate_chunk(single_context.document)
 
         prompt = f"""
 Question: {ctx.state.original_question}

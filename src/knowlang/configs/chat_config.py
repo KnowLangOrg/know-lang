@@ -2,16 +2,11 @@ from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from enum import Enum
-
+from knowlang.configs.llm_config import LLMConfig
 
 class ChatConfig(BaseSettings):
-    max_context_chunks: int = Field(
-        default=5,
-        description="Maximum number of similar chunks to include in context"
-    )
-    similarity_threshold: float = Field(
-        default=0.7,
-        description="Minimum similarity score to include a chunk"
+    llm: LLMConfig = Field(
+        default_factory=LLMConfig,
     )
     interface_title: str = Field(
         default="KonwLang Codebase Assistant",
@@ -24,10 +19,6 @@ class ChatConfig(BaseSettings):
     interface_placeholder: str = Field(
         default="Ask about the codebase",
         description="Placeholder text in the chat interface"
-    )
-    max_length_per_chunk: int = Field(
-        default=8000,
-        description="Maximum number of characters per chunk"
     )
 
 class AnalyticsProvider(str, Enum):

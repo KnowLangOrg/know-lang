@@ -73,14 +73,6 @@
       },
       "enable_code_summarization": false
     },
-    "chat": {
-      "max_context_chunks": 5,
-      "similarity_threshold": 0.7,
-      "interface_title": "KnowLang Codebase Assistant",
-      "interface_description": "Ask questions about the codebase and I'll help you understand it!",
-      "interface_placeholder": "Ask about the codebase",
-      "max_length_per_chunk": 8000
-    },
     "embedding": {
       "model_name": "KnowLang/graphcodebert-codesearch-python",
       "model_provider": "graph_code_bert",
