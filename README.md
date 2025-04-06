@@ -1,57 +1,19 @@
----
-title: KnowLangBot
-emoji: 🤖
-colorFrom: blue
-colorTo: purple
-sdk: docker
-app_port: 7860
----
-
 # KnowLang: Comprehensive Understanding for Complex Codebase
 
 KnowLang is an advanced codebase exploration tool that helps software engineers better understand complex codebases through semantic search and intelligent Q&A capabilities. Our first release focuses on providing RAG-powered search and Q&A for popular open-source libraries, with Hugging Face's repositories as our initial targets.
 
-[![Hugging Face Space](https://img.shields.io/badge/🤗%20Hugging%20Face-Space-blue)](https://huggingface.co/spaces/gabykim/KnowLang_Transformers_Demo)
+[![Official Website](https://img.shields.io/badge/🌐%20Official-Website-blue)](https://www.knowlang.dev)
+
+> 🚀 **Try it yourself!** Want to see KnowLang in action? Visit our live demo at [www.knowlang.dev](https://www.knowlang.dev) and start exploring codebases today!
 
 ## Features
 
 - 🔍 **Semantic Code Search**: Find relevant code snippets based on natural language queries
 - 📚 **Contextual Q&A**: Get detailed explanations about code functionality and implementation details
 - 🎯 **Smart Chunking**: Intelligent code parsing that preserves semantic meaning
-- 🔄 **Multi-Stage Retrieval**: Combined embedding and semantic search for better results
-- 🐍 **Python Support**: Currently optimized for Python codebases, with a roadmap for multi-language support
-
-## How It Works
-
-### Code Parsing Pipeline
-
-```mermaid
-flowchart TD
-    A[Git Repository] --> B[Code Files]
-    B --> C[Code Parser]
-    C --> D{Parse by Type}
-    D --> E[Class Definitions]
-    D --> F[Function Definitions]
-    D --> G[Other Code]
-    E --> H[Code Chunks]
-    F --> H
-    G --> H
-    H --> I[LLM Summarization]
-    H --> J
-    I --> J[Embeddings]
-    J --> K[(Vector Store)]
-```
-
-### RAG Chatbot Pipeline
-
-```mermaid
-flowchart LR
-    A[User Query] --> B[Query Embedding]
-    B --> C[Vector Search]
-    C --> D[Context Collection]
-    D --> E[LLM Response Generation]
-    E --> F[User Interface]
-```
+- 🔄 **Two-Stage Retrieval**: Powerful multi-stage retrieval pipeline with keyword search, vector embedding search, and relevance reranking
+- 🌐 **Multi-Language Support**: Support for Python, C++, TypeScript, with more languages on the roadmap
+- 📈 **Incremental Updates**: Efficiently update your index when code changes without reprocessing the entire codebase
 
 ## Prerequisites
 
@@ -85,16 +47,6 @@ You should see both `llama3.2` and `mxbai-embed-large` in the list of available 
 Note: While Ollama is the default choice for easy setup, KnowLang supports other LLM providers through configuration. See our [Configuration Guide](configuration.md) for using alternative providers like OpenAI or Anthropic.
 
 ## Quick Start
-
-### System Requirements
-
-- **RAM**: Minimum 16GB recommended (Ollama models require significant memory)
-- **Storage**: At least 10GB free space for model files
-- **OS**:
-  - Linux (recommended)
-  - macOS 12+ (Intel or Apple Silicon)
-  - Windows 10+ with WSL2
-- **Python**: 3.10 or higher
 
 ### Installation
 
@@ -133,8 +85,7 @@ knowlang parse ./my-project
 knowlang -v parse ./my-project
 ```
 
-> ⚠️ **Warning**  
-> Make sure to setup the correct paths to include and exclude for parsing. Please refer to "Parser Settings" section in [Configuration Guide](configuration.md) for more information
+> ⚠️ Warning: Make sure to setup the correct paths to include and exclude for parsing. Please refer to "Parser Settings" section in [Configuration Guide](configuration.md) for more information
 
 2. Then, launch the chat interface:
 
@@ -193,36 +144,58 @@ $ knowlang chat
 KnowLang uses several key technologies:
 
 - **Tree-sitter**: For robust, language-agnostic code parsing
-- **ChromaDB**: For efficient vector storage and retrieval
+- **ChromaDB/PostgreSQL**: For efficient vector storage and retrieval
 - **PydanticAI**: For type-safe LLM interactions
 - **Gradio**: For the interactive chat interface
 
 ## Technical Details
 
-### Code Parsing
+### Multi-Language Code Parsing
 
 Our code parsing pipeline uses Tree-sitter to break down source code into meaningful chunks while preserving context:
 
 1. Repository cloning and file identification
-2. Semantic parsing with Tree-sitter
-3. Smart chunking based on code structure
-4. LLM-powered summarization
-5. Embedding generation with mxbai-embed-large
-6. Vector store indexing
+2. Language detection and routing to appropriate parsers (Python, C++, TypeScript)
+3. Semantic parsing with Tree-sitter
+4. Smart chunking based on language-specific AST structures
+5. LLM-powered summarization
+6. Embedding generation
+7. Vector store indexing
 
-### RAG Implementation
+### Incremental Updates
 
-The RAG system uses a multi-stage retrieval process:
+KnowLang supports efficient incremental updates to your code index:
 
-1. Query embedding generation
-2. Initial vector similarity search
-3. Context aggregation
-4. LLM response generation with full context
+1. Tracking file states (hash, modification time, chunk IDs)
+2. Detecting changed files since last indexing
+3. Only processing modified files rather than the entire codebase
+4. Maintaining index consistency by removing outdated chunks
+5. Adding new chunks for modified or added files
+
+### Two-Stage Retrieval System
+
+The RAG system uses a sophisticated multi-stage retrieval process:
+
+1. **First Stage**: Recall relevant code chunks using:
+   - Keyword-based search for exact matches
+   - Vector embedding search for semantic similarity
+   - Combined results from both approaches
+
+2. **Second Stage**: Rerank results using:
+   - GraphCodeBERT cross-encoder for more accurate relevance scoring
+   - Filtering based on relevance threshold
+   - Limited to top-K most relevant chunks
+
+3. **Response Generation**:
+   - Combine reranked chunks as context
+   - Generate LLM response with the enhanced context
+
+> ⚠️ Warning: the reranker is not yet fully implemented, hence reranking stage is disabled by default.
 
 ## Roadmap
-
+- [ ] MCP support for LLM contexts
+- [ ] Additional language support (Java, Ruby, Go, etc.)
 - [ ] Inter-repository semantic search
-- [ ] Support for additional programming languages
 - [ ] Automatic documentation maintenance
 - [ ] Integration with popular IDEs
 - [ ] Custom embedding model training
@@ -248,4 +221,8 @@ If you use KnowLang in your research, please cite:
 
 ## Support
 
-For support, please open an issue on GitHub or reach out to us directly through discussions.
+For support, please open an issue on GitHub or reach out to us directly through discussions. You can also visit our [official website](https://www.knowlang.dev) for more resources, documentation, and live demonstrations of KnowLang in action.
+
+## Community
+
+Wondering how KnowLang works in real-world scenarios? Curious about best practices? Join our growing community of developers at [www.knowlang.dev](https://www.knowlang.dev) to see examples, share your experiences, and learn from others.

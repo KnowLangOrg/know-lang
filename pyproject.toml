@@ -4,11 +4,13 @@ addopts = [
 ]
 [project]
 name = "knowlang"
-version = "0.2.1"
+version = "0.2.2"
 description = "AI-powered code understanding assistant that helps developers explore and understand complex codebases through semantic search and intelligent Q&A"
 license = "Apache-2.0"
 authors = [
-    {name = "gabhyun kim",email = "kimgb415@gmail.com"}
+    {name = "gabhyun kim",email = "kimgb415@gmail.com"},
+    {name = "mukhtar kussaiynbekov",email = "mukhtarkussaiynbekov@gmail.com"},
+    {name = "kolbe yang",email = "kyanghasglasses@gmail.com"}
 ]
 keywords = [
     "code-understanding",
@@ -59,8 +61,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/kimgb415/know-lang"
-Repository = "https://github.com/kimgb415/know-lang"
+Homepage = "https://knowlang.dev"
+Repository = "https://github.com/knowlangorg/know-lang"
 
 [tool.poetry]
 packages = [
