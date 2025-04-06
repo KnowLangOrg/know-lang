@@ -17,6 +17,9 @@ KnowLang is an advanced codebase exploration tool that helps software engineers 
 
 ## Prerequisites
 
+### LLM Provider
+
+> Note: While Ollama is the default choice for easy setup, KnowLang supports other LLM providers through configuration. See our [Configuration Guide](configuration.md) for using alternative providers like OpenAI or Anthropic.
 KnowLang uses [Ollama](https://ollama.com) as its default LLM and embedding provider. Before installing KnowLang:
 
 1. Install Ollama:
@@ -31,9 +34,6 @@ curl -fsSL https://ollama.com/install.sh | sh
 ```bash
 # For LLM responses
 ollama pull llama3.2
-
-# For code embeddings
-ollama pull mxbai-embed-large
 ```
 
 3. Verify Ollama is running:
@@ -42,9 +42,33 @@ ollama pull mxbai-embed-large
 ollama list
 ```
 
-You should see both `llama3.2` and `mxbai-embed-large` in the list of available models.
+You should see `llama3.2` in the list of available models.
 
-Note: While Ollama is the default choice for easy setup, KnowLang supports other LLM providers through configuration. See our [Configuration Guide](configuration.md) for using alternative providers like OpenAI or Anthropic.
+
+### Database Setup
+
+KnowLang uses PostgreSQL with pgvector extension for efficient vector storage and retrieval. You can easily set up the database using Docker:
+
+1. Make sure you have Docker and Docker Compose installed:
+   ```bash
+   docker --version
+   docker compose --version
+   ```
+
+2. Start the PostgreSQL database:
+   ```bash
+   # From the root of the know-lang repository
+   docker compose -f docker/application/docker-compose.app.yml up -d
+   ```
+
+3. Verify the database is running:
+   ```bash
+   docker ps | grep pgvector
+   ```
+
+You should see the pgvector container running on port 5432.
+
+> ⚠️ **Important**: The database must be running before you use any KnowLang commands like `parse` or `chat` that require database access.
 
 ## Quick Start
 
@@ -75,7 +99,9 @@ This allows you to make changes to the source code and have them immediately ref
 
 ### Basic Usage
 
-1. First, parse and index your codebase:
+1. Make sure the PostgreSQL database is running (see [Database Setup](#database-setup) above).
+
+2. Parse and index your codebase:
 
 ```bash
 # For a local codebase
@@ -87,7 +113,7 @@ knowlang -v parse ./my-project
 
 > ⚠️ Warning: Make sure to setup the correct paths to include and exclude for parsing. Please refer to "Parser Settings" section in [Configuration Guide](configuration.md) for more information
 
-2. Then, launch the chat interface:
+3. Launch the chat interface:
 
 ```bash
 knowlang chat
@@ -107,6 +133,9 @@ knowlang parse --config my_config.yaml ./my-project
 
 # Output parsing results in JSON format
 knowlang parse --output json ./my-project
+
+# Incremental update of the codebase
+knowlang parse --incremental ./my-project
 ```
 
 #### Chat Interface Options
@@ -144,7 +173,7 @@ $ knowlang chat
 KnowLang uses several key technologies:
 
 - **Tree-sitter**: For robust, language-agnostic code parsing
-- **ChromaDB/PostgreSQL**: For efficient vector storage and retrieval
+- **PostgreSQL with pgvector**: For efficient vector storage and retrieval
 - **PydanticAI**: For type-safe LLM interactions
 - **Gradio**: For the interactive chat interface
 
