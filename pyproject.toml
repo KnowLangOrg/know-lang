@@ -8,8 +8,8 @@ version = "0.2.2"
 description = "AI-powered code understanding assistant that helps developers explore and understand complex codebases through semantic search and intelligent Q&A"
 license = "Apache-2.0"
 authors = [
-    {name = "gabhyun kim",email = "kimgb415@gmail.com"}
-    {name = "mukhtar kussaiynbekov",email = "mukhtarkussaiynbekov@gmail.com"}
+    {name = "gabhyun kim",email = "kimgb415@gmail.com"},
+    {name = "mukhtar kussaiynbekov",email = "mukhtarkussaiynbekov@gmail.com"},
     {name = "kolbe yang",email = "kyanghasglasses@gmail.com"}
 ]
 keywords = [
