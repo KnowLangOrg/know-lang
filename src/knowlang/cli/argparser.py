@@ -1,5 +1,6 @@
 """Argument parsing for KnowLang CLI."""
 import argparse
+import json
 from pathlib import Path
 from typing import Callable, Dict, Optional, Sequence, Type, Union
 
@@ -32,7 +33,7 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
             **base_args,
             path=parsed_namespace.path,
             output=parsed_namespace.output,
-            user_id=parsed_namespace.user_id
+            extra_fields=parsed_namespace.extra_fields
         )
     elif parsed_namespace.command == "chat":
         command_func = chat_command
@@ -89,6 +90,12 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
     args.command_func = command_func
     return args
 
+def parse_json_dict(arg: str) -> dict:
+    try:
+        return json.loads(arg)
+    except json.JSONDecodeError as e:
+        raise argparse.ArgumentTypeError(f"Invalid JSON provided: {e}")
+
 def _create_parse_parser(subparsers):
     """Create the parser for the 'parse' command."""
     parse_parser = subparsers.add_parser(
@@ -105,15 +112,15 @@ def _create_parse_parser(subparsers):
     parse_parser.add_argument(
         "path",
         type=str,
-        nargs="?", # Make path optional
-        default=".", # Default to current directory
+        nargs="?",
+        default=".",
         help="Path to codebase directory or repository URL"
     )
     parse_parser.add_argument(
-        "--user-id",
-        type=str,
-        default=None,
-        help="User ID to associate with the codebase",
+        "--extra-fields",
+        type=parse_json_dict,
+        default={},
+        help="Additional dynamic fields as a JSON string. For example: '{\"key1\": \"value1\", \"key2\": \"value2\"}'"
     )
     return parse_parser
 

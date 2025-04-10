@@ -15,8 +15,6 @@ from .retrieval_config import MultiStageRetrievalConfig
 from .state_store_config import StateStoreConfig
 
 
-
-
 class PathPatterns(BaseSettings):
     include: List[str] = Field(
         default=["**/*"],
@@ -207,4 +205,4 @@ class AppConfig(BaseSettings):
     embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
     chat_analytics: ChatbotAnalyticsConfig = Field(default_factory=ChatbotAnalyticsConfig)
     retrieval: MultiStageRetrievalConfig = Field(default_factory=MultiStageRetrievalConfig)
-    user_id: Optional[str] = None
+    extra_fields: Optional[Dict[str, Any]] = None
