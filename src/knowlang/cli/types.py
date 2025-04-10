@@ -18,7 +18,7 @@ class ParseCommandArgs(BaseCommandArgs):
     path: str
     output: Literal["table", "json"]
     command: Literal["parse"]  # for command identification
-    user_id: Optional[str] = None
+    extra_fields: Optional[dict] = None
 
 @dataclass
 class ChatCommandArgs(BaseCommandArgs):
