@@ -1703,7 +1703,6 @@ description = "Consume Server-Sent Event (SSE) messages with HTTPX."
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "platform_system != \"Emscripten\""
 files = [
     {file = "httpx-sse-0.4.0.tar.gz", hash = "sha256:1e81a3a3070ce322add1d3529ed42eb5f70817f45ed6ec915ab753f961139721"},
     {file = "httpx_sse-0.4.0-py3-none-any.whl", hash = "sha256:f329af6eae57eaa2bdfd962b42524764af68075ea87370a2de920af5341e318f"},
@@ -2305,8 +2304,10 @@ httpx = ">=0.27"
 httpx-sse = ">=0.4"
 pydantic = ">=2.7.2,<3.0.0"
 pydantic-settings = ">=2.5.2"
+python-dotenv = {version = ">=1.0.0", optional = true, markers = "extra == \"cli\""}
 sse-starlette = ">=1.6.1"
 starlette = ">=0.27"
+typer = {version = ">=0.12.4", optional = true, markers = "extra == \"cli\""}
 uvicorn = ">=0.23.1"
 
 [package.extras]
@@ -5961,4 +5962,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.13"
-content-hash = "0ef45d977a255ee37d348c17548e3dfc71e9030682159770ff2b57ae3f0736cf"
+content-hash = "3213cb8e57aa75c7ca10460d7350aed6f1666bafc07855c92915bb478a491eae"

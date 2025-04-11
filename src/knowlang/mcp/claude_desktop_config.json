@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "knowlang-search": {
+      "command": "python -m knowlang.mcp.cli --host localhost --port 7773 --name knowlang-search"
+    }
+  }
+}
