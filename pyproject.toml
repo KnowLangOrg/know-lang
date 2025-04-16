@@ -38,7 +38,7 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.10, <3.13"
 dependencies = [
-    "pydantic-ai[logfire] (>=0.0.20,<0.0.21)",
+    "pydantic-ai[logfire] (==0.1.0)",
     "gitpython (>=3.1.44,<4.0.0)",
     "tree-sitter (>=0.24.0,<0.25.0)",
     "tree-sitter-python (>=0.23.6,<0.24.0)",

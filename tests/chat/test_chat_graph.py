@@ -11,6 +11,7 @@ from knowlang.chat_bot.chat_graph import (
     ChatGraphState,
     ChatResult,
     ChatStatus,
+    RetrievalNode,
     stream_chat_progress
 )
 from knowlang.search.search_graph.keyword_search_agent_node import KeywordSearchAgentNode
@@ -33,7 +34,7 @@ async def test_answer_question_node(mock_agent_class, mock_config, populated_moc
     ctx = GraphRunContext(state=state, deps=deps)
 
     mock_answer = Mock()
-    mock_answer.data = "This is the answer based on the code context."
+    mock_answer.output = "This is the answer based on the code context."
     mock_agent = mock_agent_class.return_value
     mock_agent.run = AsyncMock(return_value=mock_answer)
 
@@ -58,36 +59,61 @@ async def test_answer_question_node_no_context(mock_config, mock_vector_store):
     assert "couldn't find any relevant code context" in result.data.answer.lower()
     assert result.data.retrieved_context is None
 
+class MockGraphRun:
+    """Mock for GraphRun to simulate the behavior of graph.iter context manager"""
+    def __init__(self, nodes_sequence):
+        self.nodes_sequence = nodes_sequence
+        self.current_index = 0
+        self.history = []
+        self.result = None
+        self.next_node = nodes_sequence[0] if nodes_sequence else None
+    
+    async def next(self, node):
+        """Simulate GraphRun.next method behavior"""
+        self.history.append(node)
+        self.current_index += 1
+        if self.current_index < len(self.nodes_sequence):
+            self.next_node = self.nodes_sequence[self.current_index]
+            return self.next_node
+        else:
+            # End of sequence - should not happen in normal testing as we
+            # expect an End node to terminate the iteration
+            return None
+
 
 @pytest.mark.asyncio
-@patch('knowlang.chat_bot.chat_graph.logfire')
 @patch('knowlang.chat_bot.chat_graph.chat_graph')
 async def test_stream_chat_progress_success(
     mock_chat_graph, 
-    mock_logfire, 
     mock_config, 
     populated_mock_store
 ):
-    """Test successful streaming chat progress with updated node flow"""
+    """Test successful streaming chat progress with proper graph.iter mocking"""
     # Mock the span context manager
-    mock_span = Mock()
-    mock_logfire.span.return_value.__enter__.return_value = mock_span
     
-    # Set up mock chat graph behavior
-    mock_chat_graph.next = AsyncMock()
-    mock_chat_graph.next.side_effect = [
-        # Only KeywordSearchAgentNode and AnswerQuestionNode now
-        AnswerQuestionNode(),   # Move to answer node
-        End(ChatResult(         # Finally return the result
-            answer="Test answer",
-            retrieved_context=[
-                SearchResult(document="def test_function(): pass", 
-                          metadata={"file_path": "test1.py", "start_line": 1, "end_line": 2},
-                          score=0.9)
-            ]
-        ))
-    ]
-
+    # Define the sequence of nodes to be returned
+    retrieval_node = RetrievalNode()
+    answer_node = AnswerQuestionNode()
+    end_node = End(ChatResult(
+        answer="Test answer",
+        retrieved_context=[
+            SearchResult(document="def test_function(): pass", 
+                       metadata={"file_path": "test1.py", "start_line": 1, "end_line": 2},
+                       score=0.9)
+        ]
+    ))
+    
+    # Create mock GraphRun instance
+    mock_graph_run = MockGraphRun([retrieval_node, answer_node, end_node])
+    
+    # Set up the context manager mock for graph.iter
+    mock_context_manager = AsyncMock()
+    mock_context_manager.__aenter__ = AsyncMock(return_value=mock_graph_run)
+    mock_context_manager.__aexit__ = AsyncMock(return_value=None)
+    
+    # Configure chat_graph.iter to return our context manager mock
+    mock_chat_graph.iter.return_value = mock_context_manager
+    
     # Collect all streamed results
     results = []
     async for result in stream_chat_progress(
@@ -98,7 +124,7 @@ async def test_stream_chat_progress_success(
         results.append(result)
 
     # Verify the sequence of streaming results
-    assert len(results) >= 3  # Should have starting, retrieving, complete
+    assert len(results) >= 3  # Should have starting, retrieving, answering
     
     # Verify initial status
     assert results[0].status == ChatStatus.STARTING
@@ -108,29 +134,36 @@ async def test_stream_chat_progress_success(
     assert results[1].status == ChatStatus.RETRIEVING
     assert "Searching codebase" in results[1].progress_message
     
+    # Verify answering status  
+    assert results[2].status == ChatStatus.ANSWERING
+    
     # Verify final result
     assert results[-1].status == ChatStatus.COMPLETE
     assert results[-1].answer == "Test answer"
     assert results[-1].retrieved_context is not None
     
-    # Verify graph execution
-    assert mock_chat_graph.next.call_count == 2
-    mock_span.set_attribute.assert_called_once()
+    # Verify the chat_graph.iter call
+    mock_chat_graph.iter.assert_called_once()
+    mock_context_manager.__aenter__.assert_called_once()
+    mock_context_manager.__aexit__.assert_called_once()
 
 
 @pytest.mark.asyncio
-@patch('knowlang.chat_bot.chat_graph.logfire')
 @patch('knowlang.chat_bot.chat_graph.chat_graph')
-async def test_stream_chat_progress_node_error(mock_chat_graph, mock_logfire, mock_vector_store, mock_config):
+async def test_stream_chat_progress_node_error(
+    mock_chat_graph, 
+    mock_vector_store, 
+    mock_config
+):
     """Test streaming chat progress when a node execution fails"""
-    # Mock the span context manager
-    mock_span = Mock()
-    mock_logfire.span.return_value.__enter__.return_value = mock_span
+    # Create a mock context manager for graph.iter that will raise an exception
+    mock_context_manager = AsyncMock()
+    mock_context_manager.__aenter__ = AsyncMock(side_effect=Exception("Test node error"))
+    mock_context_manager.__aexit__ = AsyncMock(return_value=None)
     
-    # Set up mock chat graph to raise an error
-    mock_chat_graph.next = AsyncMock()
-    mock_chat_graph.next.side_effect = Exception("Test node error")
-
+    # Configure chat_graph.iter to return our context manager mock
+    mock_chat_graph.iter.return_value = mock_context_manager
+    
     # Collect all streamed results
     results = []
     async for result in stream_chat_progress(
@@ -141,7 +174,7 @@ async def test_stream_chat_progress_node_error(mock_chat_graph, mock_logfire, mo
         results.append(result)
 
     # Verify error handling
-    assert len(results) == 3  # Should have initial status, pending first node, and error
+    assert len(results) == 2  # Initial status and error
     
     # Verify initial status
     assert results[0].status == ChatStatus.STARTING
@@ -149,22 +182,32 @@ async def test_stream_chat_progress_node_error(mock_chat_graph, mock_logfire, mo
     # Verify error status
     assert results[-1].status == ChatStatus.ERROR
     assert "Test node error" in results[-1].progress_message
-    assert not results[-1].retrieved_context
 
 
 @pytest.mark.asyncio
-@patch('knowlang.chat_bot.chat_graph.logfire')
 @patch('knowlang.chat_bot.chat_graph.chat_graph')
-async def test_stream_chat_progress_invalid_node(mock_chat_graph, mock_logfire, mock_vector_store, mock_config):
+async def test_stream_chat_progress_invalid_node(
+    mock_chat_graph, 
+    mock_vector_store, 
+    mock_config
+):
     """Test streaming chat progress when an invalid node type is returned"""
-    # Mock the span context manager
-    mock_span = Mock()
-    mock_logfire.span.return_value.__enter__.return_value = mock_span
     
-    # Set up mock chat graph to return invalid node type
-    mock_chat_graph.next = AsyncMock()
-    mock_chat_graph.next.return_value = "invalid node"  # Return invalid node type
-
+    # Create mock GraphRun that will return an invalid node type
+    retrieval_node = RetrievalNode()
+    invalid_node = "invalid node"  # Not a valid BaseNode instance
+    
+    mock_graph_run = MockGraphRun([retrieval_node])
+    mock_graph_run.next = AsyncMock(return_value=invalid_node)
+    
+    # Set up the context manager mock for graph.iter
+    mock_context_manager = AsyncMock()
+    mock_context_manager.__aenter__ = AsyncMock(return_value=mock_graph_run)
+    mock_context_manager.__aexit__ = AsyncMock(return_value=None)
+    
+    # Configure chat_graph.iter to return our context manager mock
+    mock_chat_graph.iter.return_value = mock_context_manager
+    
     # Collect all streamed results
     results = []
     async for result in stream_chat_progress(
@@ -175,17 +218,21 @@ async def test_stream_chat_progress_invalid_node(mock_chat_graph, mock_logfire, 
         results.append(result)
 
     # Verify error handling
-    assert len(results) == 3  # Should have initial status, pending first node, and error
+    assert len(results) == 3  # Should have initial status, node status, and error
     assert results[-1].status == ChatStatus.ERROR
     assert "Invalid node type" in results[-1].progress_message
 
 
 @pytest.mark.asyncio
-@patch('knowlang.chat_bot.chat_graph.logfire')
-async def test_stream_chat_progress_general_error(mock_logfire, mock_vector_store, mock_config):
+@patch('knowlang.chat_bot.chat_graph.chat_graph')
+async def test_stream_chat_progress_general_error(mock_chat_graph, mock_vector_store, mock_config):
     """Test streaming chat progress when a general error occurs"""
-    # Mock the span context manager to raise an error
-    mock_logfire.span.side_effect = Exception("Test general error")
+
+
+    mock_context_manager = AsyncMock()
+    mock_context_manager.__aenter__.side_effect = Exception("Test general error")
+
+    mock_chat_graph.iter.return_value = mock_context_manager
 
     # Collect all streamed results
     results = []
