@@ -3,16 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, AsyncGenerator, List, Optional, Union
-import logfire
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_graph import (
     BaseNode, 
     End, 
-    EndStep, 
     Graph, 
     GraphRunContext,
-    HistoryStep
 )
 from rich.console import Console
 from knowlang.configs import AppConfig
@@ -93,14 +90,14 @@ class RetrievalNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
     async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> Union['AnswerQuestionNode']:
         from knowlang.search.search_graph.base import SearchDeps, SearchState
         from knowlang.search.search_graph.graph import FirstStageNode
-        search_graph_result, _history = await search_graph.run(
+        search_graph_result = await search_graph.run(
             start_node=FirstStageNode(),
             state=SearchState(query=ctx.state.original_question),
             deps=SearchDeps(
                 store=ctx.deps.vector_store,
                 config=ctx.deps.config
         ))
-        ctx.state.retrieved_context = search_graph_result.search_results
+        ctx.state.retrieved_context = search_graph_result.output.search_results
         return AnswerQuestionNode()
 
 
@@ -163,7 +160,7 @@ Important: Stay focused on answering the specific question asked.
         try:
             result = await answer_agent.run(prompt)
             return End(ChatResult(
-                answer=result.data,
+                answer=result.output,
                 retrieved_context=context,
             ))
         except Exception as e:
@@ -191,7 +188,7 @@ async def process_chat(
     deps = ChatGraphDeps(vector_store=vector_store, config=config)
     
     try:
-        result, _history = await chat_graph.run(
+        result = await chat_graph.run(
             RetrievalNode(),
             state=state,
             deps=deps
@@ -219,7 +216,6 @@ async def stream_chat_progress(
     deps = ChatGraphDeps(vector_store=vector_store, config=config)
     
     start_node = RetrievalNode()
-    history: list[HistoryStep[ChatGraphState, ChatResult]] = []
 
     try:
         # Initial status
@@ -229,41 +225,31 @@ async def stream_chat_progress(
             progress_message=f"Processing question: {question}"
         )
 
-        with logfire.span(
-            '{graph_name} run {start=}',
-            graph_name='RAG_chat_graph',
-            start=start_node,
-        ) as run_span:
-            current_node = start_node
+        graph_run_cm =  chat_graph.iter(start_node, state=state, deps=deps, infer_name=False) 
+
+        # we have to manually enter the context manager since this function itself is a AsyncGenerator
+        graph_run = await graph_run_cm.__aenter__()
+        next_node = graph_run.next_node
+
+        while True:
+            # Yield current node's status before processing
+            yield StreamingChatResult.from_node(next_node, state)
             
-            while True:
-                # Yield current node's status before processing
-                yield StreamingChatResult.from_node(current_node, state)
-                
-                try:
-                    # Process the current node
-                    next_node = await chat_graph.next(current_node, history, state=state, deps=deps, infer_name=False)
-                    
-                    if isinstance(next_node, End):
-                        result: ChatResult = next_node.data
-                        history.append(EndStep(result=next_node))
-                        run_span.set_attribute('history', history)
-                        # Yield final result
-                        yield StreamingChatResult.complete(result)
-                        return
-                    elif isinstance(next_node, BaseNode):
-                        current_node = next_node
-                    else:
-                        raise ValueError(f"Invalid node type: {type(next_node)}")
-                        
-                except Exception as node_error:
-                    LOG.error(f"Error in node {current_node.__class__.__name__}: {node_error}")
-                    yield StreamingChatResult.error(str(node_error))
-                    return
+            # Process the current node
+            next_node = await graph_run.next(next_node)
+            
+            if isinstance(next_node, End):
+                result: ChatResult = next_node.data
+                # Yield final result and break
+                yield StreamingChatResult.complete(result)
+                break
+            elif not isinstance(next_node, BaseNode):
+                # If the next node is not a valid BaseNode, raise an error
+                raise TypeError(f"Invalid node type: {type(next_node)}")
                     
     except Exception as e:
         LOG.error(f"Error in stream_chat_progress: {e}")
         yield StreamingChatResult.error(str(e))
+    finally:
+        await graph_run_cm.__aexit__(None, None, None)
         return
-
-    

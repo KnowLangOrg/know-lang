@@ -13,5 +13,12 @@ def create_pydantic_model(
     elif model_provider == ModelProvider.TESTING:
         # should be used for testing purposes only
         pass
+    elif model_provider == ModelProvider.OLLAMA:
+        from pydantic_ai.models.openai import OpenAIModel
+        from pydantic_ai.providers.openai import OpenAIProvider
+        return OpenAIModel(
+            model_name=model_name,
+            provider=OpenAIProvider(base_url="http://localhost:11434/v1"),
+        )
     else:
         raise NotImplementedError(f"Model {model_provider}:{model_name} is not supported")
