@@ -1,6 +1,4 @@
 """MCP serve command for Knowlang CLI."""
-
-import asyncio
 from knowlang.cli.types import MCPServeCommandArgs
 from knowlang.cli.utils import create_config
 from knowlang.mcp.server import KnowlangMCPServer
