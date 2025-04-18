@@ -5,10 +5,7 @@ This module provides an MCP tool that exposes Knowlang's vector
 search capabilities through the Model Context Protocol.
 """
 
-import asyncio
 from typing import Dict, List, Optional, Any, Tuple
-
-import mcp
 from pydantic import BaseModel, Field
 
 from knowlang.search.query import VectorQuery
@@ -50,7 +47,6 @@ class VectorSearchResponse(BaseModel):
     refined_query: Optional[str] = Field(description="The refined query used for search")
     total_results: int = Field(description="Total number of results found")
 
-@mcp.tool()
 class VectorSearchTool:
     """MCP tool for vector-based search in Knowlang."""
     

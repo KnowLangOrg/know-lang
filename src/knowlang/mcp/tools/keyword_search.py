@@ -50,7 +50,6 @@ class KeywordSearchResponse(BaseModel):
     refined_query: Optional[str] = Field(description="The refined query used for search")
     total_results: int = Field(description="Total number of results found")
 
-@mcp.tool()
 class KeywordSearchTool:
     """MCP tool for keyword-based search in Knowlang."""
     
@@ -103,10 +102,10 @@ class KeywordSearchTool:
     async def _setup_search(self, request: KeywordSearchRequest) -> Tuple[SearchState, SearchDeps]:
         """Set up search state and dependencies."""
         # Import here to avoid circular dependencies
-        from knowlang.core import get_current_app
+        from knowlang.configs.config import AppConfig
         
         # Get the app and config
-        app = get_current_app()
+        app = AppConfig()
         config = app.config
         
         # Create search state

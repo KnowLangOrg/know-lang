@@ -23,16 +23,17 @@ pip install mcp-python>=1.2.0
 
 ### Starting the MCP Server
 
-You can start the MCP server using the CLI:
+You can start the MCP server using the Knowlang CLI:
 
 ```bash
-python -m knowlang.mcp.cli
+knowlang mcp serve
 ```
 
 By default, the server listens on `localhost:7773`. You can customize this with arguments:
 
 ```bash
-python -m knowlang.mcp.cli --host 0.0.0.0 --port 8080 --name my-knowlang-server
+knowlang mcp serve --host 0.0.0.0 --port 8080 --name my-knowlang-server
+```
 ```
 
 ### Using with Claude for Desktop
@@ -76,7 +77,7 @@ mcp:
 
 If you encounter issues:
 
-1. Check that the MCP server is running (`python -m knowlang.mcp.cli --debug`)
+1. Check that the MCP server is running (`knowlang mcp serve --verbose`)
 2. Verify that the configuration in Claude for Desktop is correct
 3. Make sure the `mcp-python` package is installed (version 1.2.0 or higher)
 4. Look for error messages in the server logs

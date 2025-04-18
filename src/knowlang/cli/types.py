@@ -1,7 +1,7 @@
 """Type definitions for CLI arguments."""
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union
 
 from knowlang.evaluations.types import DatasetType
 
@@ -65,3 +65,12 @@ class RunEvaluationCommandArgs(BaseCommandArgs):
     grid_search: bool = False
     generate_reranking_data: bool = False
     list_configurations: bool = False
+
+@dataclass
+class MCPServeCommandArgs(BaseCommandArgs):
+    """Arguments for the MCP serve command."""
+    command: Literal["mcp"]
+    subcommand: Literal["serve"] = "serve"
+    host: str = "localhost"
+    port: int = 7773
+    name: str = "knowlang-search"
