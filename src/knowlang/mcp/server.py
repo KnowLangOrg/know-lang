@@ -63,12 +63,7 @@ class KnowlangMCPServer:
     async def start(self):
         """Start the MCP server."""
         try:
-            await self.mcp_server.run()
-            LOG.info(f"MCP server started on {self.host}:{self.port}")
-            
-            # Keep server running
-            while True:
-                await asyncio.sleep(1)
+            await self.mcp_server.run_stdio_async()
                 
         except Exception as e:
             LOG.error(f"Error starting MCP server: {e}")

@@ -42,12 +42,6 @@ async def mcp_serve_command(args: MCPServeCommandArgs) -> None:
     try:
         # Start the server
         await server.start()
-    except KeyboardInterrupt:
-        LOG.info("Server shutdown requested")
     except Exception as e:
         LOG.error(f"Server error: {e}")
         raise
-    finally:
-        # Make sure to stop the server
-        if server:
-            await server.stop()
