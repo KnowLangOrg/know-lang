@@ -33,6 +33,7 @@ async def mcp_serve_command(args: MCPServeCommandArgs) -> None:
     
     # Create and start the server
     server = KnowlangMCPServer(
+        config=config,
         host=args.host,
         port=args.port,
         server_name=args.name

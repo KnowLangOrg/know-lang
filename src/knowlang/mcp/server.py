@@ -1,6 +1,7 @@
 import asyncio
 from mcp.server.fastmcp import FastMCP
 
+from knowlang.configs.config import AppConfig
 from knowlang.mcp.tools.keyword_search import KeywordSearchTool
 from knowlang.mcp.tools.vector_search import VectorSearchTool
 from knowlang.utils import FancyLogger
@@ -15,9 +16,11 @@ class KnowlangMCPServer:
     """
     
     def __init__(self, 
-                 host: str = "localhost", 
-                 port: int = 7773,
-                 server_name: str = "knowlang-search"):
+        config: AppConfig,
+        host: str = "localhost", 
+        port: int = 7773,
+        server_name: str = "knowlang-search"
+    ):
         """Initialize the MCP server.
         
         Args:
@@ -29,6 +32,7 @@ class KnowlangMCPServer:
         self.port = port
         self.server_name = server_name
         self.mcp_server = FastMCP(server_name)
+        self.config = config
         
         # Register tools
         self._register_tools()
@@ -37,11 +41,22 @@ class KnowlangMCPServer:
     
     def _register_tools(self):
         """Register all MCP tools with the server."""
+
         # Keyword search tool
-        self.mcp_server.add_tool(KeywordSearchTool())
+        KeywordSearchTool.initialize(self.config)
+        self.mcp_server.add_tool(
+            KeywordSearchTool.run,
+            name= KeywordSearchTool.name,
+            description=KeywordSearchTool.description,
+        )
         
         # Vector search tool
-        self.mcp_server.add_tool(VectorSearchTool())
+        VectorSearchTool.initialize(self.config)
+        self.mcp_server.add_tool(
+            VectorSearchTool.run,
+            name=VectorSearchTool.name,
+            description=VectorSearchTool.description
+        )
         
         LOG.info("Registered all MCP tools")
     
