@@ -27,14 +27,13 @@ By default, the server listens on `localhost:7773`. You can customize this with 
 ```bash
 knowlang mcp serve --host 0.0.0.0 --port 8080 --name my-knowlang-server
 ```
-```
 
 ### Using with Claude for Desktop
 
 To use the MCP server with Claude for Desktop:
 
 1. Make sure you have Claude for Desktop installed and updated to the latest version
-2. Copy the `claude_desktop_config.json` file to your Claude Desktop configuration directory:
+2. Copy the content in `claude_desktop_config.json` file to your Claude Desktop configuration and update the path to the knowlang directory as needed:
    - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
    - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
    - Linux: `~/.config/Claude/claude_desktop_config.json`
@@ -43,9 +42,8 @@ To use the MCP server with Claude for Desktop:
    STDIO_ENABLED=False
    ```
    This is required because Claude Desktop only accepts stdio MCP servers, and the stdio MCP server should not emit messages other than MCP communication.
-4. Start the MCP server using the CLI
-5. Restart Claude for Desktop
-6. Look for the hammer icon in Claude for Desktop to confirm the tools are available
+4. Restart Claude for Desktop
+5. Look for the hammer icon in Claude for Desktop to confirm the tools are available
 
 ### Example Queries
 
