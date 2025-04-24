@@ -45,6 +45,10 @@ To use the MCP server with Claude for Desktop:
 4. Restart Claude for Desktop
 5. Look for the hammer icon in Claude for Desktop to confirm the tools are available
 
+![KnowLang Tools in Claude Desktop](knowlang_tools.png)
+
+The image above shows how KnowLang tools appear in Claude Desktop once properly configured.
+
 ### Example Queries
 
 Here are some example queries you can try with Claude once the MCP server is connected:
