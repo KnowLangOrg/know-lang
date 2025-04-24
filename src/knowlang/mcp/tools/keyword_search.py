@@ -13,7 +13,7 @@ LOG = FancyLogger(__name__)
 
 class KeywordSearchTool(KnowLangTool, metaclass=Singleton):
     """ Search code snippets through string keywords"""
-    name: str = "keyword search codebase"
+    name: str = "keyword_search_codebase"
     description = "Search code snippets through string keywords"
     config : AppConfig = None
     vector_store: VectorStore = None

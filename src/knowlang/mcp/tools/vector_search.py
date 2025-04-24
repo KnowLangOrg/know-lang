@@ -13,7 +13,7 @@ LOG = FancyLogger(__name__)
 
 class VectorSearchTool(KnowLangTool, metaclass=Singleton):
     """MCP tool for vector-based search in Knowlang."""
-    name: str = "vector search codebase"
+    name: str = "vector_search_codebase"
     description = "Search code snippets through vector embeddings"
     config : AppConfig = None
     vector_store: VectorStore = None
