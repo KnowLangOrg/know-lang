@@ -31,7 +31,7 @@ class KnowlangMCPServer:
         self.host = host
         self.port = port
         self.server_name = server_name
-        self.mcp_server = FastMCP(server_name)
+        self.mcp_server = FastMCP(server_name, host=host, port=port)
         self.config = config
         
         # Register tools

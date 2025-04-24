@@ -1,11 +1,8 @@
 from typing import Dict, List, Any
 from knowlang.configs.config import AppConfig
-from knowlang.search.base import SearchMethodology, SearchResult
-from knowlang.search.query import KeywordQuery, SearchQuery
-from knowlang.configs.retrieval_config import SearchConfig
-from knowlang.search.search_graph.keyword_search_agent_node import KeywordSearchAgentNode
+from knowlang.search.base import SearchMethodology
+from knowlang.search.query import KeywordQuery
 from knowlang.utils import FancyLogger
-from mcp import Tool
 from knowlang.mcp.common import KnowLangTool, Singleton
 from knowlang.vector_stores.base import VectorStore
 
@@ -32,13 +29,13 @@ class KeywordSearchTool(KnowLangTool, metaclass=Singleton):
     @classmethod
     async def run(cls, query: str) -> List[Dict[str, Any]]:
         instance = KeywordSearchTool()
-        vector_query = KeywordQuery(
+        keyword_query = KeywordQuery(
             text=query,
             top_k=instance.config.retrieval.vector_search.top_k,
         )
 
         results = await instance.vector_store.search(
-            query=vector_query,
+            query=keyword_query,
             strategy_name=SearchMethodology.KEYWORD,
         )
 

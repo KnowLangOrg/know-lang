@@ -1,10 +1,9 @@
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 
 from knowlang.mcp.common import KnowLangTool, Singleton
 from knowlang.models.types import EmbeddingInputType
-from knowlang.search.base import SearchMethodology, SearchResult
-from knowlang.search.query import VectorQuery, SearchQuery
-from knowlang.configs.retrieval_config import SearchConfig
+from knowlang.search.base import SearchMethodology
+from knowlang.search.query import VectorQuery
 from knowlang.configs.config import AppConfig
 from knowlang.utils import FancyLogger
 from knowlang.vector_stores.base import VectorStore
@@ -31,17 +30,19 @@ class VectorSearchTool(KnowLangTool, metaclass=Singleton):
 
 
     @classmethod
-    async def run(self, query: str) -> List[Dict[str, Any]]:
+    async def run(cls, query: str) -> List[Dict[str, Any]]:
+        instance = VectorSearchTool()
+
         from knowlang.models.embeddings import generate_embedding
 
-        embedding = await generate_embedding(query, self.config.embedding, EmbeddingInputType.QUERY)
+        embedding = generate_embedding(query, instance.config.embedding, EmbeddingInputType.QUERY)
 
         vector_query = VectorQuery(
             embedding=embedding,
-            top_k=self.config.retrieval.vector_search.top_k,
+            top_k=instance.config.retrieval.vector_search.top_k,
         )
 
-        results = await self.vector_store.search(
+        results = await instance.vector_store.search(
             query=vector_query,
             strategy_name=SearchMethodology.VECTOR,
         )
