@@ -11,13 +11,6 @@ The Model Context Protocol (MCP) standardizes how applications provide context t
 - **Keyword Search Tool**: Performs keyword-based search on your knowledge base
 - **Vector Search Tool**: Performs semantic search using vector embeddings
 
-## Installation
-
-The MCP server is included as part of the Knowlang package. Make sure you have the `mcp-python` package installed:
-
-```bash
-pip install mcp-python>=1.2.0
-```
 
 ## Usage
 
@@ -45,9 +38,14 @@ To use the MCP server with Claude for Desktop:
    - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
    - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
    - Linux: `~/.config/Claude/claude_desktop_config.json`
-3. Start the MCP server using the CLI
-4. Restart Claude for Desktop
-5. Look for the hammer icon in Claude for Desktop to confirm the tools are available
+3. **Important**: Ensure the following is set in your knowlang installation's `settings/.env.logging` file:
+   ```
+   STDIO_ENABLED=False
+   ```
+   This is required because Claude Desktop only accepts stdio MCP servers, and the stdio MCP server should not emit messages other than MCP communication.
+4. Start the MCP server using the CLI
+5. Restart Claude for Desktop
+6. Look for the hammer icon in Claude for Desktop to confirm the tools are available
 
 ### Example Queries
 
@@ -56,31 +54,6 @@ Here are some example queries you can try with Claude once the MCP server is con
 - "Search for information about keyword search in the codebase"
 - "Find code related to vector embeddings"
 - "What's the implementation of search results ranking?"
-
-## Advanced Configuration
-
-You can customize the MCP server behavior by modifying the configuration in your Knowlang config file:
-
-```yaml
-mcp:
-  host: localhost
-  port: 7773
-  server_name: knowlang-search
-  
-  # Search tool settings
-  search:
-    max_results: 10
-    score_threshold: 0.5
-```
-
-## Troubleshooting
-
-If you encounter issues:
-
-1. Check that the MCP server is running (`knowlang mcp serve --verbose`)
-2. Verify that the configuration in Claude for Desktop is correct
-3. Make sure the `mcp-python` package is installed (version 1.2.0 or higher)
-4. Look for error messages in the server logs
 
 ## Development
 
