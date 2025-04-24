@@ -11,12 +11,14 @@ from knowlang.cli.commands.evaluations.run_evaluation import \
     run_evaluation_command
 from knowlang.cli.commands.parse import parse_command
 from knowlang.cli.commands.serve import serve_command
+from knowlang.cli.commands.mcp.serve import mcp_serve_command
 from knowlang.cli.types import (BaseCommandArgs, ChatCommandArgs,
-                                ParseCommandArgs, PrepareDatasetCommandArgs,
-                                RunEvaluationCommandArgs, ServeCommandArgs)
+                                MCPServeCommandArgs, ParseCommandArgs, 
+                                PrepareDatasetCommandArgs, RunEvaluationCommandArgs, 
+                                ServeCommandArgs)
 
 
-def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommandArgs, ChatCommandArgs, ServeCommandArgs]:
+def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommandArgs, ChatCommandArgs, ServeCommandArgs, MCPServeCommandArgs, PrepareDatasetCommandArgs, RunEvaluationCommandArgs]:
     """Convert parsed namespace to typed arguments."""
     base_args = {
         "verbose": parsed_namespace.verbose,
@@ -84,6 +86,18 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
             )
         else:
             raise ValueError(f"Unknown subcommand for evaluate: {parsed_namespace.subcommand}")
+    elif parsed_namespace.command == "mcp":
+        if parsed_namespace.subcommand == "serve":
+            command_func = mcp_serve_command
+            args = MCPServeCommandArgs(
+                **base_args,
+                subcommand=parsed_namespace.subcommand,
+                host=parsed_namespace.host,
+                port=parsed_namespace.port,
+                name=parsed_namespace.name
+            )
+        else:
+            raise ValueError(f"Unknown subcommand for mcp: {parsed_namespace.subcommand}")
     else:
         raise ValueError(f"Unknown command: {parsed_namespace.command}")
         
@@ -316,6 +330,45 @@ def _create_evaluate_parser(subparsers):
     
     return evaluate_parser
 
+def _create_mcp_parser(subparsers):
+    """Create the parser for the 'mcp' command and its subcommands."""
+    mcp_parser = subparsers.add_parser(
+        "mcp",
+        help="Model Context Protocol (MCP) tools"
+    )
+    mcp_subparsers = mcp_parser.add_subparsers(
+        title="subcommands",
+        description="MCP subcommands",
+        dest="subcommand",
+        required=True
+    )
+    
+    # Create MCP serve subcommand
+    serve_parser = mcp_subparsers.add_parser(
+        "serve",
+        help="Start the MCP server for Knowlang search capabilities"
+    )
+    serve_parser.add_argument(
+        "--host",
+        type=str,
+        default="localhost",
+        help="Host to bind the server to (default: localhost)"
+    )
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        default=7773,
+        help="Port to run the server on (default: 7773)"
+    )
+    serve_parser.add_argument(
+        "--name",
+        type=str,
+        default="knowlang-search",
+        help="Name of the MCP server (default: knowlang-search)"
+    )
+    
+    return mcp_parser
+
 def create_parser() -> argparse.ArgumentParser:
     """Create the main argument parser."""
     parser = argparse.ArgumentParser(
@@ -350,11 +403,13 @@ def create_parser() -> argparse.ArgumentParser:
     _create_chat_parser(subparsers)
     _create_serve_parser(subparsers)
     _create_evaluate_parser(subparsers)
+    _create_mcp_parser(subparsers)
     
     return parser
 
 def parse_args(args: Optional[Sequence[str]] = None) -> Union[
-    ParseCommandArgs, BaseCommandArgs, ServeCommandArgs, PrepareDatasetCommandArgs
+    ParseCommandArgs, BaseCommandArgs, ServeCommandArgs, PrepareDatasetCommandArgs,
+    RunEvaluationCommandArgs, MCPServeCommandArgs
 ]:
     """Parse command line arguments into typed objects."""
     parser = create_parser()

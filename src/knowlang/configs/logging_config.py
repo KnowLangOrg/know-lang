@@ -25,6 +25,10 @@ class LoggingConfig(BaseSettings):
         default=Path("logs/knowlang.log"),
         description="Path to log file"
     )
+    stdio_enabled: bool = Field(
+        default=True,
+        description="Whether to output logs to standard output/error"
+    )
     show_path: bool = Field(
         default=True, 
         description="Show file path in Rich logs"

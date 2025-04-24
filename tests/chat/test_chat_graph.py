@@ -1,6 +1,4 @@
-# test_chat_graph.py
 from unittest.mock import AsyncMock, Mock, patch
-
 import pytest
 from pydantic_graph import End, GraphRunContext
 
@@ -14,7 +12,6 @@ from knowlang.chat_bot.chat_graph import (
     RetrievalNode,
     stream_chat_progress
 )
-from knowlang.search.search_graph.keyword_search_agent_node import KeywordSearchAgentNode
 
 
 @pytest.mark.asyncio

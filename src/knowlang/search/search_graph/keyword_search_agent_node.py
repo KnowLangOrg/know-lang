@@ -124,7 +124,7 @@ Please generate a more permissive query with fewer terms or using more OR logic.
             # Use keyword search
             results = await vector_store.search(
                 query=keyword_query,
-                strategy_name="keyword_search"
+                strategy_name=SearchMethodology.KEYWORD.value,
             )
             
             logfire.info('keyword search results: {query} -> {count} results', 

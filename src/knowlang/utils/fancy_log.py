@@ -23,6 +23,7 @@ class JsonFormatter(logging.Formatter):
 class FancyLogger(logging.Logger):
     """
     Enhanced logger using Rich for beautiful console output with optional file logging.
+    Supports disabling stdout/stderr output for clean programs like MCP servers.
     """
     FORMAT = "%(message)s"
     JSON_FORMAT = '{"time": "%(asctime)s", "name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
@@ -38,19 +39,20 @@ class FancyLogger(logging.Logger):
             
         logging.Logger.__init__(self, name, config.level)
         
-        # Configure console logging with Rich
-        console = Console()
-        rich_handler = RichHandler(
-            console=console,
-            show_time=True,
-            show_path=config.show_path,
-            markup=False,
-            rich_tracebacks=config.rich_tracebacks,
-            tracebacks_show_locals=config.tracebacks_show_locals
-        )
-        rich_handler.setLevel(logging._nameToLevel[config.level])
-        rich_handler.setFormatter(logging.Formatter(self.FORMAT))
-        self.addHandler(rich_handler)
+        # Configure console logging with Rich if stdio_enabled is True
+        if config.stdio_enabled:
+            console = Console()
+            rich_handler = RichHandler(
+                console=console,
+                show_time=True,
+                show_path=config.show_path,
+                markup=False,
+                rich_tracebacks=config.rich_tracebacks,
+                tracebacks_show_locals=config.tracebacks_show_locals
+            )
+            rich_handler.setLevel(logging._nameToLevel[config.level])
+            rich_handler.setFormatter(logging.Formatter(self.FORMAT))
+            self.addHandler(rich_handler)
         
         # Configure file logging if enabled
         if config.file_enabled:

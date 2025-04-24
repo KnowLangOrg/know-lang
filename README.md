@@ -221,8 +221,25 @@ The RAG system uses a sophisticated multi-stage retrieval process:
 
 > ⚠️ Warning: the reranker is not yet fully implemented, hence reranking stage is disabled by default.
 
+## MCP Integration
+
+KnowLang supports the Model Context Protocol (MCP), which enables language models like Claude to directly access your codebase knowledge. This allows for more interactive and context-aware conversations about your code.
+
+### What is MCP?
+
+MCP (Model Context Protocol) is an open protocol that standardizes how applications provide context to LLMs. Think of it like a USB-C port for AI applications - it provides a standardized way to connect AI models to different data sources and tools.
+
+### Using MCP with KnowLang
+
+With MCP integration, you can connect KnowLang's search capabilities directly to Claude Desktop or other MCP-compatible applications.
+
+For detailed instructions on setting up and using MCP with KnowLang, refer to the MCP README file in the source directory:
+```
+src/knowlang/mcp/README.md
+```
+
 ## Roadmap
-- [ ] MCP support for LLM contexts
+- [x] MCP support for LLM contexts
 - [ ] Additional language support (Java, Ruby, Go, etc.)
 - [ ] Inter-repository semantic search
 - [ ] Automatic documentation maintenance

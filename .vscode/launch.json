@@ -23,6 +23,18 @@
       ]
     },
     {
+      "name": "MCP Know Lang",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "knowlang.cli",
+      "args": [
+        "--v",
+        "mcp",
+        "serve"
+      ],
+      "justMyCode": false
+    },
+    {
       "name": "Know Lang Evaluation Preparation",
       "type": "debugpy",
       "request": "launch",
