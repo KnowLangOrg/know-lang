@@ -8,7 +8,13 @@ def create_pydantic_model(
 ) -> Model | KnownModelName:
     model_str = f"{model_provider}:{model_name}"
 
-    if model_str in get_args(KnownModelName):
+    known_model_names = get_args(KnownModelName.__value__)
+
+    # raise error if the KnownModelName implementation in pydantic_ai has changed
+    if not known_model_names:
+        raise ValueError("KnownModelName has no known model names")
+    
+    if model_str in known_model_names:
         return model_str
     elif model_provider == ModelProvider.TESTING:
         # should be used for testing purposes only
