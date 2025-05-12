@@ -1,12 +1,16 @@
-import asyncio
-from mcp.server.fastmcp import FastMCP
-
 from knowlang.configs.config import AppConfig
 from knowlang.mcp.tools.keyword_search import KeywordSearchTool
 from knowlang.mcp.tools.vector_search import VectorSearchTool
 from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
+
+try:
+    from mcp.server.fastmcp import FastMCP
+except ImportError as e:
+    raise ImportError(
+        "MCP server is not installed. Please install it using `pip install 'knowlang[mcp]'`."
+    ) from e
 
 class KnowlangMCPServer:
     """MCP Server for Knowlang.

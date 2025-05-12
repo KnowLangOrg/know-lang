@@ -1,4 +1,4 @@
-# KnowLang: Comprehensive Understanding for Complex Codebase
+# KnowLang: Comprehensive Understanding for Complex Codebases
 
 KnowLang is an advanced codebase exploration tool that helps software engineers better understand complex codebases through semantic search and intelligent Q&A capabilities. Our first release focuses on providing RAG-powered search and Q&A for popular open-source libraries, with Hugging Face's repositories as our initial targets.
 
@@ -77,7 +77,14 @@ You should see the pgvector container running on port 5432.
 You can install KnowLang via pip:
 
 ```bash
+# Basic installation with core functionality
 pip install knowlang
+
+# Full installation with all features
+pip install "knowlang[all]"
+
+# Install with specific optional components
+pip install "knowlang[gradio,pytorch,cpp]"
 ```
 
 Alternatively, you can clone the repository and install it in editable mode:
@@ -85,17 +92,28 @@ Alternatively, you can clone the repository and install it in editable mode:
 ```bash
 git clone https://github.com/KnowLangOrg/know-lang.git
 cd know-lang
-pip install -e .
 
-# if using Poetry
-poetry install
-poetry env activate
-# poetry will output
-# source path/activate <- run this command
-source path_provided_by_poetry/activate
+# Install dependencies using uv
+pip install uv
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv pip install -e ".[all]"
 ```
 
-This allows you to make changes to the source code and have them immediately reflected without reinstalling the package.
+### Optional Components
+
+KnowLang uses a modular architecture with optional dependencies to keep the core package lightweight. Here are the available optional components:
+
+- **gradio**: Web-based UI for the chat interface
+- **vecs**: PostgreSQL pgvector integration for vector storage
+- **voyage**: VoyageAI embedding models 
+- **mixpanel**: Analytics and usage tracking
+- **cpp**: C++ language support
+- **typescript**: TypeScript language support
+- **pytorch**: Enhanced ML capabilities including reranking models
+- **mcp**: Model Context Protocol integration
+- **evaluations**: Tools for evaluating search quality
+- **all**: All optional components
 
 ### Basic Usage
 

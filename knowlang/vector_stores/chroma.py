@@ -6,13 +6,18 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from chromadb.config import Settings
 
-import chromadb
 from knowlang.configs import AppConfig
 from knowlang.core.types import VectorStoreProvider
 from knowlang.vector_stores.base import (SearchResult, VectorStore,
                                          VectorStoreInitError)
 from knowlang.vector_stores.factory import register_vector_store
 
+try:
+    import chromadb
+except ImportError as e:
+    raise ImportError(
+        'ChromaDB is not installed. Please install it using `pip install "knowlang[chroma]"`.'
+    ) from e
 
 @register_vector_store(VectorStoreProvider.CHROMA)
 class ChromaVectorStore(VectorStore):

@@ -43,7 +43,13 @@ def _process_graph_code_bert_batch(
 
 @register_provider(ModelProvider.OLLAMA)
 def _process_ollama_batch(inputs: List[str], model_name: str, _: Optional[EmbeddingInputType] = None) -> List[EmbeddingVector]:
-    import ollama
+    try:
+        import ollama
+    except ImportError as e:
+        raise ImportError(
+            'Ollama is not installed. Please install it using `pip install "knowlang[ollama]"`.'
+        ) from e
+
     return ollama.embed(model=model_name, input=inputs)['embeddings']
 
 @register_provider(ModelProvider.OPENAI)
@@ -54,7 +60,12 @@ def _process_openai_batch(inputs: List[str], model_name: str, _: Optional[Embedd
 
 @register_provider(ModelProvider.VOYAGE)
 def _process_voyage_batch(inputs: List[str], model_name: str, input_type: Optional[EmbeddingInputType]) -> List[EmbeddingVector]:
-    import voyageai
+    try:
+        import voyageai
+    except ImportError as e:
+        raise ImportError(
+            'VoyageAI is not installed. Please install it using `pip install "knowlang[voyage]"`.'
+        ) from e
     client = voyageai.Client()
     embeddings_obj = client.embed(model=model_name, texts=inputs, input_type=input_type.value)
     return embeddings_obj.embeddings

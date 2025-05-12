@@ -20,7 +20,12 @@ def generate_embeddings(inputs: List[str], model_name: str, input_type: Optional
     Returns:
         List of embedding vectors
     """
-    from sentence_transformers import SentenceTransformer
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError as e:
+        raise ImportError(
+            'SentenceTransformers is not installed. Please install it using `pip install "knowlang[nomic-ai]"`.'
+        ) from e
     
     # Get or create SentenceTransformer model
     if model_name not in _NOMIC_CACHE:
