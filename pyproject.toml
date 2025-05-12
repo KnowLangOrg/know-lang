@@ -49,8 +49,6 @@ dependencies = [
     "gitpython>=3.1.44,<4.0.0",
     "tree-sitter>=0.24.0,<0.25.0",
     "pydantic-settings>=2.7.1,<3.0.0",
-    "chromadb>=0.6.3,<0.7.0",
-    "ollama>=0.4.7,<0.5.0",
     "fastapi>=0.115.8,<0.116.0",
     "sse-starlette>=2.2.1,<3.0.0",
     "sqlalchemy>=2.0.38,<3.0.0",
@@ -61,16 +59,18 @@ dependencies = [
 gradio = ["gradio>=5.13.1,<6.0.0"]
 # Databases
 vecs = ["vecs>=0.4.5,<0.5.0"]
-# Embedding Models
+chromadb = ["chromadb>=0.6.3,<0.7.0"]
+ollama = ["ollama>=0.4.7,<0.5.0"]
+# Model Providers
 voyage = ["voyageai>=0.3.2,<0.4.0"]
+pytorch = ["torch>=2.6.0,<3.0.0", "transformers>=4.49.0,<5.0.0"]
+nomic-ai = ["einops>=0.8.1,<0.9.0", "sentence-transformers>=4.0.1,<5.0.0"]
 # Analytics
 mixpanel = ["mixpanel>=4.10.1,<5.0.0"]
 # Additional languages
 python = ["tree-sitter-python>=0.23.6,<0.24.0"]
 cpp = ["tree-sitter-cpp>=0.23.4,<0.24.0"]
 typescript = ["tree-sitter-typescript>=0.23.2,<0.24.0"]
-# ML Components
-pytorch = ["torch>=2.6.0,<3.0.0", "transformers>=4.49.0,<5.0.0", "einops>=0.8.1,<0.9.0", "sentence-transformers>=4.0.1,<5.0.0"]
 # MCP Integration
 mcp = ["mcp[cli]>=1.6.0,<2.0.0"]
 # Evaluations
@@ -78,12 +78,14 @@ evaluations = ["matplotlib>=3.10.0", "seaborn>=0.13.2"]
 # All
 all = [
     "gradio>=5.13.1,<6.0.0",
+    "chromadb>=0.6.3,<0.7.0",
     "vecs>=0.4.5,<0.5.0",
     "voyageai>=0.3.2,<0.4.0",
     "mixpanel>=4.10.1,<5.0.0",
     "tree-sitter-python>=0.23.6,<0.24.0",
     "tree-sitter-cpp>=0.23.4,<0.24.0",
     "tree-sitter-typescript>=0.23.2,<0.24.0",
+    "ollama>=0.4.7,<0.5.0",
     "torch>=2.6.0,<3.0.0",
     "transformers>=4.49.0,<5.0.0",
     "einops>=0.8.1,<0.9.0", 
