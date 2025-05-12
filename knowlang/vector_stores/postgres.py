@@ -1,8 +1,5 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List, Literal, Optional
-
-import vecs
 from vecs.collection import Record
 
 from knowlang.configs import AppConfig
@@ -10,6 +7,13 @@ from knowlang.utils import FancyLogger
 from knowlang.vector_stores.base import (SearchResult, VectorStore,
                                          VectorStoreError,
                                          VectorStoreInitError)
+                                        
+try:
+    import vecs
+except ImportError as e:
+    raise ImportError(
+        'Postgres vector store is not installed. Please install it using `pip install "knowlang[vecs]"`.'
+    ) from e
 
 LOG = FancyLogger(__name__)
 

@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Protocol
-from mixpanel import Mixpanel
 from knowlang.configs.chat_config import ChatbotAnalyticsConfig, AnalyticsProvider
 
 class ChatFeedback(Enum):
@@ -21,6 +20,12 @@ class NoopAnalyticsProvider:
 class MixpanelProvider:
     """Concrete implementation for Mixpanel"""
     def __init__(self, api_key: str):
+        try:
+            from mixpanel import Mixpanel
+        except ImportError as e:
+            raise ImportError(
+                "Mixpanel is not installed. Please install it using `pip install 'knowlang[mixpanel]'`."
+            ) from e
         self._mp = Mixpanel(api_key)
         
     def track_event(self, event_name: str, distinct_id: str, properties: dict) -> None:

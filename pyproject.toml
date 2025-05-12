@@ -73,8 +73,6 @@ cpp = ["tree-sitter-cpp>=0.23.4,<0.24.0"]
 typescript = ["tree-sitter-typescript>=0.23.2,<0.24.0"]
 # MCP Integration
 mcp = ["mcp[cli]>=1.6.0,<2.0.0"]
-# Evaluations
-evaluations = ["matplotlib>=3.10.0", "seaborn>=0.13.2"]
 # All
 all = [
     "gradio>=5.13.1,<6.0.0",
@@ -91,8 +89,6 @@ all = [
     "einops>=0.8.1,<0.9.0", 
     "sentence-transformers>=4.0.1,<5.0.0",
     "mcp[cli]>=1.6.0,<2.0.0",
-    "matplotlib>=3.10.0",
-    "seaborn>=0.13.2"
 ]
 # Dev dependencies
 dev = [

@@ -68,10 +68,6 @@ colorama==0.4.6
     # via griffe
 coloredlogs==15.0.1
     # via onnxruntime
-contourpy==1.3.2
-    # via matplotlib
-cycler==0.12.1
-    # via matplotlib
 deprecated==1.2.18
     # via
     #   opentelemetry-api
@@ -113,8 +109,6 @@ flatbuffers==25.2.10
     # via onnxruntime
 flupy==1.2.1
     # via vecs
-fonttools==4.58.0
-    # via matplotlib
 frozenlist==1.6.0
     # via
     #   aiohttp
@@ -214,8 +208,6 @@ jmespath==1.0.1
     #   botocore
 joblib==1.5.0
     # via scikit-learn
-kiwisolver==1.4.8
-    # via matplotlib
 kubernetes==32.0.1
     # via chromadb
 logfire==3.15.0
@@ -230,10 +222,6 @@ markupsafe==3.0.2
     # via
     #   gradio
     #   jinja2
-matplotlib==3.10.3
-    # via
-    #   knowlang (pyproject.toml)
-    #   seaborn
 mcp==1.8.0
     # via
     #   knowlang (pyproject.toml)
@@ -258,15 +246,12 @@ numpy==2.2.5
     # via
     #   chroma-hnswlib
     #   chromadb
-    #   contourpy
     #   gradio
-    #   matplotlib
     #   onnxruntime
     #   pandas
     #   pgvector
     #   scikit-learn
     #   scipy
-    #   seaborn
     #   transformers
     #   voyageai
 oauthlib==3.2.2
@@ -340,21 +325,17 @@ packaging==25.0
     #   gradio
     #   gradio-client
     #   huggingface-hub
-    #   matplotlib
     #   onnxruntime
     #   opentelemetry-instrumentation
     #   pytest
     #   transformers
 pandas==2.2.3
-    # via
-    #   gradio
-    #   seaborn
+    # via gradio
 pgvector==0.3.6
     # via vecs
 pillow==11.2.1
     # via
     #   gradio
-    #   matplotlib
     #   sentence-transformers
     #   voyageai
 pluggy==1.5.0
@@ -420,8 +401,6 @@ pydub==0.25.1
     # via gradio
 pygments==2.19.1
     # via rich
-pyparsing==3.2.3
-    # via matplotlib
 pypika==0.48.9
     # via chromadb
 pyproject-hooks==1.2.0
@@ -436,7 +415,6 @@ python-dateutil==2.9.0.post0
     # via
     #   botocore
     #   kubernetes
-    #   matplotlib
     #   mistralai
     #   pandas
     #   posthog
@@ -499,8 +477,6 @@ scipy==1.15.3
     # via
     #   scikit-learn
     #   sentence-transformers
-seaborn==0.13.2
-    # via knowlang (pyproject.toml)
 semantic-version==2.10.0
     # via gradio
 sentence-transformers==4.1.0
