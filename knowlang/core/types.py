@@ -93,6 +93,11 @@ class VectorStoreProvider(str, Enum):
     TESTING = "testing"
     CUSTOM = "custom"
 
+class RerankerProvider(str, Enum):
+    """Supported reranker types"""
+    KNOWLANG = "knowlang_bert"
+    LLM_AGENT = "llm_agent"
+
 class StateStoreProvider(str, Enum):
     """Supported state store types"""
     SQLITE = "sqlite"

@@ -65,7 +65,7 @@ class RerankerNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
         
         try:
             # Import the reranker implementation
-            from knowlang.search.reranking import KnowLangReranker
+            from knowlang.search.reranker.knowlang_reranker import KnowLangReranker
             
             # Set up reranker
             reranker = KnowLangReranker(config=ctx.deps.config.reranker)

@@ -5,7 +5,7 @@ import torch
 from knowlang.configs import RerankerConfig
 from knowlang.core.types import ModelProvider
 from knowlang.search.base import SearchResult
-from knowlang.search.reranking import KnowLangReranker
+from knowlang.search.reranker.knowlang_reranker import KnowLangReranker
 
 
 @pytest.fixture
@@ -52,10 +52,10 @@ def sample_search_results():
     ]
 
 
-@patch("knowlang.search.reranking.AutoTokenizer")
-@patch("knowlang.search.reranking.CodeBERTReranker")
-@patch("knowlang.search.reranking.get_device", return_value="cpu")
-@patch("knowlang.search.reranking.RobertaConfig")
+@patch("knowlang.search.reranker.knowlang_reranker.AutoTokenizer")
+@patch("knowlang.search.reranker.knowlang_reranker.CodeBERTReranker")
+@patch("knowlang.search.reranker.knowlang_reranker.get_device", return_value="cpu")
+@patch("knowlang.search.reranker.knowlang_reranker.RobertaConfig")
 def test_rerank_successful(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test successful reranking of search results."""
     # Set up mock tokenizer
@@ -90,10 +90,10 @@ def test_rerank_successful(mock_roberta_config, mock_get_device, mock_code_bert_
         assert reranked_results[2].score == 0.65
 
 
-@patch("knowlang.search.reranking.AutoTokenizer")
-@patch("knowlang.search.reranking.CodeBERTReranker")
-@patch("knowlang.search.reranking.get_device", return_value="cpu")
-@patch("knowlang.search.reranking.RobertaConfig")
+@patch("knowlang.search.reranker.knowlang_reranker.AutoTokenizer")
+@patch("knowlang.search.reranker.knowlang_reranker.CodeBERTReranker")
+@patch("knowlang.search.reranker.knowlang_reranker.get_device", return_value="cpu")
+@patch("knowlang.search.reranker.knowlang_reranker.RobertaConfig")
 def test_reranker_threshold_filtering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test that reranker filters results below the relevance threshold."""
     # Set up mock tokenizer and model like in previous test
@@ -144,10 +144,10 @@ def test_reranker_disabled(reranker_config, sample_search_results):
 
 
 
-@patch("knowlang.search.reranking.AutoTokenizer")
-@patch("knowlang.search.reranking.CodeBERTReranker")
-@patch("knowlang.search.reranking.get_device", return_value="cpu")
-@patch("knowlang.search.reranking.RobertaConfig")
+@patch("knowlang.search.reranker.knowlang_reranker.AutoTokenizer")
+@patch("knowlang.search.reranker.knowlang_reranker.CodeBERTReranker")
+@patch("knowlang.search.reranker.knowlang_reranker.get_device", return_value="cpu")
+@patch("knowlang.search.reranker.knowlang_reranker.RobertaConfig")
 def test_reranker_result_ordering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test that results are properly ordered by score."""
     # Set up mock tokenizer
