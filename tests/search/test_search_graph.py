@@ -4,7 +4,7 @@ from pydantic_graph import GraphRunContext, End
 
 from knowlang.configs.config import AppConfig, LLMConfig, RerankerConfig
 from knowlang.configs.retrieval_config import MultiStageRetrievalConfig, SearchConfig
-from knowlang.core.types import ModelProvider
+from knowlang.core.types import ModelProvider, RerankerProvider
 from knowlang.search.base import SearchResult 
 from knowlang.search.search_graph.base import SearchState, SearchDeps, SearchOutputs
 from knowlang.search.search_graph.graph import FirstStageNode, RerankerNode, search_graph
@@ -33,7 +33,7 @@ def app_config():
         reranker=RerankerConfig(
             enabled=True,
             model_name="microsoft/graphcodebert-base",
-            model_provider=ModelProvider.GRAPH_CODE_BERT,
+            model_provider=RerankerProvider.KNOWLANG_BERT,
             top_k=3,
             relevance_threshold=0.5
         )
@@ -147,14 +147,14 @@ async def test_first_stage_node_exception(mock_graph_run, run_context):
 
 @pytest.mark.asyncio
 @pytest.mark.asyncio
-@patch("knowlang.search.reranker.knowlang_reranker.KnowLangReranker")
-async def test_reranker_node_success(mock_reranker_class, run_context, sample_search_results):
+@patch("knowlang.search.search_graph.graph.RerankerFactory")
+async def test_reranker_node_success(mock_reranker_factory, run_context, sample_search_results):
     """Test RerankerNode with successful reranking."""
     # Configure initial state
     run_context.state.search_results = sample_search_results
     
     # Configure mock reranker
-    mock_reranker_instance = mock_reranker_class.return_value
+    mock_reranker_instance = mock_reranker_factory.create.return_value
     reranked_results = [
         SearchResult(
             id="reranked1",

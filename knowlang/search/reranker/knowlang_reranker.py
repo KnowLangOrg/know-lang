@@ -3,15 +3,14 @@ from functools import lru_cache
 import os
 from typing import List, Any
 from knowlang.configs import RerankerConfig
-from knowlang.configs.config import AppConfig
 from knowlang.search.base import SearchResult
+from knowlang.search.reranker.base import BaseReranker
 
 
 from enum import Enum
 from typing import Dict, Optional, Union, Tuple
 import torch
 import torch.nn as nn
-from pydantic import BaseModel, Field
 from transformers import (
     RobertaConfig, RobertaModel, 
     RobertaForSequenceClassification, AutoTokenizer, 
@@ -88,7 +87,7 @@ def _get_tokenizer_and_model(
     return _RERANKER_CACHE[cache_key]
 
 
-class KnowLangReranker:
+class KnowLangReranker(BaseReranker):
     """Base class for KnowLang rerankers."""
     def __init__(self, config: RerankerConfig):
         """Initialize the reranker with a configuration."""

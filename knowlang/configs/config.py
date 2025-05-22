@@ -7,7 +7,7 @@ from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
 from knowlang.configs.llm_config import LLMConfig
-from knowlang.core.types import ModelProvider, VectorStoreProvider
+from knowlang.core.types import ModelProvider, VectorStoreProvider, RerankerProvider
 
 from .base import _validate_api_key, generate_model_config
 from .chat_config import ChatbotAnalyticsConfig, ChatConfig
@@ -160,8 +160,8 @@ class RerankerConfig(BaseSettings):
         description="Name of the reranker model to use"
     )
     model_provider: str = Field(
-        default=ModelProvider.GRAPH_CODE_BERT,
-        description="Model provider (anthropic, openai, ollama, etc)"
+        default=RerankerProvider.LLM_AGENT,
+        description="Reranker provider (anthropic, openai, ollama, etc)"
     )
     api_key: Optional[str] = Field(
         default=None,

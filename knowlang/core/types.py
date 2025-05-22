@@ -95,7 +95,7 @@ class VectorStoreProvider(str, Enum):
 
 class RerankerProvider(str, Enum):
     """Supported reranker types"""
-    KNOWLANG = "knowlang_bert"
+    KNOWLANG_BERT = "knowlang_bert"
     LLM_AGENT = "llm_agent"
 
 class StateStoreProvider(str, Enum):

@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import Union
 from pydantic_graph import BaseNode, GraphRunContext, End, Graph
 
-from knowlang.search.base import SearchResult, SearchMethodology
 from knowlang.search.search_graph.base import SearchState, SearchDeps, SearchOutputs
 from knowlang.search.search_graph.keyword_search_agent_node import KeywordSearchAgentNode
 from knowlang.search.search_graph.vector_search_agent_node import VectorSearchAgentNode
 from knowlang.utils import FancyLogger
+from knowlang.search.reranker.factory import RerankerFactory
 
 LOG = FancyLogger(__name__)
 
@@ -64,11 +64,8 @@ class RerankerNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
             return End(SearchOutputs(search_results=ctx.state.search_results))
         
         try:
-            # Import the reranker implementation
-            from knowlang.search.reranker.knowlang_reranker import KnowLangReranker
-            
-            # Set up reranker
-            reranker = KnowLangReranker(config=ctx.deps.config.reranker)
+            # Create reranker using factory
+            reranker = RerankerFactory.create(config=ctx.deps.config.reranker)
             
             # Rerank results
             reranked_results = reranker.rerank(
