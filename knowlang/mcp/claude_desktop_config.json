@@ -4,7 +4,7 @@
             "command": "sh",
             "args": [
                 "-c",
-                "cd /full/path/to/know-lang && /full/path/to/poetry run knowlang mcp serve"
+                "cd /full/path/to/know-lang && /full/path/to/uv run knowlang mcp serve"
             ]
         }
   }
