@@ -7,7 +7,7 @@ from knowlang.configs.retrieval_config import MultiStageRetrievalConfig, SearchC
 from knowlang.core.types import ModelProvider
 from knowlang.search.base import SearchResult 
 from knowlang.search.search_graph.base import SearchState, SearchDeps, SearchOutputs
-from knowlang.search.search_graph.graph import FirstStageNode, RerankerNode, search_graph
+from knowlang.search.search_graph.graph import FirstStageNode, RerankerNode
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def app_config():
         reranker=RerankerConfig(
             enabled=True,
             model_name="microsoft/graphcodebert-base",
-            model_provider=ModelProvider.GRAPH_CODE_BERT,
+            model_provider=ModelProvider.KNOWLANG_BERT,
             top_k=3,
             relevance_threshold=0.5
         )
@@ -146,15 +146,14 @@ async def test_first_stage_node_exception(mock_graph_run, run_context):
 
 
 @pytest.mark.asyncio
-@pytest.mark.asyncio
-@patch("knowlang.search.reranking.KnowLangReranker")
-async def test_reranker_node_success(mock_reranker_class, run_context, sample_search_results):
+@patch("knowlang.search.search_graph.graph.RerankerFactory")
+async def test_reranker_node_success(mock_reranker_factory, run_context, sample_search_results):
     """Test RerankerNode with successful reranking."""
     # Configure initial state
     run_context.state.search_results = sample_search_results
     
     # Configure mock reranker
-    mock_reranker_instance = mock_reranker_class.return_value
+    mock_reranker_instance = mock_reranker_factory.create.return_value
     reranked_results = [
         SearchResult(
             id="reranked1",
@@ -163,7 +162,7 @@ async def test_reranker_node_success(mock_reranker_class, run_context, sample_se
             score=0.95
         )
     ]
-    mock_reranker_instance.rerank = MagicMock(return_value=reranked_results)
+    mock_reranker_instance.rerank = AsyncMock(return_value=reranked_results)
     
     # Create and run the node
     node = RerankerNode()
@@ -196,7 +195,7 @@ async def test_reranker_node_no_results(run_context):
 
 
 @pytest.mark.asyncio
-@patch("knowlang.search.reranking.KnowLangReranker")
+@patch("knowlang.search.reranker.knowlang_reranker.KnowLangReranker")
 async def test_reranker_node_disabled(mock_reranker_class, run_context, sample_search_results):
     """Test RerankerNode when reranking is disabled."""
     # Configure initial state
@@ -218,7 +217,7 @@ async def test_reranker_node_disabled(mock_reranker_class, run_context, sample_s
 
 
 @pytest.mark.asyncio
-@patch("knowlang.search.reranking.KnowLangReranker")
+@patch("knowlang.search.reranker.knowlang_reranker.KnowLangReranker")
 async def test_reranker_node_exception(mock_reranker_class, run_context, sample_search_results):
     """Test RerankerNode handles exceptions gracefully."""
     # Configure initial state

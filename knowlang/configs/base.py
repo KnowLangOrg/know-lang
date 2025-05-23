@@ -18,7 +18,8 @@ def _validate_api_key(v: Optional[str], info: ValidationInfo) -> Optional[str]:
     if info.data['model_provider'] in [
         ModelProvider.OPENAI, 
         ModelProvider.ANTHROPIC,
-        ModelProvider.VOYAGE
+        ModelProvider.VOYAGE,
+        ModelProvider.GOOGLE,
     ]:
         if not v:
             raise ValueError(f"API key required for {info.data['model_provider']}")
@@ -28,5 +29,7 @@ def _validate_api_key(v: Optional[str], info: ValidationInfo) -> Optional[str]:
             os.environ["OPENAI_API_KEY"] = v
         elif info.data['model_provider'] == ModelProvider.VOYAGE:
             os.environ["VOYAGE_API_KEY"] = v
+        elif info.data['model_provider'] == ModelProvider.GOOGLE:
+            os.environ["GEMINI_API_KEY"] = v
             
     return v

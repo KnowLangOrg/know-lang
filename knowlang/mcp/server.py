@@ -46,13 +46,13 @@ class KnowlangMCPServer:
     def _register_tools(self):
         """Register all MCP tools with the server."""
 
-        # Keyword search tool
-        KeywordSearchTool.initialize(self.config)
-        self.mcp_server.add_tool(
-            KeywordSearchTool.run,
-            name= KeywordSearchTool.name,
-            description=KeywordSearchTool.description,
-        )
+        # # Keyword search tool
+        # KeywordSearchTool.initialize(self.config)
+        # self.mcp_server.add_tool(
+        #     KeywordSearchTool.run,
+        #     name= KeywordSearchTool.name,
+        #     description=KeywordSearchTool.description,
+        # )
         
         # Vector search tool
         VectorSearchTool.initialize(self.config)

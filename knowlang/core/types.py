@@ -85,6 +85,8 @@ class ModelProvider(str, Enum):
     VOYAGE = "voyage"
     GRAPH_CODE_BERT = "graph_code_bert"
     NOMIC_AI = "nomic-ai"
+    GOOGLE = "google-gla"
+    KNOWLANG_BERT = "knowlang_bert"
     TESTING = "testing"
 
 class VectorStoreProvider(str, Enum):
@@ -92,7 +94,7 @@ class VectorStoreProvider(str, Enum):
     POSTGRES = "postgres"
     TESTING = "testing"
     CUSTOM = "custom"
-
+    
 class StateStoreProvider(str, Enum):
     """Supported state store types"""
     SQLITE = "sqlite"

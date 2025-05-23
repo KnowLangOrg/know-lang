@@ -160,8 +160,8 @@ class RerankerConfig(BaseSettings):
         description="Name of the reranker model to use"
     )
     model_provider: str = Field(
-        default=ModelProvider.GRAPH_CODE_BERT,
-        description="Model provider (anthropic, openai, ollama, etc)"
+        default=ModelProvider.OLLAMA,
+        description="Reranker provider (anthropic, openai, ollama, etc)"
     )
     api_key: Optional[str] = Field(
         default=None,
