@@ -149,7 +149,7 @@ class KnowLangReranker(BaseReranker):
 
         return score.item()
 
-    def rerank(self, query: str, results: List[SearchResult]) -> List[SearchResult]:
+    async def rerank(self, query: str, results: List[SearchResult]) -> List[SearchResult]:
         """Rerank search results based on the query."""
 
         if not self.config.enabled:

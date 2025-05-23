@@ -52,11 +52,12 @@ def sample_search_results():
     ]
 
 
+@pytest.mark.asyncio
 @patch("knowlang.search.reranker.knowlang_reranker.AutoTokenizer")
 @patch("knowlang.search.reranker.knowlang_reranker.CodeBERTReranker")
 @patch("knowlang.search.reranker.knowlang_reranker.get_device", return_value="cpu")
 @patch("knowlang.search.reranker.knowlang_reranker.RobertaConfig")
-def test_rerank_successful(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
+async def test_rerank_successful(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test successful reranking of search results."""
     # Set up mock tokenizer
     mock_tokenizer_instance = MagicMock()
@@ -81,7 +82,7 @@ def test_rerank_successful(mock_roberta_config, mock_get_device, mock_code_bert_
         
         # Run reranker
         query = "how to search code"
-        reranked_results = reranker.rerank(query, sample_search_results)
+        reranked_results = await reranker.rerank(query, sample_search_results)
         
         # Verify results
         assert len(reranked_results) <= reranker_config.top_k
@@ -90,11 +91,12 @@ def test_rerank_successful(mock_roberta_config, mock_get_device, mock_code_bert_
         assert reranked_results[2].score == 0.65
 
 
+@pytest.mark.asyncio
 @patch("knowlang.search.reranker.knowlang_reranker.AutoTokenizer")
 @patch("knowlang.search.reranker.knowlang_reranker.CodeBERTReranker")
 @patch("knowlang.search.reranker.knowlang_reranker.get_device", return_value="cpu")
 @patch("knowlang.search.reranker.knowlang_reranker.RobertaConfig")
-def test_reranker_threshold_filtering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
+async def test_reranker_threshold_filtering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test that reranker filters results below the relevance threshold."""
     # Set up mock tokenizer and model like in previous test
     mock_tokenizer_instance = MagicMock()
@@ -118,7 +120,7 @@ def test_reranker_threshold_filtering(mock_roberta_config, mock_get_device, mock
         reranker.config.relevance_threshold = 0.5
         
         # Run reranker
-        reranked_results = reranker.rerank("search query", sample_search_results)
+        reranked_results = await reranker.rerank("search query", sample_search_results)
         
         # Verify results
         # Get results with scores greater than threshold (0.5)
@@ -128,7 +130,8 @@ def test_reranker_threshold_filtering(mock_roberta_config, mock_get_device, mock
         assert filtered_results[1].score == 0.85
 
 
-def test_reranker_disabled(reranker_config, sample_search_results):
+@pytest.mark.asyncio
+async def test_reranker_disabled(reranker_config, sample_search_results):
     """Test that reranker returns original results when disabled."""
     # Disable reranker
     reranker_config.enabled = False
@@ -137,18 +140,19 @@ def test_reranker_disabled(reranker_config, sample_search_results):
     reranker = KnowLangReranker(reranker_config)
     
     # Run reranker
-    reranked_results = reranker.rerank("search query", sample_search_results)
+    reranked_results = await reranker.rerank("search query", sample_search_results)
     
     # Verify original results returned unchanged
     assert reranked_results == sample_search_results
 
 
 
+@pytest.mark.asyncio
 @patch("knowlang.search.reranker.knowlang_reranker.AutoTokenizer")
 @patch("knowlang.search.reranker.knowlang_reranker.CodeBERTReranker")
 @patch("knowlang.search.reranker.knowlang_reranker.get_device", return_value="cpu")
 @patch("knowlang.search.reranker.knowlang_reranker.RobertaConfig")
-def test_reranker_result_ordering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
+async def test_reranker_result_ordering(mock_roberta_config, mock_get_device, mock_code_bert_reranker, mock_tokenizer, reranker_config, sample_search_results):
     """Test that results are properly ordered by score."""
     # Set up mock tokenizer
     mock_tokenizer_instance = MagicMock()
@@ -169,7 +173,7 @@ def test_reranker_result_ordering(mock_roberta_config, mock_get_device, mock_cod
         reranker = KnowLangReranker(reranker_config)
         
         # Run reranker
-        reranked_results = reranker.rerank("search query", sample_search_results)
+        reranked_results = await reranker.rerank("search query", sample_search_results)
         
         # Verify results are ordered by descending score
         assert reranked_results[0].score == 0.95

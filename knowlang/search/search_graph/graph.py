@@ -68,7 +68,7 @@ class RerankerNode(BaseNode[SearchState, SearchDeps, SearchOutputs]):
             reranker = RerankerFactory.create(config=ctx.deps.config.reranker)
             
             # Rerank results
-            reranked_results = reranker.rerank(
+            reranked_results = await reranker.rerank(
                 query=ctx.state.query,
                 results=ctx.state.search_results
             )

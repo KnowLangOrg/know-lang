@@ -10,7 +10,7 @@ class BaseReranker(ABC):
     """Abstract base class for all rerankers in KnowLang."""
     
     @abstractmethod
-    def rerank(self, query: str, results: List[SearchResult]) -> List[SearchResult]:
+    async def rerank(self, query: str, results: List[SearchResult]) -> List[SearchResult]:
         """
         Rerank search results based on the query.
         
