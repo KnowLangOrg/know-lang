@@ -106,9 +106,10 @@ Remember: Developers need code that directly helps them solve their problem. Pri
             List of reranked search results, sorted by relevance score
         """
         # Implement LLM reranking logic here
+        search_results_str = "\n".join(r.model_dump_json(indent=2) for r in results)
         prompt = f"""
         User Query: {query}
-        Search Results: {'\n'.join(r.model_dump_json(indent=2) for r in results)}
+        Search Results: {search_results_str}
         Top N: {self.config.top_k}
         """
 
