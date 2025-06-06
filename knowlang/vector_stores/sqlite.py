@@ -54,6 +54,11 @@ class SqliteVectorStore(VectorStore):
         self.content_field = content_field
         self.conn: Optional[sqlite3.Connection] = None
         self.cursor: Optional[sqlite3.Cursor] = None
+    
+    @property
+    def virtual_table(self) -> str:
+        """Returns the name of the virtual table used for vector indexing."""
+        return f"{self.table_name}_vec_idx"
 
     def initialize(self) -> None:
         try:
@@ -62,29 +67,11 @@ class SqliteVectorStore(VectorStore):
             try:
                 # Attempt to load 'vec' extension first (common name)
                 self.conn.load_extension("vec")
-            except sqlite3.OperationalError:
-                # Fallback to searching common paths if direct load fails
-                common_paths = [
-                    "/usr/local/lib/vec.so",  # Linux
-                    "vec.dylib",  # macOS
-                    "vec.dll",  # Windows
-                    "./vec.so",  # Current dir (dev/test)
-                    "./vec.dylib",  # Current dir (dev/test)
-                    "./vec.dll",  # Current dir (dev/test)
-                ]
-                loaded = False
-                for path in common_paths:
-                    try:
-                        self.conn.load_extension(path)
-                        loaded = True
-                        break
-                    except sqlite3.OperationalError:
-                        continue
-                if not loaded:
-                    raise VectorStoreInitError(
-                        "Failed to load sqlite-vec extension. Ensure it's installed and accessible. "
-                        "Searched common paths and 'vec'."
-                    )
+            except Exception as e:
+                raise VectorStoreInitError(
+                    "Failed to load sqlite-vec extension. Ensure it's installed and accessible. "
+                    "Searched common paths and 'vec'."
+                ) from e
             # It's generally recommended to disable extension loading after successful load for security.
             # However, some applications might need it enabled if extensions are loaded on-demand per-connection.
             # For sqlite-vec, it's typically loaded once.
@@ -106,10 +93,9 @@ class SqliteVectorStore(VectorStore):
             """
             )
 
-            virtual_table_name = f"{self.table_name}_vec_idx"
             self.cursor.execute(
                 f"""
-                CREATE VIRTUAL TABLE IF NOT EXISTS {virtual_table_name} USING vec_f32(
+                CREATE VIRTUAL TABLE IF NOT EXISTS {self.virtual_table} USING vec_f32(
                     embedding({self.embedding_dim}) /* affinity: BLOB */
                 )
             """
@@ -141,7 +127,6 @@ class SqliteVectorStore(VectorStore):
                 "If provided, ids list must have the same length as documents."
             )
 
-        virtual_table_name = f"{self.table_name}_vec_idx"
         actual_content_field = self.content_field if self.content_field else "content"
 
         try:
@@ -168,7 +153,7 @@ class SqliteVectorStore(VectorStore):
                 last_row_id = self.cursor.lastrowid
 
                 self.cursor.execute(
-                    f"INSERT INTO {virtual_table_name} (rowid, embedding) VALUES (?, ?)",
+                    f"INSERT INTO {self.virtual_table} (rowid, embedding) VALUES (?, ?)",
                     (last_row_id, embedding_bytes),
                 )
             self.conn.commit()
@@ -228,7 +213,6 @@ class SqliteVectorStore(VectorStore):
             )
 
         query_embedding_bytes = struct.pack(f"{self.embedding_dim}f", *query_embedding)
-        virtual_table_name = f"{self.table_name}_vec_idx"
         actual_content_field = self.content_field if self.content_field else "content"
 
         # sqlite-vec's MATCH operator implicitly handles KNN and ordering by distance.
@@ -239,7 +223,7 @@ class SqliteVectorStore(VectorStore):
                 m.metadata,
                 v.distance
             FROM
-                {virtual_table_name} v
+                {self.virtual_table} v
             JOIN
                 {self.table_name} m ON v.rowid = m.rowid
             WHERE
@@ -279,7 +263,6 @@ class SqliteVectorStore(VectorStore):
         if not ids:
             return
 
-        virtual_table_name = f"{self.table_name}_vec_idx"
         try:
             row_ids_to_delete = []
             for doc_id in ids:
@@ -302,7 +285,7 @@ class SqliteVectorStore(VectorStore):
             # Delete from virtual table by rowid
             row_id_placeholders = ",".join(["?"] * len(row_ids_to_delete))
             self.cursor.execute(
-                f"DELETE FROM {virtual_table_name} WHERE rowid IN ({row_id_placeholders})",
+                f"DELETE FROM {self.virtual_table} WHERE rowid IN ({row_id_placeholders})",
                 row_ids_to_delete,
             )
 
@@ -350,7 +333,6 @@ class SqliteVectorStore(VectorStore):
             )
 
         actual_content_field = self.content_field if self.content_field else "content"
-        virtual_table_name = f"{self.table_name}_vec_idx"
         embedding_bytes = struct.pack(f"{self.embedding_dim}f", *embedding)
         metadata_str = json.dumps(metadata)
 
@@ -370,10 +352,10 @@ class SqliteVectorStore(VectorStore):
             # For sqlite-vec, updating the embedding in the virtual table usually means deleting the old rowid
             # and inserting it again with the new embedding vector.
             self.cursor.execute(
-                f"DELETE FROM {virtual_table_name} WHERE rowid = ?", (row_id,)
+                f"DELETE FROM {self.virtual_table} WHERE rowid = ?", (row_id,)
             )
             self.cursor.execute(
-                f"INSERT INTO {virtual_table_name} (rowid, embedding) VALUES (?, ?)",
+                f"INSERT INTO {self.virtual_table} (rowid, embedding) VALUES (?, ?)",
                 (row_id, embedding_bytes),
             )
 
