@@ -5,6 +5,7 @@ from fastapi.openapi.utils import get_openapi
 
 from knowlang.api.base import ApiModelRegistry
 from knowlang.api.chat.router import router as chat_router
+from knowlang.api.health.router import router as health_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -46,7 +47,8 @@ app.add_middleware(
 # Include routers
 router_prefix = "/api/v1"
 app.include_router(chat_router, prefix=router_prefix, tags=["chat"])
+app.include_router(health_router, prefix=router_prefix, tags=["health"])
 
 if __name__ == "__main__":
     # Run the server if this file is executed directly
-    uvicorn.run("knowlang.api.main:app", host="0.0.0.0", port=8080, reload=True)
+    uvicorn.run("knowlang.api.main:app", host="0.0.0.0", port=8080)

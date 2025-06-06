@@ -9,37 +9,39 @@ project_root = Path.cwd()
 def collect_knowlang_data():
     """Collect all data files from the knowlang package"""
     data_files = []
-    
+
     # Add any configuration files or data files your package needs
     config_files = [
-        ('settings', 'settings'),  # If you have a settings directory
+        ("settings", "settings"),  # If you have a settings directory
     ]
-    
 
     # KnowLang specific configuration data files
     for src, dst in config_files:
         if (project_root / src).exists():
             data_files.append((str(project_root / src), dst))
-    
+
     # pydantic_ai specific data files
-    data_files += collect_data_files('pydantic_ai')
-    data_files += copy_metadata('pydantic_ai_slim')
+    data_files += collect_data_files("pydantic_ai")
+    data_files += copy_metadata("pydantic_ai_slim")
 
     # vecs
-    data_files += copy_metadata('flupy')
-    
+    data_files += copy_metadata("flupy")
+
     return data_files
 
+
 hidden_imports = [
+    # fix the module not found error
+    "knowlang.api.main",
 ]
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    ["main.py"],
+    pathex=[str(project_root)],
     binaries=[],
     datas=collect_knowlang_data(),
     hiddenimports=hidden_imports,
-    hookspath=['hooks'],
+    hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
@@ -53,7 +55,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main',
+    name="main",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -72,5 +74,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='main',
+    name="main",
 )
