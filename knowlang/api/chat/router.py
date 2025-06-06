@@ -51,56 +51,6 @@ async def stream_chat(
 
     return EventSourceResponse(event_generator())
 
-
-# To test this WebSocket endpoint for streaming chat:
-#
-# 1. Using `websocat`:
-#    - Install websocat (e.g., `apt-get install websocat` or from https://github.com/vi/websocat).
-#    - Connect to the endpoint (adjust URI if your server runs on a different host/port):
-#      websocat ws://localhost:8000/api/v1/chat/ws/chat/stream
-#    - Once connected, type your query (e.g., "What is retrieval augmented generation?") and press Enter.
-#    - The server will stream back JSON responses, each representing a part of the chat answer.
-#
-# 2. Using a Python client (requires `websockets` library: `pip install websockets`):
-#    ```python
-#    import asyncio
-#    import websockets
-#    import json
-#
-#    async def test_chat_websocket():
-#        # Adjust URI if your FastAPI app is served under a different path or port
-#        uri = "ws://localhost:8000/api/v1/chat/ws/chat/stream"
-#        try:
-#            async with websockets.connect(uri) as websocket:
-#                query = input("Enter your chat query: ")
-#                await websocket.send(query) # Sending query as plain text
-#
-#                print("Waiting for responses...")
-#                while True:
-#                    try:
-#                        response = await websocket.recv()
-#                        # Assuming the response is a JSON string from StreamingChatResult
-#                        print(f"<<< {json.loads(response)}")
-#                    except websockets.exceptions.ConnectionClosedOK:
-#                        print("Connection closed normally.")
-#                        break
-#                    except websockets.exceptions.ConnectionClosedError as e:
-#                        print(f"Connection closed with error: {e}")
-#                        break
-#                    except Exception as e:
-#                        print(f"An error occurred while receiving: {e}")
-#                        break
-#        except ConnectionRefusedError:
-#            print(f"Connection to {uri} refused. Ensure the server is running.")
-#        except Exception as e:
-#            print(f"An overall error occurred: {e}")
-#
-#    if __name__ == "__main__":
-#        # In a Jupyter notebook, you might need to run this with nest_asyncio
-#        # import nest_asyncio
-#        # nest_asyncio.apply()
-#        asyncio.run(test_chat_websocket())
-#    ```
 @router.websocket("/ws/chat/stream")
 async def websocket_chat_stream(
     websocket: WebSocket,
