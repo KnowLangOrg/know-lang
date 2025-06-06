@@ -113,6 +113,15 @@ wheels = [
 ]
 
 [[package]]
+name = "altgraph"
+version = "0.17.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/a8/7145824cf0b9e3c28046520480f207df47e927df83aa9555fb47f8505922/altgraph-0.17.4.tar.gz", hash = "sha256:1b5afbb98f6c4dcadb2e2ae6ab9fa994bbb8c1d75f4fa96d340f9437ae454406", size = 48418, upload-time = "2023-09-25T09:04:52.164Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4d/3f/3bc3f1d83f6e4a7fcb834d3720544ca597590425be5ba9db032b2bf322a2/altgraph-0.17.4-py2.py3-none-any.whl", hash = "sha256:642743b4750de17e655e6711601b077bc6598dbfa3ba5fa2b2a35ce12b508dff", size = 21212, upload-time = "2023-09-25T09:04:50.691Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -526,20 +535,11 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/36/f4/c6e662dade71f56cd2f3735141b265c3c79293c109549c1e6933b0651ffc/exceptiongroup-1.3.0-py3-none-any.whl", hash = "sha256:4d111e6e0c13d0644cad6ddaa7ed0261a0b36971f6d23e7ec9b4b9097da78a10", size = 16674, upload-time = "2025-05-10T17:42:49.33Z" },
-]
-
-[[package]]
-name = "executing"
-version = "2.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/91/50/a9d80c47ff289c611ff12e63f7c5d13942c65d68125160cefd768c73e6e4/executing-2.2.0.tar.gz", hash = "sha256:5d108c028108fe2551d1a7b2e8b713341e2cb4fc0aa7dcf966fa4327a5226755", size = 978693, upload-time = "2025-01-22T15:41:29.403Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7b/8f/c4d9bafc34ad7ad5d8dc16dd1347ee0e507a52c3adb6bfa8887e1c6a26ba/executing-2.2.0-py2.py3-none-any.whl", hash = "sha256:11387150cad388d62750327a53d3339fad4888b39a6fe233c3afbb54ecffd3aa", size = 26702, upload-time = "2025-01-22T15:41:25.929Z" },
 ]
 
 [[package]]
@@ -1163,14 +1163,14 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "gitpython" },
-    { name = "pydantic-ai", extra = ["logfire"] },
+    { name = "pydantic-ai" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy" },
     { name = "sse-starlette" },
     { name = "tree-sitter" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 all = [
     { name = "chromadb" },
     { name = "einops" },
@@ -1213,6 +1213,9 @@ nomic-ai = [
 ollama = [
     { name = "ollama" },
 ]
+packaging = [
+    { name = "pyinstaller" },
+]
 python = [
     { name = "tree-sitter-python" },
 ]
@@ -1232,45 +1235,55 @@ voyage = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chromadb", marker = "extra == 'all'", specifier = ">=0.6.3,<0.7.0" },
-    { name = "chromadb", marker = "extra == 'chromadb'", specifier = ">=0.6.3,<0.7.0" },
-    { name = "einops", marker = "extra == 'all'", specifier = ">=0.8.1,<0.9.0" },
-    { name = "einops", marker = "extra == 'nomic-ai'", specifier = ">=0.8.1,<0.9.0" },
     { name = "fastapi", specifier = ">=0.115.8,<0.116.0" },
     { name = "gitpython", specifier = ">=3.1.44,<4.0.0" },
-    { name = "gradio", marker = "extra == 'all'", specifier = ">=5.13.1,<6.0.0" },
-    { name = "gradio", marker = "extra == 'gradio'", specifier = ">=5.13.1,<6.0.0" },
-    { name = "mcp", extras = ["cli"], marker = "extra == 'all'", specifier = ">=1.6.0,<2.0.0" },
-    { name = "mcp", extras = ["cli"], marker = "extra == 'mcp'", specifier = ">=1.6.0,<2.0.0" },
-    { name = "mixpanel", marker = "extra == 'all'", specifier = ">=4.10.1,<5.0.0" },
-    { name = "mixpanel", marker = "extra == 'mixpanel'", specifier = ">=4.10.1,<5.0.0" },
-    { name = "ollama", marker = "extra == 'all'", specifier = ">=0.4.7,<0.5.0" },
-    { name = "ollama", marker = "extra == 'ollama'", specifier = ">=0.4.7,<0.5.0" },
-    { name = "pydantic-ai", extras = ["logfire"], specifier = ">=0.1.0" },
+    { name = "pydantic-ai", specifier = ">=0.1.0" },
     { name = "pydantic-settings", specifier = ">=2.7.1,<3.0.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.4" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25.2" },
-    { name = "sentence-transformers", marker = "extra == 'all'", specifier = ">=4.0.1,<5.0.0" },
-    { name = "sentence-transformers", marker = "extra == 'nomic-ai'", specifier = ">=4.0.1,<5.0.0" },
     { name = "sqlalchemy", specifier = ">=2.0.38,<3.0.0" },
     { name = "sse-starlette", specifier = ">=2.2.1,<3.0.0" },
-    { name = "torch", marker = "extra == 'all'", specifier = ">=2.6.0,<3.0.0" },
-    { name = "torch", marker = "extra == 'pytorch'", specifier = ">=2.6.0,<3.0.0" },
-    { name = "transformers", marker = "extra == 'all'", specifier = ">=4.49.0,<5.0.0" },
-    { name = "transformers", marker = "extra == 'pytorch'", specifier = ">=4.49.0,<5.0.0" },
     { name = "tree-sitter", specifier = ">=0.24.0,<0.25.0" },
-    { name = "tree-sitter-cpp", marker = "extra == 'all'", specifier = ">=0.23.4,<0.24.0" },
-    { name = "tree-sitter-cpp", marker = "extra == 'cpp'", specifier = ">=0.23.4,<0.24.0" },
-    { name = "tree-sitter-python", marker = "extra == 'all'", specifier = ">=0.23.6,<0.24.0" },
-    { name = "tree-sitter-python", marker = "extra == 'python'", specifier = ">=0.23.6,<0.24.0" },
-    { name = "tree-sitter-typescript", marker = "extra == 'all'", specifier = ">=0.23.2,<0.24.0" },
-    { name = "tree-sitter-typescript", marker = "extra == 'typescript'", specifier = ">=0.23.2,<0.24.0" },
-    { name = "vecs", marker = "extra == 'all'", specifier = ">=0.4.5,<0.5.0" },
-    { name = "vecs", marker = "extra == 'vecs'", specifier = ">=0.4.5,<0.5.0" },
-    { name = "voyageai", marker = "extra == 'all'", specifier = ">=0.3.2,<0.4.0" },
-    { name = "voyageai", marker = "extra == 'voyage'", specifier = ">=0.3.2,<0.4.0" },
 ]
-provides-extras = ["all", "chromadb", "cpp", "dev", "gradio", "mcp", "mixpanel", "nomic-ai", "ollama", "python", "pytorch", "typescript", "vecs", "voyage"]
+
+[package.metadata.requires-dev]
+all = [
+    { name = "chromadb", specifier = ">=0.6.3,<0.7.0" },
+    { name = "einops", specifier = ">=0.8.1,<0.9.0" },
+    { name = "gradio", specifier = ">=5.13.1,<6.0.0" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.6.0,<2.0.0" },
+    { name = "mixpanel", specifier = ">=4.10.1,<5.0.0" },
+    { name = "ollama", specifier = ">=0.4.7,<0.5.0" },
+    { name = "sentence-transformers", specifier = ">=4.0.1,<5.0.0" },
+    { name = "torch", specifier = ">=2.6.0,<3.0.0" },
+    { name = "transformers", specifier = ">=4.49.0,<5.0.0" },
+    { name = "tree-sitter-cpp", specifier = ">=0.23.4,<0.24.0" },
+    { name = "tree-sitter-python", specifier = ">=0.23.6,<0.24.0" },
+    { name = "tree-sitter-typescript", specifier = ">=0.23.2,<0.24.0" },
+    { name = "vecs", specifier = ">=0.4.5,<0.5.0" },
+    { name = "voyageai", specifier = ">=0.3.2,<0.4.0" },
+]
+chromadb = [{ name = "chromadb", specifier = ">=0.6.3,<0.7.0" }]
+cpp = [{ name = "tree-sitter-cpp", specifier = ">=0.23.4,<0.24.0" }]
+dev = [
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.2" },
+]
+gradio = [{ name = "gradio", specifier = ">=5.13.1,<6.0.0" }]
+mcp = [{ name = "mcp", extras = ["cli"], specifier = ">=1.6.0,<2.0.0" }]
+mixpanel = [{ name = "mixpanel", specifier = ">=4.10.1,<5.0.0" }]
+nomic-ai = [
+    { name = "einops", specifier = ">=0.8.1,<0.9.0" },
+    { name = "sentence-transformers", specifier = ">=4.0.1,<5.0.0" },
+]
+ollama = [{ name = "ollama", specifier = ">=0.4.7,<0.5.0" }]
+packaging = [{ name = "pyinstaller", specifier = ">=6.14.0" }]
+python = [{ name = "tree-sitter-python", specifier = ">=0.23.6,<0.24.0" }]
+pytorch = [
+    { name = "torch", specifier = ">=2.6.0,<3.0.0" },
+    { name = "transformers", specifier = ">=4.49.0,<5.0.0" },
+]
+typescript = [{ name = "tree-sitter-typescript", specifier = ">=0.23.2,<0.24.0" }]
+vecs = [{ name = "vecs", specifier = ">=0.4.5,<0.5.0" }]
+voyage = [{ name = "voyageai", specifier = ">=0.3.2,<0.4.0" }]
 
 [[package]]
 name = "kubernetes"
@@ -1295,31 +1308,24 @@ wheels = [
 ]
 
 [[package]]
-name = "logfire"
-version = "3.16.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "executing" },
-    { name = "opentelemetry-exporter-otlp-proto-http" },
-    { name = "opentelemetry-instrumentation" },
-    { name = "opentelemetry-sdk" },
-    { name = "protobuf" },
-    { name = "rich" },
-    { name = "tomli", marker = "python_full_version < '3.11'" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e5/76/bdc8f1e8fd92607b0f3cc5df02f4954fdc93cfd498a399a43f767f613349/logfire-3.16.0.tar.gz", hash = "sha256:f09061cffd09b4787e2b785e2603da0868c1ac9c7cb124fdc04de82298feef15", size = 476592, upload-time = "2025-05-14T13:27:20.874Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/91/b8/04e9c59fae63357a39ca5cc033885d74576f98c0497fde066a2e5397413e/logfire-3.16.0-py3-none-any.whl", hash = "sha256:ac49c1a63c492e6ed205a3d49ee9ded318ca6e5af49c942465cade51c759605b", size = 194464, upload-time = "2025-05-14T13:27:17.943Z" },
-]
-
-[[package]]
 name = "logfire-api"
 version = "3.16.0"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/48/6a/ea975689933d22d126f8903e9641366e6878b9ab82f94dd854fe44073278/logfire_api-3.16.0.tar.gz", hash = "sha256:9cda15c47491f8b3b6fc1528ef0f868594a99e6bfcd0f6d46f84d91729258fe2", size = 48247, upload-time = "2025-05-14T13:27:22.042Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/94/37/fdb351129823f879a69a34fc7f5227f899cb881c00e85d659c40bcf918ae/logfire_api-3.16.0-py3-none-any.whl", hash = "sha256:ea213732801f5d483398c203e15152df731fa0a09857e40f0e6b53886dc06067", size = 80095, upload-time = "2025-05-14T13:27:19.574Z" },
+]
+
+[[package]]
+name = "macholib"
+version = "1.16.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "altgraph" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/95/ee/af1a3842bdd5902ce133bd246eb7ffd4375c38642aeb5dc0ae3a0329dfa2/macholib-1.16.3.tar.gz", hash = "sha256:07ae9e15e8e4cd9a788013d81f5908b3609aa76f9b1421bae9c4d7606ec86a30", size = 59309, upload-time = "2023-09-25T09:10:16.155Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/5d/c059c180c84f7962db0aeae7c3b9303ed1d73d76f2bfbc32bc231c8be314/macholib-1.16.3-py2.py3-none-any.whl", hash = "sha256:0e315d7583d38b8c77e815b1ecbdbf504a8258d8b3e17b61165c6feb60d18f2c", size = 38094, upload-time = "2023-09-25T09:10:14.188Z" },
 ]
 
 [[package]]
@@ -1861,24 +1867,6 @@ wheels = [
 ]
 
 [[package]]
-name = "opentelemetry-exporter-otlp-proto-http"
-version = "1.33.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "deprecated" },
-    { name = "googleapis-common-protos" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-exporter-otlp-proto-common" },
-    { name = "opentelemetry-proto" },
-    { name = "opentelemetry-sdk" },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/60/48/e4314ac0ed2ad043c07693d08c9c4bf5633857f5b72f2fefc64fd2b114f6/opentelemetry_exporter_otlp_proto_http-1.33.1.tar.gz", hash = "sha256:46622d964a441acb46f463ebdc26929d9dec9efb2e54ef06acdc7305e8593c38", size = 15353, upload-time = "2025-05-16T18:52:45.522Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/63/ba/5a4ad007588016fe37f8d36bf08f325fe684494cc1e88ca8fa064a4c8f57/opentelemetry_exporter_otlp_proto_http-1.33.1-py3-none-any.whl", hash = "sha256:ebd6c523b89a2ecba0549adb92537cc2bf647b4ee61afbbd5a4c6535aa3da7cf", size = 17733, upload-time = "2025-05-16T18:52:25.137Z" },
-]
-
-[[package]]
 name = "opentelemetry-instrumentation"
 version = "0.54b1"
 source = { registry = "https://pypi.org/simple" }
@@ -2075,6 +2063,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/20/e8/45a05d9c39d2cea61ab175dbe6a2de1d05b679e8de2011da4ee190d7e748/pandas-2.2.3-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:6dfcb5ee8d4d50c06a51c2fffa6cff6272098ad6540aed1a76d15fb9318194d8", size = 16359235, upload-time = "2024-09-20T19:02:07.094Z" },
     { url = "https://files.pythonhosted.org/packages/1d/99/617d07a6a5e429ff90c90da64d428516605a1ec7d7bea494235e1c3882de/pandas-2.2.3-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:062309c1b9ea12a50e8ce661145c6aab431b1e99530d3cd60640e255778bd43a", size = 14056756, upload-time = "2024-09-20T13:09:20.474Z" },
     { url = "https://files.pythonhosted.org/packages/29/d4/1244ab8edf173a10fd601f7e13b9566c1b525c4f365d6bee918e68381889/pandas-2.2.3-cp312-cp312-win_amd64.whl", hash = "sha256:59ef3764d0fe818125a5097d2ae867ca3fa64df032331b7e0917cf5d7bf66b13", size = 11504248, upload-time = "2024-09-20T13:09:23.137Z" },
+]
+
+[[package]]
+name = "pefile"
+version = "2023.2.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/c5/3b3c62223f72e2360737fd2a57c30e5b2adecd85e70276879609a7403334/pefile-2023.2.7.tar.gz", hash = "sha256:82e6114004b3d6911c77c3953e3838654b04511b8b66e8583db70c65998017dc", size = 74854, upload-time = "2023-02-07T12:23:55.958Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/26/d0ad8b448476d0a1e8d3ea5622dc77b916db84c6aa3cb1e1c0965af948fc/pefile-2023.2.7-py3-none-any.whl", hash = "sha256:da185cd2af68c08a6cd4481f7325ed600a88f6a813bad9dea07ab3ef73d8d8d6", size = 71791, upload-time = "2023-02-07T12:28:36.678Z" },
 ]
 
 [[package]]
@@ -2344,11 +2341,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c5/75/fdf31bb1ba590303bf56aa0c1c5af898c89c253a1e9507e31d6dc77f0135/pydantic_ai-0.2.6-py3-none-any.whl", hash = "sha256:0f4ea8bcf5c496e57997d1f7ab4e2e1e29508481ff9ad0ec4e7a81c72a49963d", size = 10009, upload-time = "2025-05-21T08:20:53.069Z" },
 ]
 
-[package.optional-dependencies]
-logfire = [
-    { name = "logfire" },
-]
-
 [[package]]
 name = "pydantic-ai-slim"
 version = "0.2.6"
@@ -2545,6 +2537,47 @@ wheels = [
 ]
 
 [[package]]
+name = "pyinstaller"
+version = "6.14.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "altgraph" },
+    { name = "macholib", marker = "sys_platform == 'darwin'" },
+    { name = "packaging" },
+    { name = "pefile", marker = "sys_platform == 'win32'" },
+    { name = "pyinstaller-hooks-contrib" },
+    { name = "pywin32-ctypes", marker = "sys_platform == 'win32'" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7e/dc/4ec9284d14952d3a4902c29b0c86314cad8de35104b5c1d6e001b914c0f5/pyinstaller-6.14.0.tar.gz", hash = "sha256:cc55cdc21491722d74133e35ab363a88679b37ee2d76f9d80adcbc0ae862d630", size = 4284182, upload-time = "2025-06-03T20:09:50.883Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/69/f6/7aaee3c4289ee3784b48229b2155d04936c514f66af29ced60cdf4c576b8/pyinstaller-6.14.0-py3-none-macosx_10_13_universal2.whl", hash = "sha256:20b4dcaf17a27cf5d5417f9dc53e81adf417d22e4d8c4afe50ae20dacdc1cde6", size = 999807, upload-time = "2025-06-03T20:08:45.713Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/bb/96a83e17c72cbe0eac385c6101b82881ba86c30f852b27824e98c99aaef1/pyinstaller-6.14.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:57982d0ebeb39e9a5dd8722bed871873ec59161613d8b09ca638adbd4fb4e592", size = 719439, upload-time = "2025-06-03T20:08:51.876Z" },
+    { url = "https://files.pythonhosted.org/packages/66/ae/1415822212ca69fb29ac0b961ee6103ea90be2d8e5fe00b39db6340c8c7d/pyinstaller-6.14.0-py3-none-manylinux2014_i686.whl", hash = "sha256:d75492d4a7ece299b580837cb027cf7742cea5e92dfec0bb4c6064816c009b59", size = 729694, upload-time = "2025-06-03T20:08:56.136Z" },
+    { url = "https://files.pythonhosted.org/packages/49/e3/757efe36330f79efcdd9b288514082f786e35832458da5ef84cf24905209/pyinstaller-6.14.0-py3-none-manylinux2014_ppc64le.whl", hash = "sha256:ca5ad60e210a7eb1c968d09deb85b645963bf24dcb8ed4af93c293ea526a08e6", size = 727807, upload-time = "2025-06-03T20:08:59.922Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/d4/17a7c81cc82d33119f0b3d751d30e253a14b04087059ae9fa15c7dd8707a/pyinstaller-6.14.0-py3-none-manylinux2014_s390x.whl", hash = "sha256:af8c973543e976bd660f83a43089cabd3c41e98398f53fa179ef7eee4d5fe3b0", size = 724631, upload-time = "2025-06-03T20:09:04.035Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/03/eeb4af303f5eb0a2cb5cdc8ae1053894f53057c1e218d1252669aebcadde/pyinstaller-6.14.0-py3-none-manylinux2014_x86_64.whl", hash = "sha256:640f68e50d22684aa5970c2f3a6490d2e7c16bd5c20c63f5541c0e50e5bd2391", size = 724827, upload-time = "2025-06-03T20:09:08.328Z" },
+    { url = "https://files.pythonhosted.org/packages/49/3d/26e860641655adb2bf4aed243351abefff258551a1811ffe60b03f5bb514/pyinstaller-6.14.0-py3-none-musllinux_1_1_aarch64.whl", hash = "sha256:3c2c88a355223d13704b5153dc341e02699523363cc18c49d872c8e82b5c6063", size = 724002, upload-time = "2025-06-03T20:09:12.121Z" },
+    { url = "https://files.pythonhosted.org/packages/52/28/5f442033ed7f89badc93112421248c848470d5d1fbcd226fabd9d4e71475/pyinstaller-6.14.0-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:9af257dc72d6b2027ab8a4c217eda07a6e6efa8ae9223953fd721aa9baec9106", size = 723717, upload-time = "2025-06-03T20:09:16.192Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/38/5ad380af42229b77afd7536d8ecec0b89db37e7d83f9c80780db365d17bf/pyinstaller-6.14.0-py3-none-win32.whl", hash = "sha256:083d97ee52077bc21a8e8beaede394dfd8d19da8bafc03ebc6734949d63d74a1", size = 1299615, upload-time = "2025-06-03T20:09:21.979Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/89/e8b850913b998ac2999ffd75dc9b6c30ac7b341ba674f22b6fe8c962074c/pyinstaller-6.14.0-py3-none-win_amd64.whl", hash = "sha256:c62c3e0f768d4f90c0329c5e2616d8fff5c041dc4864a28e74d653d0e77aff1a", size = 1357494, upload-time = "2025-06-03T20:09:28.107Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/df/83e5fbcd247f1e9b38f381db6870dcba57078f24612b02b2604799e8b3fc/pyinstaller-6.14.0-py3-none-win_arm64.whl", hash = "sha256:adf130c72e98ced09df5c43d7ca271d701a730036980da75cae056325cbc2dcd", size = 1298477, upload-time = "2025-06-03T20:09:33.932Z" },
+]
+
+[[package]]
+name = "pyinstaller-hooks-contrib"
+version = "2025.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e3/94/dfc5c7903306211798f990e6794c2eb7b8685ac487b26979e9255790419c/pyinstaller_hooks_contrib-2025.4.tar.gz", hash = "sha256:5ce1afd1997b03e70f546207031cfdf2782030aabacc102190677059e2856446", size = 162628, upload-time = "2025-05-03T20:15:55.983Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d3/e1/ed48c7074145898e5c5b0072e87be975c5bd6a1d0f08c27a1daa7064fca0/pyinstaller_hooks_contrib-2025.4-py3-none-any.whl", hash = "sha256:6c2d73269b4c484eb40051fc1acee0beb113c2cfb3b37437b8394faae6f0d072", size = 434451, upload-time = "2025-05-03T20:15:54.579Z" },
+]
+
+[[package]]
 name = "pypika"
 version = "0.48.9"
 source = { registry = "https://pypi.org/simple" }
@@ -2634,6 +2667,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
+]
+
+[[package]]
+name = "pywin32-ctypes"
+version = "0.2.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/9f/01a1a99704853cb63f253eea009390c88e7131c67e66a0a02099a8c917cb/pywin32-ctypes-0.2.3.tar.gz", hash = "sha256:d162dc04946d704503b2edc4d55f3dba5c1d539ead017afa00142c38b9885755", size = 29471, upload-time = "2024-08-14T10:15:34.626Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/3d/8161f7711c017e01ac9f008dfddd9410dff3674334c233bde66e7ba65bbf/pywin32_ctypes-0.2.3-py3-none-any.whl", hash = "sha256:8a1513379d709975552d202d942d9837758905c8d01eb82b8bcc30918929e7b8", size = 30756, upload-time = "2024-08-14T10:15:33.187Z" },
 ]
 
 [[package]]

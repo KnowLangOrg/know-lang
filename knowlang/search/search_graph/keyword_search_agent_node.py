@@ -1,7 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, TYPE_CHECKING, Union
-import logfire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_graph import BaseNode, GraphRunContext, End
@@ -126,9 +125,6 @@ Please generate a more permissive query with fewer terms or using more OR logic.
                 query=keyword_query,
                 strategy_name=SearchMethodology.KEYWORD.value,
             )
-            
-            logfire.info('keyword search results: {query} -> {count} results', 
-                query=query, count=len(results))
             
             return results
         except Exception as e:

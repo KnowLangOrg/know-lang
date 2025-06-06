@@ -34,7 +34,8 @@ jobs:
       run: |
         uv venv
         source .venv/bin/activate
-        uv pip install -e ".[dev,all]"
+        uv pip install -e .
+        uv sync --all-groups
         
     - name: Run tests with pytest
       run: |

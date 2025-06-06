@@ -1,4 +1,4 @@
-from knowlang.chat_bot import create_chatbot
+from knowlang.chat_bot.chat_interface import create_chatbot
 from knowlang.cli.types import ChatCommandArgs
 from knowlang.cli.utils import create_config
 from knowlang.utils import FancyLogger
