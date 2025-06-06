@@ -76,6 +76,12 @@ class ParserConfig(BaseSettings):
                 tree_sitter_language="cpp",
                 chunk_types=["class_definition", "function_definition"],
                 max_file_size=1_000_000
+            ),
+            "csharp": LanguageConfig(
+                file_extensions=[".cs"],
+                tree_sitter_language="csharp",
+                chunk_types=["class_declaration", "method_declaration"], # Using common tree-sitter type names
+                max_file_size=1024 * 1024 * 5  # 5MB
             )
         }
     )

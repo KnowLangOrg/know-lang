@@ -3,7 +3,9 @@ from typing import Dict, Optional, Type
 
 from knowlang.configs import AppConfig
 from knowlang.parser.base.parser import LanguageParser
+from knowlang.core.types import LanguageEnum # Added
 from knowlang.parser.languages.cpp.parser import CppParser
+from knowlang.parser.languages.csharp.parser import CSharpParser # Added
 from knowlang.parser.languages.python.parser import PythonParser
 from knowlang.parser.languages.ts.parser import TypeScriptParser
 
@@ -19,9 +21,10 @@ class CodeParserFactory():
     def _register_parsers(self) -> Dict[str, Type[LanguageParser]]:
         """Register available parser implementations"""
         return {
-            "python": PythonParser,
-            'cpp': CppParser,
-            'typescript': TypeScriptParser,
+            LanguageEnum.PYTHON.value: PythonParser,
+            LanguageEnum.CPP.value: CppParser,
+            LanguageEnum.TYPESCRIPT.value: TypeScriptParser,
+            LanguageEnum.CSHARP.value: CSharpParser, # Added
             # Add more languages here
         }
     
