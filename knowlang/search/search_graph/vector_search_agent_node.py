@@ -1,7 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
-import logfire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_graph import BaseNode, GraphRunContext, End
@@ -161,9 +160,6 @@ Please generate a more general query with broader terms or additional synonyms."
                 strategy_name=SearchMethodology.VECTOR,
                 filter=filter,
             )
-            
-            logfire.info('vector search results: {embedding_size} -> {count} results', 
-                embedding_size=len(embedding), count=len(results))
             
             return results
         except Exception as e:
