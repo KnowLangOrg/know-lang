@@ -15,12 +15,18 @@ def collect_knowlang_data():
         ('settings', 'settings'),  # If you have a settings directory
     ]
     
+
+    # KnowLang specific configuration data files
     for src, dst in config_files:
         if (project_root / src).exists():
             data_files.append((str(project_root / src), dst))
     
+    # pydantic_ai specific data files
     data_files += collect_data_files('pydantic_ai')
     data_files += copy_metadata('pydantic_ai_slim')
+
+    # vecs
+    data_files += copy_metadata('flupy')
     
     return data_files
 

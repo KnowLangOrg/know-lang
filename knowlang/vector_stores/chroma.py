@@ -4,20 +4,12 @@ from itertools import zip_longest
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
-from chromadb.config import Settings
-
 from knowlang.configs import AppConfig
 from knowlang.core.types import VectorStoreProvider
 from knowlang.vector_stores.base import (SearchResult, VectorStore,
                                          VectorStoreInitError)
 from knowlang.vector_stores.factory import register_vector_store
 
-try:
-    import chromadb
-except ImportError as e:
-    raise ImportError(
-        'ChromaDB is not installed. Please install it using `pip install "knowlang[chroma]"`.'
-    ) from e
 
 @register_vector_store(VectorStoreProvider.CHROMA)
 class ChromaVectorStore(VectorStore):
@@ -65,6 +57,14 @@ class ChromaVectorStore(VectorStore):
 
     def initialize(self) -> None:
         """Initialize ChromaDB client and collection"""
+        try:
+            import chromadb
+            from chromadb.config import Settings
+        except ImportError as e:
+            raise ImportError(
+                'ChromaDB is not installed. Please install it using `pip install "knowlang[chroma]"`.'
+            ) from e
+            
         try:
             self.client = chromadb.PersistentClient(
                 path=str(self.persist_directory),
@@ -146,14 +146,3 @@ class ChromaVectorStore(VectorStore):
     
     async def get_all(self) -> List[SearchResult]:
         raise NotImplementedError("ChromaDB fetching all documents not implemented yet")
-
-'''
-Action Items:
-- Track local changes through git commits (assuming you have a git repository)
-```bash
-git diff --name-only HEAD~10
-```
-We can run cron job every 10 minutes to check last 10 commits.
-We can further run other git commands to check that those commits occurred in the last 10 minutes.
-- Update vector store if changes are detected
-'''
