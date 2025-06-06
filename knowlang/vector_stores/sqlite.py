@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import struct
 import uuid
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, TYPE_CHECKING
 
 from sqlalchemy import (
     BLOB, Column, Integer, String, Text, create_engine, event, select, text
@@ -20,6 +20,15 @@ from knowlang.vector_stores.base import (
     VectorStoreInitError,
 )
 from knowlang.vector_stores.factory import register_vector_store
+
+if TYPE_CHECKING:
+    try:
+        import sqlite3
+        import sqlite_vec
+    except ImportError as e:
+        raise ImportError(
+            'SQLite vector store is not installed. Please install it using `pip install "knowlang[sqlite]"`.'
+        ) from e
 
 Base = declarative_base()
 
@@ -83,19 +92,21 @@ class SqliteVectorStore(VectorStore):
     def _setup_sqlite_vec_extension(self) -> None:
         """Set up sqlite-vec extension loading for the engine."""
         @event.listens_for(self.engine, "connect")
-        def load_sqlite_vec(dbapi_connection, connection_record):
-            dbapi_connection.enable_load_extension(True)
+        def load_sqlite_vec(conn : sqlite3.Connection,connection_record):
             try:
-                dbapi_connection.load_extension("vec")
+                import sqlite_vec
+                conn.enable_load_extension(True)
+                sqlite_vec.load(conn)
+                conn.enable_load_extension(False)
             except Exception as e:
                 raise VectorStoreInitError(
-                    "Failed to load sqlite-vec extension. Ensure it's installed and accessible."
+                    "Failed to load sqlite-vec extension. Ensure it's installed and accessible. {e}"
                 ) from e
-
+        
     def initialize(self) -> None:
         try:
             # Create engine
-            self.engine = create_engine(f"sqlite:///{self.db_path}")
+            self.engine = create_engine(self.db_path)
             
             # Set up sqlite-vec extension loading
             self._setup_sqlite_vec_extension()
@@ -109,8 +120,8 @@ class SqliteVectorStore(VectorStore):
             # Create virtual table for vector indexing (using raw SQL as it's sqlite-vec specific)
             with self.engine.connect() as conn:
                 conn.execute(text(f"""
-                    CREATE VIRTUAL TABLE IF NOT EXISTS {self.virtual_table} USING vec_f32(
-                        embedding({self.embedding_dim})
+                    CREATE VIRTUAL TABLE IF NOT EXISTS {self.virtual_table} USING vec0(
+                        embedding float[{self.embedding_dim}]
                     )
                 """))
                 conn.commit()
