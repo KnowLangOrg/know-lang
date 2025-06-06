@@ -4,7 +4,6 @@ from sse_starlette.sse import EventSourceResponse
 
 from knowlang.api import ApiModelRegistry
 from knowlang.chat_bot import (
-    ChatAnalytics,
     ChatStatus,
     StreamingChatResult,
     stream_chat_progress,
@@ -35,17 +34,11 @@ async def get_vector_store(config: AppConfig = Depends(get_app_config)):
     return VectorStoreFactory.get(config)
 
 
-# Dependency to get chat analytics
-async def get_chat_analytics(config: AppConfig = Depends(get_app_config)):
-    return ChatAnalytics(config.chat_analytics)
-
-
 @router.get("/chat/stream")
 async def stream_chat(
     query: str,
     config: AppConfig = Depends(get_app_config),
     vector_store=Depends(get_vector_store),
-    chat_analytics=Depends(get_chat_analytics),
 ):
     """
     Streaming chat endpoint that uses server-sent events (SSE)
