@@ -526,7 +526,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -1170,7 +1170,7 @@ dependencies = [
     { name = "tree-sitter" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 all = [
     { name = "chromadb" },
     { name = "einops" },
@@ -1232,45 +1232,54 @@ voyage = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chromadb", marker = "extra == 'all'", specifier = ">=0.6.3,<0.7.0" },
-    { name = "chromadb", marker = "extra == 'chromadb'", specifier = ">=0.6.3,<0.7.0" },
-    { name = "einops", marker = "extra == 'all'", specifier = ">=0.8.1,<0.9.0" },
-    { name = "einops", marker = "extra == 'nomic-ai'", specifier = ">=0.8.1,<0.9.0" },
     { name = "fastapi", specifier = ">=0.115.8,<0.116.0" },
     { name = "gitpython", specifier = ">=3.1.44,<4.0.0" },
-    { name = "gradio", marker = "extra == 'all'", specifier = ">=5.13.1,<6.0.0" },
-    { name = "gradio", marker = "extra == 'gradio'", specifier = ">=5.13.1,<6.0.0" },
-    { name = "mcp", extras = ["cli"], marker = "extra == 'all'", specifier = ">=1.6.0,<2.0.0" },
-    { name = "mcp", extras = ["cli"], marker = "extra == 'mcp'", specifier = ">=1.6.0,<2.0.0" },
-    { name = "mixpanel", marker = "extra == 'all'", specifier = ">=4.10.1,<5.0.0" },
-    { name = "mixpanel", marker = "extra == 'mixpanel'", specifier = ">=4.10.1,<5.0.0" },
-    { name = "ollama", marker = "extra == 'all'", specifier = ">=0.4.7,<0.5.0" },
-    { name = "ollama", marker = "extra == 'ollama'", specifier = ">=0.4.7,<0.5.0" },
     { name = "pydantic-ai", extras = ["logfire"], specifier = ">=0.1.0" },
     { name = "pydantic-settings", specifier = ">=2.7.1,<3.0.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.4" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25.2" },
-    { name = "sentence-transformers", marker = "extra == 'all'", specifier = ">=4.0.1,<5.0.0" },
-    { name = "sentence-transformers", marker = "extra == 'nomic-ai'", specifier = ">=4.0.1,<5.0.0" },
     { name = "sqlalchemy", specifier = ">=2.0.38,<3.0.0" },
     { name = "sse-starlette", specifier = ">=2.2.1,<3.0.0" },
-    { name = "torch", marker = "extra == 'all'", specifier = ">=2.6.0,<3.0.0" },
-    { name = "torch", marker = "extra == 'pytorch'", specifier = ">=2.6.0,<3.0.0" },
-    { name = "transformers", marker = "extra == 'all'", specifier = ">=4.49.0,<5.0.0" },
-    { name = "transformers", marker = "extra == 'pytorch'", specifier = ">=4.49.0,<5.0.0" },
     { name = "tree-sitter", specifier = ">=0.24.0,<0.25.0" },
-    { name = "tree-sitter-cpp", marker = "extra == 'all'", specifier = ">=0.23.4,<0.24.0" },
-    { name = "tree-sitter-cpp", marker = "extra == 'cpp'", specifier = ">=0.23.4,<0.24.0" },
-    { name = "tree-sitter-python", marker = "extra == 'all'", specifier = ">=0.23.6,<0.24.0" },
-    { name = "tree-sitter-python", marker = "extra == 'python'", specifier = ">=0.23.6,<0.24.0" },
-    { name = "tree-sitter-typescript", marker = "extra == 'all'", specifier = ">=0.23.2,<0.24.0" },
-    { name = "tree-sitter-typescript", marker = "extra == 'typescript'", specifier = ">=0.23.2,<0.24.0" },
-    { name = "vecs", marker = "extra == 'all'", specifier = ">=0.4.5,<0.5.0" },
-    { name = "vecs", marker = "extra == 'vecs'", specifier = ">=0.4.5,<0.5.0" },
-    { name = "voyageai", marker = "extra == 'all'", specifier = ">=0.3.2,<0.4.0" },
-    { name = "voyageai", marker = "extra == 'voyage'", specifier = ">=0.3.2,<0.4.0" },
 ]
-provides-extras = ["all", "chromadb", "cpp", "dev", "gradio", "mcp", "mixpanel", "nomic-ai", "ollama", "python", "pytorch", "typescript", "vecs", "voyage"]
+
+[package.metadata.requires-dev]
+all = [
+    { name = "chromadb", specifier = ">=0.6.3,<0.7.0" },
+    { name = "einops", specifier = ">=0.8.1,<0.9.0" },
+    { name = "gradio", specifier = ">=5.13.1,<6.0.0" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.6.0,<2.0.0" },
+    { name = "mixpanel", specifier = ">=4.10.1,<5.0.0" },
+    { name = "ollama", specifier = ">=0.4.7,<0.5.0" },
+    { name = "sentence-transformers", specifier = ">=4.0.1,<5.0.0" },
+    { name = "torch", specifier = ">=2.6.0,<3.0.0" },
+    { name = "transformers", specifier = ">=4.49.0,<5.0.0" },
+    { name = "tree-sitter-cpp", specifier = ">=0.23.4,<0.24.0" },
+    { name = "tree-sitter-python", specifier = ">=0.23.6,<0.24.0" },
+    { name = "tree-sitter-typescript", specifier = ">=0.23.2,<0.24.0" },
+    { name = "vecs", specifier = ">=0.4.5,<0.5.0" },
+    { name = "voyageai", specifier = ">=0.3.2,<0.4.0" },
+]
+chromadb = [{ name = "chromadb", specifier = ">=0.6.3,<0.7.0" }]
+cpp = [{ name = "tree-sitter-cpp", specifier = ">=0.23.4,<0.24.0" }]
+dev = [
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.2" },
+]
+gradio = [{ name = "gradio", specifier = ">=5.13.1,<6.0.0" }]
+mcp = [{ name = "mcp", extras = ["cli"], specifier = ">=1.6.0,<2.0.0" }]
+mixpanel = [{ name = "mixpanel", specifier = ">=4.10.1,<5.0.0" }]
+nomic-ai = [
+    { name = "einops", specifier = ">=0.8.1,<0.9.0" },
+    { name = "sentence-transformers", specifier = ">=4.0.1,<5.0.0" },
+]
+ollama = [{ name = "ollama", specifier = ">=0.4.7,<0.5.0" }]
+python = [{ name = "tree-sitter-python", specifier = ">=0.23.6,<0.24.0" }]
+pytorch = [
+    { name = "torch", specifier = ">=2.6.0,<3.0.0" },
+    { name = "transformers", specifier = ">=4.49.0,<5.0.0" },
+]
+typescript = [{ name = "tree-sitter-typescript", specifier = ">=0.23.2,<0.24.0" }]
+vecs = [{ name = "vecs", specifier = ">=0.4.5,<0.5.0" }]
+voyage = [{ name = "voyageai", specifier = ">=0.3.2,<0.4.0" }]
 
 [[package]]
 name = "kubernetes"

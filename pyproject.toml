@@ -54,7 +54,7 @@ dependencies = [
     "sqlalchemy>=2.0.38,<3.0.0",
 ]
 
-[tool.hatch.metadata.hooks.uv-dynamic-versioning.optional-dependencies]
+[dependency-groups]
 # UI Interfaces
 gradio = ["gradio>=5.13.1,<6.0.0"]
 # Databases
