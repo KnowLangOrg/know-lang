@@ -94,6 +94,7 @@ class VectorStoreProvider(str, Enum):
     POSTGRES = "postgres"
     TESTING = "testing"
     CUSTOM = "custom"
+    SQLITE = "sqlite" # Added for SqliteVectorStore
     
 class StateStoreProvider(str, Enum):
     """Supported state store types"""

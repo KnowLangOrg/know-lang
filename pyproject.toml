@@ -60,6 +60,7 @@ gradio = ["gradio>=5.13.1,<6.0.0"]
 # Databases
 vecs = ["vecs>=0.4.5,<0.5.0"]
 chromadb = ["chromadb>=0.6.3,<0.7.0"]
+sqlite-vec = ["sqlite-vec"] # Added sqlite-vec
 ollama = ["ollama>=0.4.7,<0.5.0"]
 # Model Providers
 voyage = ["voyageai>=0.3.2,<0.4.0"]
@@ -78,6 +79,7 @@ all = [
     "gradio>=5.13.1,<6.0.0",
     "chromadb>=0.6.3,<0.7.0",
     "vecs>=0.4.5,<0.5.0",
+    "sqlite-vec", # Added sqlite-vec
     "voyageai>=0.3.2,<0.4.0",
     "mixpanel>=4.10.1,<5.0.0",
     "tree-sitter-python>=0.23.6,<0.24.0",
