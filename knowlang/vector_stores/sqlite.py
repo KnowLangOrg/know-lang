@@ -40,7 +40,7 @@ class VectorDocumentModel(Base):
     id = Column(String, primary_key=True)
     content = Column(Text, nullable=False)
     embedding = Column(BLOB)
-    doc_metadata = Column(Text)  # Store metadata as JSON string
+    doc_metadata = Column(Text)
 
 
 @register_vector_store(VectorStoreProvider.SQLITE)
@@ -81,8 +81,6 @@ class SqliteVectorStore(VectorStore):
         self.engine = None
         self.Session = None
         
-        # Update the model's table name dynamically
-        VectorDocumentModel.__tablename__ = self.table_name
     
     @property
     def virtual_table(self) -> str:
@@ -121,7 +119,8 @@ class SqliteVectorStore(VectorStore):
             with self.engine.connect() as conn:
                 conn.execute(text(f"""
                     CREATE VIRTUAL TABLE IF NOT EXISTS {self.virtual_table} USING vec0(
-                        embedding float[{self.embedding_dim}]
+                        id TEXT PRIMARY KEY,
+                        embedding FLOAT[{self.embedding_dim}]
                     )
                 """))
                 conn.commit()
@@ -171,7 +170,8 @@ class SqliteVectorStore(VectorStore):
                     content_to_store = self._get_content_from_document_or_metadata(
                         doc_ref_content, metadata
                     )
-                    embedding_bytes = struct.pack(f"{self.embedding_dim}f", *embedding_list)
+                    from sqlite_vec import serialize_float32
+                    embedding_bytes = serialize_float32(embedding_list)
                     metadata_str = json.dumps(metadata)
 
                     # Create document record
@@ -185,16 +185,16 @@ class SqliteVectorStore(VectorStore):
                     session.flush()  # Ensure the record is inserted to get rowid
 
                     # Get the rowid for the virtual table
-                    rowid_result = session.execute(text(f"""
-                        SELECT rowid FROM {self.table_name} WHERE id = :doc_id
-                    """), {"doc_id": doc_id}).scalar()
+                    rowid_result = session.execute(select(
+                        VectorDocumentModel.id
+                    ).where(VectorDocumentModel.id == doc_id)).scalar()
 
                     # Insert into virtual table for vector indexing
                     session.execute(text(f"""
-                        INSERT INTO {self.virtual_table} (rowid, embedding) 
-                        VALUES (:rowid, :embedding)
+                        INSERT INTO {self.virtual_table} (id, embedding) 
+                        VALUES (:id, :embedding)
                     """), {
-                        "rowid": rowid_result,
+                        "id": rowid_result,
                         "embedding": embedding_bytes
                     })
 
@@ -202,8 +202,6 @@ class SqliteVectorStore(VectorStore):
                 
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to add documents: {e}")
-        except struct.error as e:
-            raise VectorStoreError(f"Failed to pack embedding into bytes: {e}")
         except Exception as e:
             raise VectorStoreError(
                 f"An unexpected error occurred while adding documents: {e}"
@@ -246,7 +244,8 @@ class SqliteVectorStore(VectorStore):
                 "Vector store is not initialized. Call initialize() first."
             )
 
-        query_embedding_bytes = struct.pack(f"{self.embedding_dim}f", *query_embedding)
+        from sqlite_vec import serialize_float32
+        query_embedding_bytes = serialize_float32(query_embedding)
 
         try:
             with self.Session() as session:
@@ -373,7 +372,9 @@ class SqliteVectorStore(VectorStore):
                 "Vector store is not initialized. Call initialize() first."
             )
 
-        embedding_bytes = struct.pack(f"{self.embedding_dim}f", *embedding)
+        from sqlite_vec import serialize_float32
+        embedding_bytes = serialize_float32(embedding)
+
         metadata_str = json.dumps(metadata)
 
         try:
