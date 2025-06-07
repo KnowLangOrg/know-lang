@@ -28,15 +28,16 @@ class VectorStore(SearchableStore):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.collection = kwargs.get('collection', None)
 
         self.register_capability(SearchMethodology.VECTOR)
         self.register_strategy(VectorSearchStrategy())
 
-    def assert_initialized(self) -> None:
+
+    @classmethod
+    @abstractmethod
+    def assert_initialized(cls) -> None:
         """Assert that the vector store is initialized"""
-        if self.collection is None:
-            raise VectorStoreError(f"{self.__class__.__name__} is not initialized.")
+        pass
 
     @classmethod
     @abstractmethod
@@ -76,7 +77,7 @@ class VectorStore(SearchableStore):
         self,
         query_embedding: List[float],
         top_k: int = 5
-    ) -> List[Any]:
+    ) -> List[SearchResult]:
         """Query the vector store for similar documents"""
         pass
 
@@ -89,15 +90,12 @@ class VectorStore(SearchableStore):
     ) -> List[SearchResult]:
         """Search for similar documents"""
         self.assert_initialized()
-        records = await self.query(
+
+        return await self.query(
             query_embedding=query_embedding,
             top_k=top_k,
+            score_threshold=score_threshold,
             **kwargs
-        )
-        return reduce(
-            lambda acc, record: self.accumulate_result(acc, record, score_threshold),
-            records,
-            []
         )
     
     @abstractmethod

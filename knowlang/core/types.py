@@ -93,6 +93,7 @@ class VectorStoreProvider(str, Enum):
     CHROMA = "chroma"
     POSTGRES = "postgres"
     TESTING = "testing"
+    SQLITE = "sqlite"
     CUSTOM = "custom"
     
 class StateStoreProvider(str, Enum):

@@ -13,7 +13,8 @@ if TYPE_CHECKING:
     from knowlang.vector_stores.chroma import ChromaVectorStore
     from knowlang.vector_stores.postgres import PostgresVectorStore
     from knowlang.vector_stores.postgres_hybrid import PostgresHybridStore
-    T = TypeVar('T', bound=Union["PostgresVectorStore", "PostgresHybridStore", "ChromaVectorStore"])
+    from knowlang.vector_stores.sqlite import SqliteVectorStore # Add this line
+    T = TypeVar('T', bound=Union["PostgresVectorStore", "PostgresHybridStore", "ChromaVectorStore", "SqliteVectorStore"]) # Add here
 else:
     T = TypeVar('T')
 

@@ -66,7 +66,7 @@ class StateStoreConfig(BaseSettings):
         
         if self.provider == StateStoreProvider.SQLITE:
             return {
-                'url': f'sqlite:///{self.store_path}',
+                'url': self.connection_url,
                 **common_args,
             }
         elif self.provider == StateStoreProvider.POSTGRES:

@@ -54,6 +54,11 @@ class PostgresVectorStore(VectorStore):
         self.content_field = content_field
         self.collection = None
 
+    def assert_initialized(self) -> None:
+        """Assert that the vector store is initialized"""
+        if self.collection is None:
+            raise ValueError(f"{self.__class__.__name__} is not initialized.")
+
     def initialize(self) -> None:
         """Initialize the Postgres vector store client and create a collection of vectors."""
         try:
@@ -125,9 +130,10 @@ class PostgresVectorStore(VectorStore):
         self,
         query_embedding: List[float],
         top_k: int = 5,
-        filter: Optional[Dict[str, Any]] = None
+        score_threshold: Optional[float] = None,
+        filter: Optional[Dict[str, Any]] = None,
     ) -> List[SearchResult]:
-        return self.collection.query(
+        records =  self.collection.query(
             data=query_embedding,
             limit=top_k,
             measure=self.measure(),
@@ -135,6 +141,13 @@ class PostgresVectorStore(VectorStore):
             include_metadata=True,
             filters=filter
         )
+
+        return self.accumulate_result(
+            acc=[],
+            record=records,
+            score_threshold=score_threshold
+        )
+
 
     async def delete(self, ids: List[str]) -> None:
         self.assert_initialized()

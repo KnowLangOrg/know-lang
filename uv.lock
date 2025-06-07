@@ -1179,6 +1179,7 @@ all = [
     { name = "mixpanel" },
     { name = "ollama" },
     { name = "sentence-transformers" },
+    { name = "sqlite-vec" },
     { name = "torch" },
     { name = "transformers" },
     { name = "tree-sitter-cpp" },
@@ -1223,6 +1224,9 @@ pytorch = [
     { name = "torch" },
     { name = "transformers" },
 ]
+sqlite = [
+    { name = "sqlite-vec" },
+]
 typescript = [
     { name = "tree-sitter-typescript" },
 ]
@@ -1253,6 +1257,7 @@ all = [
     { name = "mixpanel", specifier = ">=4.10.1,<5.0.0" },
     { name = "ollama", specifier = ">=0.4.7,<0.5.0" },
     { name = "sentence-transformers", specifier = ">=4.0.1,<5.0.0" },
+    { name = "sqlite-vec" },
     { name = "torch", specifier = ">=2.6.0,<3.0.0" },
     { name = "transformers", specifier = ">=4.49.0,<5.0.0" },
     { name = "tree-sitter-cpp", specifier = ">=0.23.4,<0.24.0" },
@@ -1281,6 +1286,7 @@ pytorch = [
     { name = "torch", specifier = ">=2.6.0,<3.0.0" },
     { name = "transformers", specifier = ">=4.49.0,<5.0.0" },
 ]
+sqlite = [{ name = "sqlite-vec", specifier = ">=0.1.6" }]
 typescript = [{ name = "tree-sitter-typescript", specifier = ">=0.23.2,<0.24.0" }]
 vecs = [{ name = "vecs", specifier = ">=0.4.5,<0.5.0" }]
 voyage = [{ name = "voyageai", specifier = ">=0.3.2,<0.4.0" }]
@@ -3067,6 +3073,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5c/ca/0c19ec16858585d37767b167fc9602593f98998a68a798450558239fb04a/sqlalchemy-2.0.41-cp312-cp312-win32.whl", hash = "sha256:a8808d5cf866c781150d36a3c8eb3adccfa41a8105d031bf27e92c251e3969d6", size = 2084514, upload-time = "2025-05-14T17:55:49.915Z" },
     { url = "https://files.pythonhosted.org/packages/7f/23/4c2833d78ff3010a4e17f984c734f52b531a8c9060a50429c9d4b0211be6/sqlalchemy-2.0.41-cp312-cp312-win_amd64.whl", hash = "sha256:5b14e97886199c1f52c14629c11d90c11fbb09e9334fa7bb5f6d068d9ced0ce0", size = 2111557, upload-time = "2025-05-14T17:55:51.349Z" },
     { url = "https://files.pythonhosted.org/packages/1c/fc/9ba22f01b5cdacc8f5ed0d22304718d2c758fce3fd49a5372b886a86f37c/sqlalchemy-2.0.41-py3-none-any.whl", hash = "sha256:57df5dc6fdb5ed1a88a1ed2195fd31927e705cad62dedd86b46972752a80f576", size = 1911224, upload-time = "2025-05-14T17:39:42.154Z" },
+]
+
+[[package]]
+name = "sqlite-vec"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/88/ed/aabc328f29ee6814033d008ec43e44f2c595447d9cccd5f2aabe60df2933/sqlite_vec-0.1.6-py3-none-macosx_10_6_x86_64.whl", hash = "sha256:77491bcaa6d496f2acb5cc0d0ff0b8964434f141523c121e313f9a7d8088dee3", size = 164075, upload-time = "2024-11-20T16:40:29.847Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/57/05604e509a129b22e303758bfa062c19afb020557d5e19b008c64016704e/sqlite_vec-0.1.6-py3-none-macosx_11_0_arm64.whl", hash = "sha256:fdca35f7ee3243668a055255d4dee4dea7eed5a06da8cad409f89facf4595361", size = 165242, upload-time = "2024-11-20T16:40:31.206Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/48/dbb2cc4e5bad88c89c7bb296e2d0a8df58aab9edc75853728c361eefc24f/sqlite_vec-0.1.6-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7b0519d9cd96164cd2e08e8eed225197f9cd2f0be82cb04567692a0a4be02da3", size = 103704, upload-time = "2024-11-20T16:40:33.729Z" },
+    { url = "https://files.pythonhosted.org/packages/80/76/97f33b1a2446f6ae55e59b33869bed4eafaf59b7f4c662c8d9491b6a714a/sqlite_vec-0.1.6-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux1_x86_64.whl", hash = "sha256:823b0493add80d7fe82ab0fe25df7c0703f4752941aee1c7b2b02cec9656cb24", size = 151556, upload-time = "2024-11-20T16:40:35.387Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/98/e8bc58b178266eae2fcf4c9c7a8303a8d41164d781b32d71097924a6bebe/sqlite_vec-0.1.6-py3-none-win_amd64.whl", hash = "sha256:c65bcfd90fa2f41f9000052bcb8bb75d38240b2dae49225389eca6c3136d3f0c", size = 281540, upload-time = "2024-11-20T16:40:37.296Z" },
 ]
 
 [[package]]
