@@ -6,7 +6,7 @@ import uuid
 from typing import Any, Dict, List, Literal, Optional, TYPE_CHECKING
 
 from sqlalchemy import (
-    BLOB, Column, Integer, String, Text, create_engine, event, select, text
+    BLOB, Column, Integer, String, Text, create_engine, delete, event, select, text
 )
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -20,6 +20,8 @@ from knowlang.vector_stores.base import (
     VectorStoreInitError,
 )
 from knowlang.vector_stores.factory import register_vector_store
+from knowlang.utils import FancyLogger
+
 
 if TYPE_CHECKING:
     try:
@@ -30,6 +32,7 @@ if TYPE_CHECKING:
             'SQLite vector store is not installed. Please install it using `pip install "knowlang[sqlite]"`.'
         ) from e
 
+LOG = FancyLogger(__name__)
 Base = declarative_base()
 
 
@@ -259,7 +262,7 @@ class SqliteVectorStore(VectorStore):
                     FROM
                         {self.virtual_table} v
                     JOIN
-                        {self.table_name} m ON v.rowid = m.rowid
+                        {self.table_name} m ON v.id = m.id
                     WHERE
                         v.embedding MATCH :query_embedding
                     LIMIT :top_k
@@ -301,34 +304,26 @@ class SqliteVectorStore(VectorStore):
 
         try:
             with self.Session() as session:
-                # Get rowids for the documents to delete
                 stmt = select(VectorDocumentModel).where(VectorDocumentModel.id.in_(ids))
                 docs_to_delete = session.execute(stmt).scalars().all()
                 
                 if not docs_to_delete:
                     return
-
-                row_ids_to_delete = []
+                
+                # delete from virtual table first
                 for doc in docs_to_delete:
-                    # Get the rowid
-                    rowid_result = session.execute(text(f"""
-                        SELECT rowid FROM {self.table_name} WHERE id = :doc_id
-                    """), {"doc_id": doc.id}).scalar()
-                    if rowid_result:
-                        row_ids_to_delete.append(rowid_result)
-
-                # Delete from main table
-                for doc in docs_to_delete:
-                    session.delete(doc)
-
-                # Delete from virtual table
-                if row_ids_to_delete:
-                    for rowid in row_ids_to_delete:
-                        session.execute(text(f"""
-                            DELETE FROM {self.virtual_table} WHERE rowid = :rowid
-                        """), {"rowid": rowid})
+                    session.execute(text(f"""
+                        DELETE FROM {self.virtual_table} WHERE id = :id
+                        """),
+                        {"id": doc.id}
+                    )
+                
+                # then delete from main table
+                result = session.execute(delete(VectorDocumentModel).where(VectorDocumentModel.id.in_(ids)))
 
                 session.commit()
+
+                LOG.debug(f"Deleted {result.rowcount} documents from vector store.")
                 
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to delete documents: {e}")
@@ -386,27 +381,15 @@ class SqliteVectorStore(VectorStore):
                 if not doc:
                     raise VectorStoreError(f"Document with id {id} not found for update.")
 
-                # Get rowid for virtual table update
-                rowid_result = session.execute(text(f"""
-                    SELECT rowid FROM {self.table_name} WHERE id = :doc_id
-                """), {"doc_id": id}).scalar()
-
                 # Update main table
                 doc.content = document
                 doc.embedding = embedding_bytes
                 doc.doc_metadata = metadata_str
 
-                # Update virtual table
-                if rowid_result:
-                    # Delete and re-insert in virtual table
-                    session.execute(text(f"""
-                        DELETE FROM {self.virtual_table} WHERE rowid = :rowid
-                    """), {"rowid": rowid_result})
-                    
-                    session.execute(text(f"""
-                        INSERT INTO {self.virtual_table} (rowid, embedding) 
-                        VALUES (:rowid, :embedding)
-                    """), {"rowid": rowid_result, "embedding": embedding_bytes})
+                session.execute(text(f"""
+                    INSERT INTO {self.virtual_table} (id, embedding) 
+                    VALUES (:id, :embedding)
+                """), {"id": doc.id, "embedding": embedding_bytes})
 
                 session.commit()
                 
