@@ -34,6 +34,26 @@ class MockVectorStore(VectorStore):
     added_documents: List[str] = field(default_factory=list)
     updated_documents: List[str] = field(default_factory=list)
 
+    def assert_initialized(self) -> None:
+        pass
+
+    def accumulate_result(
+        self,
+        acc: List[SearchResult],
+        record: Tuple[str, float, Dict[str, Any]],
+        score_threshold: Optional[float] = None
+    ) -> List[SearchResult]:
+        """Accumulate search result into the provided list"""
+        doc_id, dist, meta = record
+        score = 1.0 - dist
+        if score_threshold is None or score >= score_threshold:
+            acc.append(SearchResult(
+                document=self.documents.get(doc_id, ""),
+                metadata=meta,
+                score=float(score)
+            ))
+        return acc
+
     @classmethod
     def create_from_config(cls, config: AppConfig) -> "MockVectorStore":
         """Create a mock store instance from configuration"""

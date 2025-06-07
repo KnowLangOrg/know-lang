@@ -99,18 +99,30 @@ class ChromaVectorStore(VectorStore):
         self,
         query_embedding: List[float],
         top_k: int = 5,
+        score_threshold: Optional[float] = None
     ) -> List[Tuple[str, float, Dict[str, Any]]]:
         results = self.collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
             include=['metadatas', 'documents', 'distances']
         )
-        return zip_longest(
+        records =  zip_longest(
             results['documents'][0],
             results['metadatas'][0],
             results['distances'][0],
             fillvalue={}
         )
+
+        return self.accumulate_result(
+            acc=[],
+            record=records,
+            score_threshold=score_threshold
+        )
+
+    def assert_initialized(self) -> None:
+        """Assert that the vector store is initialized"""
+        if self.collection is None:
+            raise ValueError(f"{self.__class__.__name__} is not initialized.")
 
     async def delete(self, ids: List[str]) -> None:
         self.assert_initialized()

@@ -94,6 +94,11 @@ class SqliteVectorStore(VectorStore):
         self.engine = None
         self.Session = None
 
+    def assert_initialized(self) -> None:
+        """Assert that the vector store is initialized"""
+        if self.engine is None or self.Session is None:
+            raise ValueError(f"{self.__class__.__name__} is not initialized.")
+
     @property
     def virtual_table(self) -> str:
         """Returns the name of the virtual table used for vector indexing."""
@@ -261,6 +266,7 @@ class SqliteVectorStore(VectorStore):
         query_embedding: List[float],
         top_k: int = 5,
         filter: Optional[Dict[str, Any]] = None,
+        score_threshold: Optional[float] = None,
     ) -> List[SearchResult]:
         if not self.engine or not self.Session:
             raise VectorStoreError(
@@ -284,10 +290,13 @@ class SqliteVectorStore(VectorStore):
                     FROM
                         {self.virtual_table} v
                     JOIN
-                        {self.table_name} m ON v.id = m.id
+                        {VectorDocumentModel.__tablename__} m ON v.id = m.id
                     WHERE
                         v.embedding MATCH :query_embedding
-                    LIMIT :top_k
+                    AND
+                        v.k = :top_k
+                    ORDER BY
+                        v.distance ASC
                 """
                 )
 
