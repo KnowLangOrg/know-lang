@@ -6,7 +6,16 @@ import uuid
 from typing import Any, Dict, List, Literal, Optional, TYPE_CHECKING
 
 from sqlalchemy import (
-    BLOB, Column, Integer, String, Text, create_engine, delete, event, select, text
+    BLOB,
+    Column,
+    Integer,
+    String,
+    Text,
+    create_engine,
+    delete,
+    event,
+    select,
+    text,
 )
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -38,8 +47,9 @@ Base = declarative_base()
 
 class VectorDocumentModel(Base):
     """SQLAlchemy model for vector documents."""
-    __tablename__ = 'vector_documents'
-    
+
+    __tablename__ = "vector_documents"
+
     id = Column(String, primary_key=True)
     content = Column(Text, nullable=False)
     embedding = Column(BLOB)
@@ -83,8 +93,7 @@ class SqliteVectorStore(VectorStore):
         self.content_field = content_field or "content"
         self.engine = None
         self.Session = None
-        
-    
+
     @property
     def virtual_table(self) -> str:
         """Returns the name of the virtual table used for vector indexing."""
@@ -92,10 +101,12 @@ class SqliteVectorStore(VectorStore):
 
     def _setup_sqlite_vec_extension(self) -> None:
         """Set up sqlite-vec extension loading for the engine."""
+
         @event.listens_for(self.engine, "connect")
-        def load_sqlite_vec(conn : sqlite3.Connection,connection_record):
+        def load_sqlite_vec(conn: sqlite3.Connection, connection_record):
             try:
                 import sqlite_vec
+
                 conn.enable_load_extension(True)
                 sqlite_vec.load(conn)
                 conn.enable_load_extension(False)
@@ -103,15 +114,15 @@ class SqliteVectorStore(VectorStore):
                 raise VectorStoreInitError(
                     "Failed to load sqlite-vec extension. Ensure it's installed and accessible. {e}"
                 ) from e
-        
+
     def initialize(self) -> None:
         try:
             # Create engine
             self.engine = create_engine(self.db_path)
-            
+
             # Set up sqlite-vec extension loading
             self._setup_sqlite_vec_extension()
-            
+
             # Create session factory
             self.Session = sessionmaker(bind=self.engine)
 
@@ -120,14 +131,18 @@ class SqliteVectorStore(VectorStore):
 
             # Create virtual table for vector indexing (using raw SQL as it's sqlite-vec specific)
             with self.engine.connect() as conn:
-                conn.execute(text(f"""
+                conn.execute(
+                    text(
+                        f"""
                     CREATE VIRTUAL TABLE IF NOT EXISTS {self.virtual_table} USING vec0(
                         id TEXT PRIMARY KEY,
                         embedding FLOAT[{self.embedding_dim}]
                     )
-                """))
+                """
+                    )
+                )
                 conn.commit()
-                
+
         except SQLAlchemyError as e:
             self.engine = None
             self.Session = None
@@ -174,6 +189,7 @@ class SqliteVectorStore(VectorStore):
                         doc_ref_content, metadata
                     )
                     from sqlite_vec import serialize_float32
+
                     embedding_bytes = serialize_float32(embedding_list)
                     metadata_str = json.dumps(metadata)
 
@@ -182,27 +198,31 @@ class SqliteVectorStore(VectorStore):
                         id=doc_id,
                         content=content_to_store,
                         embedding=embedding_bytes,
-                        doc_metadata=metadata_str
+                        doc_metadata=metadata_str,
                     )
                     session.add(doc_model)
                     session.flush()  # Ensure the record is inserted to get rowid
 
                     # Get the rowid for the virtual table
-                    rowid_result = session.execute(select(
-                        VectorDocumentModel.id
-                    ).where(VectorDocumentModel.id == doc_id)).scalar()
+                    rowid_result = session.execute(
+                        select(VectorDocumentModel.id).where(
+                            VectorDocumentModel.id == doc_id
+                        )
+                    ).scalar()
 
                     # Insert into virtual table for vector indexing
-                    session.execute(text(f"""
+                    session.execute(
+                        text(
+                            f"""
                         INSERT INTO {self.virtual_table} (id, embedding) 
                         VALUES (:id, :embedding)
-                    """), {
-                        "id": rowid_result,
-                        "embedding": embedding_bytes
-                    })
+                    """
+                        ),
+                        {"id": rowid_result, "embedding": embedding_bytes},
+                    )
 
                 session.commit()
-                
+
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to add documents: {e}")
         except Exception as e:
@@ -248,12 +268,14 @@ class SqliteVectorStore(VectorStore):
             )
 
         from sqlite_vec import serialize_float32
+
         query_embedding_bytes = serialize_float32(query_embedding)
 
         try:
             with self.Session() as session:
                 # Use raw SQL for vector similarity search as it's sqlite-vec specific
-                sql_query = text(f"""
+                sql_query = text(
+                    f"""
                     SELECT
                         m.id,
                         m.{self.content_field},
@@ -266,12 +288,13 @@ class SqliteVectorStore(VectorStore):
                     WHERE
                         v.embedding MATCH :query_embedding
                     LIMIT :top_k
-                """)
-                
-                results_raw = session.execute(sql_query, {
-                    "query_embedding": query_embedding_bytes,
-                    "top_k": top_k
-                }).fetchall()
+                """
+                )
+
+                results_raw = session.execute(
+                    sql_query,
+                    {"query_embedding": query_embedding_bytes, "top_k": top_k},
+                ).fetchall()
 
                 search_results: List[SearchResult] = []
                 for record in results_raw:
@@ -283,12 +306,13 @@ class SqliteVectorStore(VectorStore):
                         sr
                         for sr in search_results
                         if all(
-                            sr.metadata.get(key) == value for key, value in filter.items()
+                            sr.metadata.get(key) == value
+                            for key, value in filter.items()
                         )
                     ]
                     return filtered_results
                 return search_results
-                
+
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to query: {e}")
         except struct.error as e:
@@ -304,27 +328,34 @@ class SqliteVectorStore(VectorStore):
 
         try:
             with self.Session() as session:
-                stmt = select(VectorDocumentModel).where(VectorDocumentModel.id.in_(ids))
+                stmt = select(VectorDocumentModel).where(
+                    VectorDocumentModel.id.in_(ids)
+                )
                 docs_to_delete = session.execute(stmt).scalars().all()
-                
+
                 if not docs_to_delete:
                     return
-                
+
                 # delete from virtual table first
                 for doc in docs_to_delete:
-                    session.execute(text(f"""
+                    session.execute(
+                        text(
+                            f"""
                         DELETE FROM {self.virtual_table} WHERE id = :id
-                        """),
-                        {"id": doc.id}
+                        """
+                        ),
+                        {"id": doc.id},
                     )
-                
+
                 # then delete from main table
-                result = session.execute(delete(VectorDocumentModel).where(VectorDocumentModel.id.in_(ids)))
+                result = session.execute(
+                    delete(VectorDocumentModel).where(VectorDocumentModel.id.in_(ids))
+                )
 
                 session.commit()
 
                 LOG.debug(f"Deleted {result.rowcount} documents from vector store.")
-                
+
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to delete documents: {e}")
 
@@ -333,25 +364,27 @@ class SqliteVectorStore(VectorStore):
             raise VectorStoreError(
                 "Vector store is not initialized. Call initialize() first."
             )
-            
+
         try:
             with self.Session() as session:
                 stmt = select(VectorDocumentModel).where(VectorDocumentModel.id == id)
                 doc = session.execute(stmt).scalar_one_or_none()
-                
+
                 if doc:
                     try:
-                        metadata = json.loads(doc.doc_metadata) if doc.doc_metadata else {}
+                        metadata = (
+                            json.loads(doc.doc_metadata) if doc.doc_metadata else {}
+                        )
                     except json.JSONDecodeError:
                         metadata = {}
                     return SearchResult(
-                        id=doc.id, 
-                        document=getattr(doc, self.content_field, doc.content), 
-                        metadata=metadata, 
-                        score=0.0
+                        id=doc.id,
+                        document=getattr(doc, self.content_field, doc.content),
+                        metadata=metadata,
+                        score=0.0,
                     )
                 return None
-                
+
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to get document: {e}")
 
@@ -368,6 +401,7 @@ class SqliteVectorStore(VectorStore):
             )
 
         from sqlite_vec import serialize_float32
+
         embedding_bytes = serialize_float32(embedding)
 
         metadata_str = json.dumps(metadata)
@@ -377,22 +411,29 @@ class SqliteVectorStore(VectorStore):
                 # Get the document to update
                 stmt = select(VectorDocumentModel).where(VectorDocumentModel.id == id)
                 doc = session.execute(stmt).scalar_one_or_none()
-                
+
                 if not doc:
-                    raise VectorStoreError(f"Document with id {id} not found for update.")
+                    raise VectorStoreError(
+                        f"Document with id {id} not found for update."
+                    )
 
                 # Update main table
                 doc.content = document
                 doc.embedding = embedding_bytes
                 doc.doc_metadata = metadata_str
 
-                session.execute(text(f"""
+                session.execute(
+                    text(
+                        f"""
                     INSERT INTO {self.virtual_table} (id, embedding) 
                     VALUES (:id, :embedding)
-                """), {"id": doc.id, "embedding": embedding_bytes})
+                """
+                    ),
+                    {"id": doc.id, "embedding": embedding_bytes},
+                )
 
                 session.commit()
-                
+
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to update document: {e}")
         except struct.error as e:
@@ -403,28 +444,30 @@ class SqliteVectorStore(VectorStore):
             raise VectorStoreError(
                 "Vector store is not initialized. Call initialize() first."
             )
-            
+
         try:
             with self.Session() as session:
                 stmt = select(VectorDocumentModel)
                 docs = session.execute(stmt).scalars().all()
-                
+
                 results: List[SearchResult] = []
                 for doc in docs:
                     try:
-                        metadata = json.loads(doc.doc_metadata) if doc.doc_metadata else {}
+                        metadata = (
+                            json.loads(doc.doc_metadata) if doc.doc_metadata else {}
+                        )
                     except json.JSONDecodeError:
                         metadata = {}
                     results.append(
                         SearchResult(
-                            id=doc.id, 
-                            document=getattr(doc, self.content_field, doc.content), 
-                            metadata=metadata, 
-                            score=0.0
+                            id=doc.id,
+                            document=getattr(doc, self.content_field, doc.content),
+                            metadata=metadata,
+                            score=0.0,
                         )
                     )
                 return results
-                
+
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to get all documents: {e}")
 
