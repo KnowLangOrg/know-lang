@@ -18,6 +18,7 @@ dist
 chromadb
 vectordb/
 statedb/
+*.db
 
 # ML evaluation files
 datasets
