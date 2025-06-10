@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
-from PyInstaller.utils.hooks import collect_data_files, copy_metadata
+from PyInstaller.utils.hooks import collect_data_files, copy_metadata, collect_dynamic_libs
 
 # Get the project root directory
 project_root = Path.cwd()
@@ -29,16 +29,24 @@ def collect_knowlang_data():
 
     return data_files
 
+def collect_knowlang_binaries():
+    binaries = []
+
+    binaries += collect_dynamic_libs("sqlite_vec")
+
+    return binaries
+
 
 hidden_imports = [
     # fix the module not found error
     "knowlang.api.main",
 ]
 
+
 a = Analysis(
     ["main.py"],
     pathex=[str(project_root)],
-    binaries=[],
+    binaries=collect_knowlang_binaries(),
     datas=collect_knowlang_data(),
     hiddenimports=hidden_imports,
     hookspath=[],
