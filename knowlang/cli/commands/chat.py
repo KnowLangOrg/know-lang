@@ -1,4 +1,3 @@
-from knowlang.chat_bot.chat_interface import create_chatbot
 from knowlang.cli.types import ChatCommandArgs
 from knowlang.cli.utils import create_config
 from knowlang.utils import FancyLogger
@@ -27,6 +26,7 @@ async def chat_command(args: ChatCommandArgs) -> None:
         return
     
     # Create and launch chatbot
+    from knowlang.chat_bot.chat_interface import create_chatbot
     demo = create_chatbot(config)
     
     launch_kwargs = {
