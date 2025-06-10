@@ -8,7 +8,7 @@ from knowlang.configs import AppConfig
 from knowlang.utils import FancyLogger, RateLimiter
 from knowlang.vector_stores.factory import VectorStoreFactory
 
-from .chat_graph import ChatStatus, stream_chat_progress
+from .chat_graph import ChatStatus, StreamingChatResult, stream_chat_progress
 from .feedback import ChatAnalytics
 
 LOG = FancyLogger(__name__)
@@ -63,66 +63,49 @@ class CodeQAChatInterface:
         history: List[ChatMessage],
         request: gr.Request, # gradio injects the request object
     ) -> AsyncGenerator[List[ChatMessage], None]:
-        """Stream chat responses with progress updates"""
+        def _handle_intermetidate_progress(chat_result: StreamingChatResult) -> ChatMessage:
+            return ChatMessage(
+                role="assistant",
+                content=chat_result.progress_message,
+                metadata={
+                    "title": f"{chat_result.status.value.title()} Progress",
+                    "status": "pending"
+                }
+            )
+        
+        def _handle_final_answer(chat_result: StreamingChatResult) -> ChatMessage:
+            total_code_blocks = []
+            for search in result.retrieved_context:
+                chunk = search.document
+                metadata = search.metadata
+                code_block = self._format_code_block(chunk, metadata)
+                if code_block:
+                    total_code_blocks.append(code_block)
+
+            return ChatMessage(
+                role="assistant",
+                content='\n\n'.join(total_code_blocks) + f"<p>{chat_result.answer}</p>",
+                metadata={
+                    "title": "💻 Code Context",
+                    "collapsible": True
+                }
+            )
+        
         # Add user message
         history.append(ChatMessage(role="user", content=message))
         yield history
 
-        
-        current_progress: ChatMessage | None = None
-        code_blocks_added = False
-        
         try:
             async for result in stream_chat_progress(message, self.vector_store, self.config):
-                # Handle progress updates
-                if result.status != ChatStatus.COMPLETE:
-                    if current_progress:
-                        history.remove(current_progress)
-                    
-                    current_progress = ChatMessage(
-                        role="assistant",
-                        content=result.progress_message,
-                        metadata={
-                            "title": f"{result.status.value.title()} Progress",
-                            "status": "pending" if result.status != ChatStatus.ERROR else "error"
-                        }
-                    )
-                    history.append(current_progress)
-                    yield history
-                    continue
-
-                # When complete, remove progress message and add final content
-                if current_progress:
-                    history.remove(current_progress)
-                    current_progress = None
-
-                # Add code blocks before final answer if not added yet
-                if not code_blocks_added and result.retrieved_context:
-                    total_code_blocks = []
-                    for search in result.retrieved_context:
-                        chunk = search.document
-                        metadata = search.metadata
-                        code_block = self._format_code_block(chunk, metadata)
-                        if code_block:
-                            total_code_blocks.append(code_block)
-
-                    code_blocks_added = True
-                    history.append(ChatMessage(
-                        role="assistant",
-                        content='\n\n'.join(total_code_blocks),
-                        metadata={
-                            "title": "💻 Code Context",
-                            "collapsible": True
-                        }
-                    ))
-                    yield history
-
-                # Add final answer
-                history.append(ChatMessage(
-                    role="assistant",
-                    content=result.answer
-                ))
+                chat_message = (_handle_intermetidate_progress(result) 
+                                if result.status != ChatStatus.COMPLETE else
+                                _handle_final_answer(result))
+                if history[-1].role != "assistant":
+                    history.append(chat_message)
+                else:
+                    history[-1] = chat_message
                 yield history
+
         except Exception as e:
             LOG.error(f"Error in stream_response: {e}")
             history.append(ChatMessage(

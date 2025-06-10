@@ -75,7 +75,7 @@ def mock_vector_store_factory(mock_vector_store: MockVectorStore):
 
 @pytest.fixture
 def mock_chatbot():
-    with patch('knowlang.cli.commands.chat.create_chatbot') as chatbot:
+    with patch('knowlang.chat_bot.chat_interface.create_chatbot') as chatbot:
         mock_demo = Mock()
         mock_demo.launch = Mock()
         chatbot.return_value = mock_demo
