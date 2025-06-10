@@ -6,18 +6,18 @@ from typing import List, Literal, Optional, Union
 from knowlang.evaluations.types import DatasetType
 
 
-@dataclass
+@dataclass(kw_only=True)
 class BaseCommandArgs:
     """Base arguments for all commands."""
-    verbose: bool
-    config: Optional[Path]
+    verbose: bool = False
+    config: Optional[Path] = None
 
 @dataclass
 class ParseCommandArgs(BaseCommandArgs):
     """Arguments for the parse command."""
     path: str
-    output: Literal["table", "json"]
-    command: Literal["parse"]  # for command identification
+    output: Literal["table", "json"]  = "table"
+    command: Literal["parse"] = "parse"
     extra_fields: Optional[dict] = None
 
 @dataclass

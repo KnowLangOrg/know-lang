@@ -66,5 +66,3 @@ async def parse_command(args: ParseCommandArgs) -> None:
         formatter.display_chunks(total_chunks)
     else:
         LOG.warning("No code chunks found")
-    
-    # Process summaries
