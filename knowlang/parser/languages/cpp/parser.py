@@ -1,7 +1,5 @@
-# languages/cpp/parser.py
 from pathlib import Path
 from typing import List, Optional
-import tree_sitter_cpp
 from tree_sitter import Language, Node, Parser
 
 from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
@@ -16,6 +14,12 @@ class CppParser(LanguageParser):
     
     def setup(self) -> None:
         """Initialize tree-sitter with C++ language support"""
+        try:
+            import tree_sitter_cpp
+        except ImportError as e:
+            raise ImportError(
+                'C++ parser requires tree-sitter_cpp. Please install it using `pip install "knowlang[cpp]"`.'
+            ) from e
         self.language_name = LanguageEnum.CPP
         self.language = Language(tree_sitter_cpp.language())
         self.parser = Parser(self.language)

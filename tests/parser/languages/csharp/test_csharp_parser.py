@@ -373,5 +373,3 @@ public class TopLevelClass {} // Chunk 1
     #     class_chunk = chunks[0]
     #     assert class_chunk.metadata.relative_path == Path("src") / "myfile.cs"
     #     assert class_chunk.metadata.file_path == str(file_loc)
-
-```

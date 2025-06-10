@@ -4,15 +4,15 @@ from typing import List, Optional, Tuple
 from tree_sitter import Language, Node, Parser
 # Assuming LanguageEnum will be updated to include CSHARP
 # from knowlang.core.types import LanguageEnum
-from knowlang.core.types import CodeChunk, CodeLocation, CodeMetadata, BaseChunkType
-from knowlang.parser.base_parser import LanguageParser
+from knowlang.core.types import CodeChunk, CodeLocation, CodeMetadata, BaseChunkType, LanguageEnum
+from knowlang.parser.base.parser import LanguageParser
 from knowlang.configs import AppConfig
 from knowlang.utils import FancyLogger, convert_to_relative_path
 
 LOG = FancyLogger(__name__)
 
 # Tree-sitter node types for C#
-# Reference: https://github.com/tree-sitter/tree-sitter-csharp/blob/master/src/node-types.json
+# Reference: https://github.com/tree-sitter/tree-sitter-c-sharp/blob/master/src/node-types.json
 NODE_TYPE_CLASS_DECLARATION = "class_declaration"
 NODE_TYPE_METHOD_DECLARATION = "method_declaration"
 NODE_TYPE_IDENTIFIER = "identifier"
@@ -32,45 +32,19 @@ class CSharpParser(LanguageParser):
         # LOG.info("CSharpParser initialized")
 
     def setup(self):
-        # Assuming CSHARP will be added to LanguageEnum
-        # from knowlang.core.types import LanguageEnum
-        # self.language_name = LanguageEnum.CSHARP
-        self.language_name = "csharp" # Placeholder
 
         try:
-            import tree_sitter_csharp
-            self.language = Language(tree_sitter_csharp.language())
-            LOG.info("Successfully loaded tree-sitter C# grammar from 'tree_sitter_csharp' package.")
-        except ImportError:
-            LOG.warning(
-                "Failed to import 'tree_sitter_csharp'. "
-                "Attempting to load from 'build/my-languages.so'. "
-                "This path might need adjustment or grammar compilation."
-            )
-            try:
-                CSHARP_LANGUAGE_SO_PATH = "build/my-languages.so"
-                self.language = Language(CSHARP_LANGUAGE_SO_PATH, "csharp")
-                LOG.info(f"Successfully loaded tree-sitter C# grammar from '{CSHARP_LANGUAGE_SO_PATH}'.")
-            except Exception as e:
-                LOG.error(
-                    f"Failed to load C# grammar from '{CSHARP_LANGUAGE_SO_PATH}'. "
-                    f"C# parsing will not be available. Error: {e}"
-                )
-                self.language = None
+            import tree_sitter_c_sharp
+            LOG.info("Successfully loaded tree-sitter C# grammar from 'tree_sitter_c_sharp' package.")
+        except ImportError as e:
+            raise ImportError(
+                "Failed to import 'tree_sitter_c_sharp'. please install using pip install 'knowlang[csharp]'"
+            ) from e
 
-        if self.language:
-            self.parser = Parser(self.language)
-        else:
-            self.parser = None
-            LOG.error("CSharp parser could not be initialized due to missing grammar.")
-
-        if "csharp" in self.config.parser.languages:
-            self.language_config = self.config.parser.languages["csharp"]
-        else:
-            LOG.warning("C# configuration not found in AppConfig. Using default empty config.")
-            class EmptyConfig:
-                file_extensions = []
-            self.language_config = EmptyConfig()
+        self.language_name = LanguageEnum.CSHARP
+        self.language = Language(tree_sitter_c_sharp.language())
+        self.parser = Parser(self.language)
+        self.language_config = self.config.parser.languages["csharp"]
 
     def supports_extension(self, ext: str) -> bool:
         return ext.lower() in self.language_config.file_extensions
