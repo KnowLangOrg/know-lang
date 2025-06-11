@@ -17,6 +17,7 @@ NODE_TYPE_CLASS_DECLARATION = "class_declaration"
 NODE_TYPE_METHOD_DECLARATION = "method_declaration"
 NODE_TYPE_IDENTIFIER = "identifier"
 NODE_TYPE_NAMESPACE_DECLARATION = "namespace_declaration"
+NODE_TYPE_INTERFACE_DECLARATION = "interface_declaration"
 NODE_TYPE_COMMENT = "comment" # Covers // and /* */
 
 # For navigating class/method bodies
@@ -24,6 +25,8 @@ NODE_TYPE_BLOCK = "block" # Common body for methods
 NODE_TYPE_DECLARATION_LIST = "declaration_list" # Often found in class bodies C#
 NODE_TYPE_CLASS_BODY = "class_body" # C# specific for class contents
 
+class CSharpChunkType(BaseChunkType):
+    INTERFACE = "interface"
 
 class CSharpParser(LanguageParser):
     def __init__(self, config: AppConfig):
@@ -63,7 +66,7 @@ class CSharpParser(LanguageParser):
             else:
                 # Not a comment node, stop searching
                 break
-            
+
             sibling = sibling.prev_named_sibling
 
         return "\n".join(reversed(docstrings)) if docstrings else None
@@ -91,7 +94,32 @@ class CSharpParser(LanguageParser):
 
         return CodeChunk(
             language=self.language_name,
-            type=BaseChunkType.CLASS,
+            type=CSharpChunkType.CLASS,
+            name=name,
+            content=node.text,
+            location=CodeLocation(
+                start_line=node.start_point[0],
+                end_line=node.end_point[0],
+                file_path=str(file_path)
+            ),
+            docstring=docstring,
+            metadata=CodeMetadata(
+                namespace=namespace,
+            )
+        )
+    
+    def _process_interface(self, node: Node, source_code: bytes, file_path: Path) -> Optional[CodeChunk]:
+        name = node.child_by_field_name("name").text.decode('utf-8') 
+
+        if not name:
+            raise ValueError(f"Could not find interface name in node: {node.text}")
+
+        docstring = self._get_preceding_docstring(node, source_code)
+        namespace = self._get_namespace_context(node, source_code)
+
+        return CodeChunk(
+            language=self.language_name,
+            type=CSharpChunkType.INTERFACE,
             name=name,
             content=node.text,
             location=CodeLocation(
@@ -124,7 +152,7 @@ class CSharpParser(LanguageParser):
             relative_path=str(relative_path),
             namespace=namespace,
             class_name=class_name, # Could be None for global methods if C# had them like C++
-            type=BaseChunkType.FUNCTION, # Using FUNCTION for methods
+            type=CSharpChunkType.FUNCTION, # Using FUNCTION for methods
             name=method_name,
             docstring=docstring,
             code_location=self._get_code_location(node),
@@ -218,14 +246,16 @@ class CSharpParser(LanguageParser):
         #         # Propagate current namespace and class name if not overridden by child type
         #         queue.append((child, current_namespace_str, current_class_name_str))
     
+        # For now, stop at the top level of class, interface, etc
         def traverse_node(node: Node):
             try:
                 if node.type in [NODE_TYPE_CLASS_DECLARATION]:
                     chunks.append(self._process_class(node, source_code, file_path))
-                    # Stop at top-level
+                    return
+                if node.type in [NODE_TYPE_INTERFACE_DECLARATION]:
+                    chunks.append(self._process_interface(node, source_code, file_path))
                     return
                 elif node.type == "":
-                    # Stop at top-level
                     return
             except Exception as e:
                 LOG.error(f"Failed to process code {str(e)}")

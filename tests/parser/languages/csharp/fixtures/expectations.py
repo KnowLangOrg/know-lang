@@ -83,40 +83,40 @@ COMPLEX_FILE_EXPECTATIONS = {
         content_snippet='public class GenericRepository<T> : IRepository<T>',
         namespace='MyApplication.Services'
     ),
-    'GetAllAsync': ChunkExpectation(
-        name='GetAllAsync',
-        docstring='Gets all entities from the in-memory collection',
-        content_snippet='public async Task<IEnumerable<T>> GetAllAsync()',
-        namespace='MyApplication.Services',
-        class_name='GenericRepository'
-    ),
-    'GetByIdAsync': ChunkExpectation(
-        name='GetByIdAsync',
-        docstring='Gets an entity by ID (simplified implementation)',
-        content_snippet='public async Task<T?> GetByIdAsync(int id)',
-        namespace='MyApplication.Services',
-        class_name='GenericRepository'
-    ),
-    'AddAsync': ChunkExpectation(
-        name='AddAsync',
-        docstring='Adds an entity to the collection',
-        content_snippet='public async Task<T> AddAsync(T entity)',
-        namespace='MyApplication.Services',
-        class_name='GenericRepository'
-    ),
+    # 'GetAllAsync': ChunkExpectation(
+    #     name='GetAllAsync',
+    #     docstring='Gets all entities from the in-memory collection',
+    #     content_snippet='public async Task<IEnumerable<T>> GetAllAsync()',
+    #     namespace='MyApplication.Services',
+    #     class_name='GenericRepository'
+    # ),
+    # 'GetByIdAsync': ChunkExpectation(
+    #     name='GetByIdAsync',
+    #     docstring='Gets an entity by ID (simplified implementation)',
+    #     content_snippet='public async Task<T?> GetByIdAsync(int id)',
+    #     namespace='MyApplication.Services',
+    #     class_name='GenericRepository'
+    # ),
+    # 'AddAsync': ChunkExpectation(
+    #     name='AddAsync',
+    #     docstring='Adds an entity to the collection',
+    #     content_snippet='public async Task<T> AddAsync(T entity)',
+    #     namespace='MyApplication.Services',
+    #     class_name='GenericRepository'
+    # ),
     'User': ChunkExpectation(
         name='User',
         docstring='Represents a user in the system',
         content_snippet='public class User',
         namespace='MyApplication.Models'
     ),
-    'IsValid': ChunkExpectation(
-        name='IsValid',
-        docstring='Validates the user data',
-        content_snippet='public bool IsValid()',
-        namespace='MyApplication.Models',
-        class_name='User'
-    )
+    # 'IsValid': ChunkExpectation(
+    #     name='IsValid',
+    #     docstring='Validates the user data',
+    #     content_snippet='public bool IsValid()',
+    #     namespace='MyApplication.Models',
+    #     class_name='User'
+    # )
 }
 
 NESTED_FILE_EXPECTATIONS = {

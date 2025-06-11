@@ -145,7 +145,7 @@ class TestCSharpParser:
         expectations = test_expectations["complex.cs"]
 
         # We expect multiple chunks across different namespaces
-        assert len(chunks) >= len(
+        assert len(chunks) == len(
             expectations
         ), f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
 
