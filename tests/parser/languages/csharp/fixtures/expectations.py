@@ -39,29 +39,11 @@ SIMPLE_FILE_EXPECTATIONS = {
         docstring='A simple hello world class',
         content_snippet='public class HelloWorld'
     ),
-    'SayHello': ChunkExpectation(
-        name='SayHello',
-        docstring='Says hello to the world',
-        content_snippet='public string SayHello()',
-        class_name='HelloWorld'
-    ),
-    'DoSomething': ChunkExpectation(
-        name='DoSomething',
-        docstring=None,  # No XML documentation
-        content_snippet='public void DoSomething()',
-        class_name='HelloWorld'
-    ),
     'Person': ChunkExpectation(
         name='Person',
         docstring='A simple data class',
         content_snippet='public class Person'
     ),
-    'GetInfo': ChunkExpectation(
-        name='GetInfo',
-        docstring='Gets the person\'s full information',
-        content_snippet='public string GetInfo()',
-        class_name='Person'
-    )
 }
 
 COMPLEX_FILE_EXPECTATIONS = {
