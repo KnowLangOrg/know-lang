@@ -82,8 +82,18 @@ class CSharpParser(LanguageParser):
                     namespaces.append(self._get_node_text(name_node, source_code))
             current = current.parent
         return ".".join(reversed(namespaces)) if namespaces else None
-
-    def _process_class(self, node: Node, source_code: bytes, file_path: Path) -> Optional[CodeChunk]:
+    
+    def _chunk_type_from_node(self, node: Node) -> CSharpChunkType:
+        if node.type == NODE_TYPE_CLASS_DECLARATION:
+            return CSharpChunkType.CLASS
+        elif node.type == NODE_TYPE_INTERFACE_DECLARATION:
+            return CSharpChunkType.INTERFACE
+        elif node.type == NODE_TYPE_RECORD_DECLARATION:
+            return CSharpChunkType.CLASS
+        else:
+            return CSharpChunkType.OTHER
+    
+    def _process_declaration_block(self, node: Node, source_code: bytes, file_path: Path) -> Optional[CodeChunk]:
         name = node.child_by_field_name("name").text.decode('utf-8') 
 
         if not name:
@@ -95,7 +105,7 @@ class CSharpParser(LanguageParser):
 
         return CodeChunk(
             language=self.language_name,
-            type=CSharpChunkType.CLASS,
+            type=self._chunk_type_from_node(node),
             name=name,
             content=node.text,
             location=CodeLocation(
@@ -108,57 +118,6 @@ class CSharpParser(LanguageParser):
                 namespace=namespace,
             )
         )
-    
-    def _process_interface(self, node: Node, source_code: bytes, file_path: Path) -> Optional[CodeChunk]:
-        name = node.child_by_field_name("name").text.decode('utf-8') 
-
-        if not name:
-            raise ValueError(f"Could not find interface name in node: {node.text}")
-
-        docstring = self._get_preceding_docstring(node, source_code)
-        namespace = self._get_namespace_context(node, source_code)
-
-        return CodeChunk(
-            language=self.language_name,
-            type=CSharpChunkType.INTERFACE,
-            name=name,
-            content=node.text,
-            location=CodeLocation(
-                start_line=node.start_point[0],
-                end_line=node.end_point[0],
-                file_path=str(file_path)
-            ),
-            docstring=docstring,
-            metadata=CodeMetadata(
-                namespace=namespace,
-            )
-        )
-    
-    def _process_record(self, node: Node, source_code: bytes, file_path: Path) -> Optional[CodeChunk]:
-        name = node.child_by_field_name("name").text.decode('utf-8') 
-
-        if not name:
-            raise ValueError(f"Could not find record name in node: {node.text}")
-
-        docstring = self._get_preceding_docstring(node, source_code)
-        namespace = self._get_namespace_context(node, source_code)
-
-        return CodeChunk(
-            language=self.language_name,
-            type=CSharpChunkType.CLASS,  # Using CLASS for records as they are similar
-            name=name,
-            content=node.text,
-            location=CodeLocation(
-                start_line=node.start_point[0],
-                end_line=node.end_point[0],
-                file_path=str(file_path)
-            ),
-            docstring=docstring,
-            metadata=CodeMetadata(
-                namespace=namespace,
-            )
-        )
-
 
     def parse_file(self, file_path: Path) -> List[CodeChunk]:
         if not self.supports_extension(file_path.suffix):
@@ -185,80 +144,16 @@ class CSharpParser(LanguageParser):
             return []
 
         chunks: List[CodeChunk] = []
-        relative_path = convert_to_relative_path(file_path, self.config.db)
 
-        # Using a list as a queue for BFS-like traversal (node, current_namespace, current_class_name)
-        # We only go one level deep for methods within classes.
-
-        # queue: List[Tuple[Node, Optional[str], Optional[str]]] = [(tree.root_node, None, None)]
-
-        # visited_nodes = set() # To avoid processing nodes multiple times if graph is complex
-
-        # while queue:
-        #     node, current_namespace_str, current_class_name_str = queue.pop(0)
-
-        #     if node.id in visited_nodes:
-        #         continue
-        #     visited_nodes.add(node.id)
-
-        #     if node.type == NODE_TYPE_CLASS_DECLARATION:
-        #         class_chunk = self._process_class(node, source_code, file_path, relative_path)
-        #         if class_chunk:
-        #             chunks.append(class_chunk)
-        #             # Now look for direct methods within this class
-        #             # C# class body can be 'declaration_list' or 'class_body'
-        #             body_node = next((child for child in node.children if child.type in [NODE_TYPE_DECLARATION_LIST, NODE_TYPE_CLASS_BODY, NODE_TYPE_BLOCK]), None)
-        #             if body_node:
-        #                 for child in body_node.children:
-        #                     if child.type == NODE_TYPE_METHOD_DECLARATION:
-        #                         method_chunk = self._process_method(
-        #                             child, source_code, file_path, relative_path,
-        #                             class_name=class_chunk.name,
-        #                             class_namespace=class_chunk.metadata.namespace
-        #                         )
-        #                         if method_chunk:
-        #                             chunks.append(method_chunk)
-        #                     # Do not recurse into nested classes or other structures within class body
-        #         # Do not add children of class_declaration to the main queue here to control depth
-        #         continue # Processed this class and its direct methods
-
-        #     elif node.type == NODE_TYPE_METHOD_DECLARATION:
-        #         # This handles methods outside classes (e.g. in C# 9+ top-level statements, though less common for full methods)
-        #         # Or if traversal logic changes. For now, methods are primarily processed via classes.
-        #         if not current_class_name_str: # Only if not already processed as part of a class
-        #             method_chunk = self._process_method(node, source_code, file_path, relative_path, class_namespace=current_namespace_str)
-        #             if method_chunk:
-        #                 chunks.append(method_chunk)
-        #         # Do not recurse into method body
-        #         continue
-
-        #     elif node.type == NODE_TYPE_NAMESPACE_DECLARATION:
-        #         name_node = next((child for child in node.named_children if child.type == NODE_TYPE_IDENTIFIER or child.type == "qualified_name"), None)
-        #         ns_name = self._get_node_text(name_node, source_code) if name_node else ""
-        #         # If current_namespace_str already exists, append to it.
-        #         effective_ns = f"{current_namespace_str}.{ns_name}" if current_namespace_str and ns_name else ns_name or current_namespace_str
-        #         for child in node.children:
-        #             queue.append((child, effective_ns, None)) # Reset class name when entering new namespace scope
-        #         continue # Namespace processed, continue with its children
-
-        #     # Default traversal for other node types to find top-level elements or namespaces
-        #     for child in node.children:
-        #         # Propagate current namespace and class name if not overridden by child type
-        #         queue.append((child, current_namespace_str, current_class_name_str))
-    
         # For now, stop at the top level of class, interface, etc
         def traverse_node(node: Node):
             try:
-                if node.type in [NODE_TYPE_CLASS_DECLARATION]:
-                    chunks.append(self._process_class(node, source_code, file_path))
-                    return
-                if node.type in [NODE_TYPE_INTERFACE_DECLARATION]:
-                    chunks.append(self._process_interface(node, source_code, file_path))
-                    return
-                if node.type in [NODE_TYPE_RECORD_DECLARATION]:
-                    chunks.append(self._process_record(node, source_code, file_path))
-                    return
-                elif node.type == "":
+                if node.type in [
+                    NODE_TYPE_CLASS_DECLARATION,
+                    NODE_TYPE_INTERFACE_DECLARATION,
+                    NODE_TYPE_RECORD_DECLARATION
+                ]:
+                    chunks.append(self._process_declaration_block(node, source_code, file_path))
                     return
             except Exception as e:
                 LOG.error(f"Failed to process code {str(e)}")

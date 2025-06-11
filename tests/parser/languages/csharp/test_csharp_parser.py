@@ -296,6 +296,9 @@ class TestCSharpParser:
         chunks = csharp_parser.parse_file(Path(temp_file))
         assert chunks == [], "Empty file should produce no chunks"
 
+        # Clean up the temporary file
+        os.remove(temp_file)  
+
     def test_all_test_files_exist(self):
         """Test that all expected test files exist."""
         expected_files = [
