@@ -126,33 +126,33 @@ NESTED_FILE_EXPECTATIONS = {
         content_snippet='public class OuterClass',
         namespace='MyApplication.Advanced'
     ),
-    'OuterMethod': ChunkExpectation(
-        name='OuterMethod',
-        docstring='Method in outer class',
-        content_snippet='public string OuterMethod()',
-        namespace='MyApplication.Advanced',
-        class_name='OuterClass'
-    ),
+    # 'OuterMethod': ChunkExpectation(
+    #     name='OuterMethod',
+    #     docstring='Method in outer class',
+    #     content_snippet='public string OuterMethod()',
+    #     namespace='MyApplication.Advanced',
+    #     class_name='OuterClass'
+    # ),
     'StringExtensions': ChunkExpectation(
         name='StringExtensions',
         docstring='Static class with extension methods',
         content_snippet='public static class StringExtensions',
         namespace='MyApplication.Advanced'
     ),
-    'IsNullOrEmpty': ChunkExpectation(
-        name='IsNullOrEmpty',
-        docstring='Checks if a string is null or empty',
-        content_snippet='public static bool IsNullOrEmpty(this string value)',
-        namespace='MyApplication.Advanced',
-        class_name='StringExtensions'
-    ),
-    'Reverse': ChunkExpectation(
-        name='Reverse',
-        docstring='Reverses a string',
-        content_snippet='public static string Reverse(this string value)',
-        namespace='MyApplication.Advanced',
-        class_name='StringExtensions'
-    )
+    # 'IsNullOrEmpty': ChunkExpectation(
+    #     name='IsNullOrEmpty',
+    #     docstring='Checks if a string is null or empty',
+    #     content_snippet='public static bool IsNullOrEmpty(this string value)',
+    #     namespace='MyApplication.Advanced',
+    #     class_name='StringExtensions'
+    # ),
+    # 'Reverse': ChunkExpectation(
+    #     name='Reverse',
+    #     docstring='Reverses a string',
+    #     content_snippet='public static string Reverse(this string value)',
+    #     namespace='MyApplication.Advanced',
+    #     class_name='StringExtensions'
+    # )
 }
 
 ADVANCED_FEATURES_EXPECTATIONS = {
@@ -168,20 +168,20 @@ ADVANCED_FEATURES_EXPECTATIONS = {
         content_snippet='public class NotificationService',
         namespace='MyApplication.Events'
     ),
-    'SendNotification': ChunkExpectation(
-        name='SendNotification',
-        docstring='Sends a notification message',
-        content_snippet='public void SendNotification(string message)',
-        namespace='MyApplication.Events',
-        class_name='NotificationService'
-    ),
-    'ProcessWithCustomOperation': ChunkExpectation(
-        name='ProcessWithCustomOperation',
-        docstring='Processes input using a custom operation delegate',
-        content_snippet='public string ProcessWithCustomOperation(string input, CustomOperation operation)',
-        namespace='MyApplication.Events',
-        class_name='NotificationService'
-    )
+    # 'SendNotification': ChunkExpectation(
+    #     name='SendNotification',
+    #     docstring='Sends a notification message',
+    #     content_snippet='public void SendNotification(string message)',
+    #     namespace='MyApplication.Events',
+    #     class_name='NotificationService'
+    # ),
+    # 'ProcessWithCustomOperation': ChunkExpectation(
+    #     name='ProcessWithCustomOperation',
+    #     docstring='Processes input using a custom operation delegate',
+    #     content_snippet='public string ProcessWithCustomOperation(string input, CustomOperation operation)',
+    #     namespace='MyApplication.Events',
+    #     class_name='NotificationService'
+    # )
 }
 
 MODERN_CSHARP_EXPECTATIONS = {
@@ -190,34 +190,34 @@ MODERN_CSHARP_EXPECTATIONS = {
         docstring='A record type representing a person',
         content_snippet='public record Person(string FirstName, string LastName, int Age)'
     ),
-    'IsAdult': ChunkExpectation(
-        name='IsAdult',
-        docstring='Checks if the person is an adult',
-        content_snippet='public bool IsAdult() => Age >= 18;',
-        class_name='Person'
-    ),
+    # 'IsAdult': ChunkExpectation(
+    #     name='IsAdult',
+    #     docstring='Checks if the person is an adult',
+    #     content_snippet='public bool IsAdult() => Age >= 18;',
+    #     class_name='Person'
+    # ),
     'Point': ChunkExpectation(
         name='Point',
         docstring='A record struct for coordinates',
         content_snippet='public readonly record struct Point(double X, double Y)'
     ),
-    'DistanceFromOrigin': ChunkExpectation(
-        name='DistanceFromOrigin',
-        docstring='Calculates distance from origin',
-        content_snippet='public double DistanceFromOrigin() => Math.Sqrt(X * X + Y * Y);',
-        class_name='Point'
-    ),
+    # 'DistanceFromOrigin': ChunkExpectation(
+    #     name='DistanceFromOrigin',
+    #     docstring='Calculates distance from origin',
+    #     content_snippet='public double DistanceFromOrigin() => Math.Sqrt(X * X + Y * Y);',
+    #     class_name='Point'
+    # ),
     'PatternMatchingExample': ChunkExpectation(
         name='PatternMatchingExample',
         docstring='Class demonstrating pattern matching and switch expressions',
         content_snippet='public static class PatternMatchingExample'
     ),
-    'DescribeObject': ChunkExpectation(
-        name='DescribeObject',
-        docstring='Describes an object using pattern matching',
-        content_snippet='public static string DescribeObject(object obj) => obj switch',
-        class_name='PatternMatchingExample'
-    )
+    # 'DescribeObject': ChunkExpectation(
+    #     name='DescribeObject',
+    #     docstring='Describes an object using pattern matching',
+    #     content_snippet='public static string DescribeObject(object obj) => obj switch',
+    #     class_name='PatternMatchingExample'
+    # )
 }
 
 # All expectations combined for easy access

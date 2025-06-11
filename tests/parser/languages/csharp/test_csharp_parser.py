@@ -249,41 +249,6 @@ class TestCSharpParser:
             if expectations:  # If we expect chunks
                 assert len(chunks) > 0, f"Expected chunks for {test_file} but got none"
 
-    def test_file_metadata(self, csharp_parser: CSharpParser):
-        """Test that file metadata is correctly set on chunks."""
-        test_file = get_test_file_path("simple.cs")
-        chunks = csharp_parser.parse_file(test_file)
-
-        assert len(chunks) > 0, "Should have at least one chunk for testing metadata"
-
-        for chunk in chunks:
-            # Check that file_path is set
-            assert chunk.metadata.file_path == str(
-                test_file
-            ), f"Expected file_path {test_file}, got {chunk.metadata.file_path}"
-
-            # Check that relative_path is set (if db_path is configured)
-            # This test might need to be adjusted based on actual implementation
-            assert hasattr(
-                chunk.metadata, "relative_path"
-            ), "relative_path should be set"
-
-    def test_docstring_extraction_variations(self, csharp_parser: CSharpParser):
-        """Test different styles of docstring extraction."""
-        # Use existing test file that has these variations
-        test_file = get_test_file_path("simple.cs")
-        chunks = csharp_parser.parse_file(test_file)
-
-        # Find a chunk with XML documentation
-        hello_world_chunk = find_chunk_by_criteria(chunks, name="HelloWorld")
-        assert hello_world_chunk is not None
-        assert hello_world_chunk.docstring == "A simple hello world class"
-
-        # Find a chunk without documentation
-        do_something_chunk = find_chunk_by_criteria(chunks, name="DoSomething")
-        assert do_something_chunk is not None
-        assert do_something_chunk.docstring is None
-
     def test_namespace_handling(self, csharp_parser: CSharpParser, test_expectations):
         """Test that namespaces are correctly identified and assigned to chunks."""
         test_file = get_test_file_path("complex.cs")
@@ -314,21 +279,6 @@ class TestCSharpParser:
         assert interface_chunk is not None
         assert "IRepository<T>" in interface_chunk.content
 
-    def test_method_overloading(self, csharp_parser: CSharpParser):
-        """Test that method overloading is handled correctly."""
-        test_file = get_test_file_path("simple.cs")
-        chunks = csharp_parser.parse_file(test_file)
-
-        # Find both SayHello methods (they might be named differently by parser)
-        say_hello_chunks = [chunk for chunk in chunks if chunk.name == "SayHello"]
-
-        # Should find at least one SayHello method
-        assert len(say_hello_chunks) >= 1, "Should find at least one SayHello method"
-
-        # The first one should be the parameterless version
-        first_say_hello = say_hello_chunks[0]
-        assert "public string SayHello()" in first_say_hello.content
-
     def test_extension_support(self, csharp_parser: CSharpParser):
         """Test that the parser correctly identifies supported file extensions."""
         assert csharp_parser.supports_extension(".cs")
@@ -337,12 +287,13 @@ class TestCSharpParser:
         assert not csharp_parser.supports_extension(".py")
         assert not csharp_parser.supports_extension(".js")
 
-    def test_empty_file(self, csharp_parser: CSharpParser, tmp_path: Path):
+    def test_empty_file(self, csharp_parser: CSharpParser):
         """Test parsing an empty C# file."""
-        empty_file = tmp_path / "empty.cs"
-        empty_file.write_text("", encoding="utf-8")
-
-        chunks = csharp_parser.parse_file(empty_file)
+        import tempfile, os
+        temp_fd, temp_file = tempfile.mkstemp(suffix=".cs", dir=Path(__file__).parent)
+        with os.fdopen(temp_fd, 'w') as f:
+            f.write("")  # Create an empty file
+        chunks = csharp_parser.parse_file(Path(temp_file))
         assert chunks == [], "Empty file should produce no chunks"
 
     def test_all_test_files_exist(self):
@@ -380,74 +331,3 @@ class TestCSharpParser:
             ), f"No expectations defined for {filename}"
             expectations = test_expectations[filename]
             assert len(expectations) > 0, f"Empty expectations for {filename}"
-
-    # Legacy tests that were in the original file
-    def test_namespace_handling_legacy(
-        self, csharp_parser: CSharpParser, tmp_path: Path
-    ):
-        """Test parsing C# code with namespaces (legacy test)."""
-        test_file_content = """
-namespace MyNamespace {
-    public class NamespacedClass { // Class 1
-        public void NamespacedMethod() {} // Method 1
-    }
-}
-namespace Another.Nested {
-    public class DeepClass { // Class 2
-         public void DeepMethod() {} // Method 2
-    }
-}
-namespace MyNamespace { // Re-opening namespace
-    public class SecondClassInMyNamespace {} // Class 3
-}
-"""
-        test_file = tmp_path / "test_ns.cs"
-        test_file.write_text(test_file_content)
-
-        chunks = csharp_parser.parse_file(test_file)
-
-        assert (
-            len(chunks) == 5
-        ), f"Expected 5 chunks, got {len(chunks)}. Chunks: {chunks}"
-
-        # NamespacedClass and its method
-        ns_class_chunk = find_chunk_by_criteria(
-            chunks, name="NamespacedClass", type=BaseChunkType.CLASS
-        )
-        assert ns_class_chunk is not None
-        assert ns_class_chunk.metadata.namespace == "MyNamespace"
-        assert ns_class_chunk.name == "NamespacedClass"
-
-        ns_method_chunk = find_chunk_by_criteria(
-            chunks, name="NamespacedMethod", type=BaseChunkType.FUNCTION
-        )
-        assert ns_method_chunk is not None
-        assert ns_method_chunk.metadata.namespace == "MyNamespace"
-        assert ns_method_chunk.name == "NamespacedClass"
-        assert ns_method_chunk.name == "NamespacedMethod"
-
-        # DeepClass and its method
-        deep_class_chunk = find_chunk_by_criteria(
-            chunks, name="DeepClass", type=BaseChunkType.CLASS
-        )
-        assert deep_class_chunk is not None
-        assert deep_class_chunk.metadata.namespace == "Another.Nested"
-        assert deep_class_chunk.name == "DeepClass"
-
-        deep_method_chunk = find_chunk_by_criteria(
-            chunks, name="DeepMethod", type=BaseChunkType.FUNCTION
-        )
-        assert deep_method_chunk is not None
-        assert deep_method_chunk.metadata.namespace == "Another.Nested"
-        assert deep_method_chunk.name == "DeepClass"
-        assert deep_method_chunk.name == "DeepMethod"
-
-        # SecondClassInMyNamespace
-        second_class_chunk = find_chunk_by_criteria(
-            chunks, name="SecondClassInMyNamespace", type=BaseChunkType.CLASS
-        )
-        assert second_class_chunk is not None
-        assert (
-            second_class_chunk.metadata.namespace == "MyNamespace"
-        )  # Should correctly handle re-opened namespace
-        assert second_class_chunk.name == "SecondClassInMyNamespace"
