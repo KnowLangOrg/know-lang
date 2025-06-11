@@ -8,6 +8,7 @@ class LanguageEnum(str, Enum):
     """Supported programming languages"""
     PYTHON = "python"
     CPP = "cpp"
+    CSHARP = "csharp"
     TYPESCRIPT = "typescript"
 
 class BaseChunkType():
