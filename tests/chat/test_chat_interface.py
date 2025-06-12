@@ -149,8 +149,8 @@ async def test_stream_response_successful_flow(mock_stream_progress, interface, 
     
     # Verify message sequence
     assert final_history[0].content == message  # User question
-    assert "```python" in final_history[1].content  # Code context
-    assert "Final answer" in final_history[1].content  # Final answer
+    assert "```python" in final_history[-1].content  # Code context
+    assert "Final answer" in final_history[-1].content  # Final answer
 
 
 @pytest.mark.asyncio

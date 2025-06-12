@@ -88,6 +88,7 @@ class ModelProvider(str, Enum):
     NOMIC_AI = "nomic-ai"
     GOOGLE = "google-gla"
     KNOWLANG_BERT = "knowlang_bert"
+    KNOWLANG = "knowlang"
     TESTING = "testing"
 
 class VectorStoreProvider(str, Enum):

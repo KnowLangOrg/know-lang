@@ -69,7 +69,6 @@ class CodeQAChatInterface:
                 content=chat_result.progress_message,
                 metadata={
                     "title": f"{chat_result.status.value.title()} Progress",
-                    "status": "pending"
                 }
             )
         
@@ -100,10 +99,7 @@ class CodeQAChatInterface:
                 chat_message = (_handle_intermetidate_progress(result) 
                                 if result.status != ChatStatus.COMPLETE else
                                 _handle_final_answer(result))
-                if history[-1].role != "assistant":
-                    history.append(chat_message)
-                else:
-                    history[-1] = chat_message
+                history.append(chat_message)
                 yield history
 
         except Exception as e:

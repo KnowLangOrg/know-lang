@@ -68,7 +68,7 @@ class DatasetIndexer:
                         content = pair.code
                         
                         # Generate embedding
-                        embedding = generate_embedding(
+                        embedding = await generate_embedding(
                             input=content, 
                             config=self.config.embedding,
                             input_type=EmbeddingInputType.DOCUMENT

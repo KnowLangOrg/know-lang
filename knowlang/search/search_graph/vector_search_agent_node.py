@@ -122,7 +122,7 @@ Please generate a more general query with broader terms or additional synonyms."
         ) -> EmbeddingVector:
         """Generate embeddings for the refined query"""
         try:
-            embedding = generate_embedding(
+            embedding = await generate_embedding(
                 input=text,
                 config=ctx.deps.config.embedding,
                 input_type=EmbeddingInputType.QUERY
