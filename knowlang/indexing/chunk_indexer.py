@@ -28,7 +28,7 @@ class ChunkIndexer:
                 summary = chunk.content
             
             # Generate embedding
-            embedding = generate_embedding(summary, self.config.embedding)
+            embedding = await generate_embedding(summary, self.config.embedding)
             
             # Create metadata
             metadata = DatabaseChunkMetadata.from_code_chunk(chunk)

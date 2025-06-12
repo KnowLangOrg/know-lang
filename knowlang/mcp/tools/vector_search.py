@@ -38,7 +38,7 @@ It's a powerful tool for finding relevant code snippets fast based on their sema
 
         from knowlang.models.embeddings import generate_embedding
 
-        embedding = generate_embedding(query, instance.config.embedding, EmbeddingInputType.QUERY)
+        embedding = await generate_embedding(query, instance.config.embedding, EmbeddingInputType.QUERY)
 
         vector_query = VectorQuery(
             embedding=embedding,

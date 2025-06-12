@@ -1,4 +1,5 @@
 from typing import List, Optional, Union, overload
+import inspect
 
 from knowlang.configs import EmbeddingConfig
 
@@ -10,12 +11,12 @@ def to_batch(input: Union[str, List[str]]) -> List[str]:
     return [input] if isinstance(input, str) else input
 
 @overload
-def generate_embedding(input: str, config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]) -> EmbeddingVector: ...
+async def generate_embedding(input: str, config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]) -> EmbeddingVector: ...
 
 @overload
-def generate_embedding(input: List[str], config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]) -> List[EmbeddingVector]: ...
+async def generate_embedding(input: List[str], config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]) -> List[EmbeddingVector]: ...
 
-def generate_embedding(
+async def generate_embedding(
     input: Union[str, List[str]], 
     config: EmbeddingConfig,
     input_type: Optional[EmbeddingInputType] = EmbeddingInputType.DOCUMENT
@@ -44,7 +45,11 @@ def generate_embedding(
         raise ValueError(f"Unsupported provider: {config.model_provider}")
 
     try:
-        embeddings = provider_function(inputs, config.model_name, input_type)
+        if inspect.iscoroutinefunction(provider_function):
+            # If the provider function is async, await it
+            embeddings = await provider_function(inputs, config.model_name, input_type)
+        else:
+            embeddings = provider_function(inputs, config.model_name, input_type)
         return embeddings[0] if isinstance(input, str) else embeddings
     except Exception as e:
         raise RuntimeError(f"Failed to generate embeddings: {str(e)}") from e
