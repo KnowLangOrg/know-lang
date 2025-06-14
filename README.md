@@ -45,31 +45,6 @@ ollama list
 You should see `llama3.2` in the list of available models.
 
 
-### Database Setup
-
-KnowLang uses PostgreSQL with pgvector extension for efficient vector storage and retrieval. You can easily set up the database using Docker:
-
-1. Make sure you have Docker and Docker Compose installed:
-   ```bash
-   docker --version
-   docker compose --version
-   ```
-
-2. Start the PostgreSQL database:
-   ```bash
-   # From the root of the know-lang repository
-   docker compose -f docker/application/docker-compose.app.yml up -d
-   ```
-
-3. Verify the database is running:
-   ```bash
-   docker ps | grep pgvector
-   ```
-
-You should see the pgvector container running on port 5432.
-
-> ⚠️ **Important**: The database must be running before you use any KnowLang commands like `parse` or `chat` that require database access.
-
 ## Quick Start
 
 ### Installation
@@ -89,15 +64,16 @@ pip install "knowlang[gradio,pytorch,cpp]"
 
 Alternatively, you can clone the repository and install it in editable mode:
 
+> ⚠️ knowlang use uv for package management, please install by reading [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/)
 ```bash
 git clone https://github.com/KnowLangOrg/know-lang.git
 cd know-lang
 
+
 # Install dependencies using uv
-pip install uv
 uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-uv pip install -e ".[all]"
+uv sync --all-groups
 ```
 
 ### Optional Components
@@ -117,7 +93,7 @@ KnowLang uses a modular architecture with optional dependencies to keep the core
 
 ### Basic Usage
 
-1. Make sure the PostgreSQL database is running (see [Database Setup](#database-setup) above).
+1. Make sure the database is properly configured (see [Database Setup](database_setup.md) for more information).
 
 2. Parse and index your codebase:
 

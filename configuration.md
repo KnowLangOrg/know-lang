@@ -49,18 +49,7 @@ EMBEDDING__DIMENSION=768  # Default dimension of graphcodebert
 ```
 
 ### Database Settings
-```env
-# Database configuration
-DB__PERSIST_DIRECTORY=./chromadb/mycode
-DB__COLLECTION_NAME=code
-DB__CODEBASE_DIRECTORY=.
-DB__DB_PROVIDER=postgres
-DB__CONNECTION_URL=postgresql://postgres:postgres@localhost:5432/postgres
-
-# State Store Configuration
-DB__STATE_STORE__PROVIDER=postgres
-DB__STATE_STORE__CONNECTION_URL=postgresql://postgres:postgres@localhost:5432/postgres
-```
+Please refer to [database_setup.md](database_setup.md).
 
 ### Parser Settings
 ```env
