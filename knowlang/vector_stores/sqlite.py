@@ -117,7 +117,7 @@ class SqliteVectorStore(VectorStore):
                 conn.enable_load_extension(False)
             except Exception as e:
                 raise VectorStoreInitError(
-                    "Failed to load sqlite-vec extension. Ensure it's installed and accessible. {e}"
+                    f"Failed to load sqlite-vec extension. Ensure it's installed and accessible. {e}"
                 ) from e
 
     def initialize(self) -> None:
