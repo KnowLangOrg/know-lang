@@ -4,10 +4,25 @@ from typing import Optional
 from pydantic import ValidationInfo
 from knowlang.core.types import ModelProvider 
 import os
+import sys
+
+def get_resource_path(relative_path: str) -> Path:
+    """Get absolute path to resource, works for dev and PyInstaller"""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # Running in PyInstaller bundle
+        base_path = Path(sys._MEIPASS)
+    else:
+        # Running in non-PyInstaller environment
+        base_path = Path.cwd()
+    
+    return base_path / relative_path
 
 def generate_model_config(env_dir : Path = Path('settings'), env_file: Path = '.env', env_prefix : str = '') -> SettingsConfigDict:
+    # Use PyInstaller-aware path resolution
+    env_file_path = get_resource_path(str(env_dir / env_file))
+    
     return SettingsConfigDict(
-        env_file=str(env_dir / env_file),
+        env_file=str(env_file_path),
         env_prefix=env_prefix,
         env_file_encoding='utf-8',
         env_nested_delimiter='__'
