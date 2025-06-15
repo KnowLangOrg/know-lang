@@ -122,7 +122,7 @@ class EmbeddingConfig(BaseSettings):
 
 class DBConfig(BaseSettings):
     db_provider: VectorStoreProvider = Field(
-        default=VectorStoreProvider.CHROMA,
+        default=VectorStoreProvider.SQLITE,
         description="Vector Database provider"
     )
     connection_url: Optional[str] = Field(
@@ -162,7 +162,7 @@ class RerankerConfig(BaseSettings):
         description="Enable reranking"
     )
     model_name: str = Field(
-        default="KnowLang/RerankerCodeBERT",
+        default="llama3.2",
         description="Name of the reranker model to use"
     )
     model_provider: str = Field(
