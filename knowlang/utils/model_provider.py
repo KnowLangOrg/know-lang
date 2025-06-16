@@ -17,8 +17,8 @@ def create_pydantic_model(
     if model_str in known_model_names:
         return model_str
     elif model_provider == ModelProvider.TESTING:
-        # should be used for testing purposes only
-        pass
+        from knowlang.utils.offline_model import OfflineModel
+        return OfflineModel()
     elif model_provider == ModelProvider.OLLAMA:
         from pydantic_ai.models.openai import OpenAIModel
         from pydantic_ai.providers.openai import OpenAIProvider
