@@ -75,10 +75,7 @@ class IncrementalUpdater:
                     change_path_str = convert_to_relative_path(change.path, self.app_config.db)
                     if change_path_str in chunks_by_file:
                         file_chunks = chunks_by_file[change_path_str]
-                        chunk_ids = await self.chunk_indexer.process_file_chunks(
-                            change.path, 
-                            file_chunks
-                        )
+                        chunk_ids = await self.chunk_indexer.process_file_chunks(file_chunks)
                         
                         if chunk_ids:
                             new_state = await self.codebase_manager.create_file_state(

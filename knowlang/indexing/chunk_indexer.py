@@ -50,7 +50,7 @@ class ChunkIndexer:
             LOG.error(f"Error processing chunk {chunk.location}: {e}")
             raise
 
-    async def process_file_chunks(self, file_path: Path, chunks: List[CodeChunk]) -> Set[str]:
+    async def process_file_chunks(self, chunks: List[CodeChunk]) -> Set[str]:
         """Process all chunks from a single file"""
         chunk_ids = set()
         for chunk in chunks:
@@ -58,6 +58,6 @@ class ChunkIndexer:
                 chunk_id = await self.process_chunk(chunk)
                 chunk_ids.add(chunk_id)
             except Exception as e:
-                LOG.error(f"Error processing chunk in {file_path}: {e}")
+                LOG.error(f"Error processing chunk {chunk.model_dump_json()}: {e}")
                 continue
         return chunk_ids

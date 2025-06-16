@@ -111,7 +111,7 @@ class CSharpParser(LanguageParser):
             location=CodeLocation(
                 start_line=node.start_point[0],
                 end_line=node.end_point[0],
-                file_path=str(file_path)
+                file_path=convert_to_relative_path(file_path, self.config.db)
             ),
             docstring=docstring,
             metadata=CodeMetadata(
