@@ -80,7 +80,7 @@ async def test_process_multiple_chunks(chunk_indexer: ChunkIndexer, mock_indexin
     ]
     
     # Process chunks
-    chunk_ids = await chunk_indexer.process_file_chunks(Path("test.py"), chunks)
+    chunk_ids = await chunk_indexer.process_file_chunks(chunks)
     
     # Verify
     assert len(chunk_ids) == 3
@@ -105,7 +105,7 @@ async def test_process_multiple_chunks_with_summarization(chunk_indexer: ChunkIn
     ]
     
     # Process chunks
-    chunk_ids = await chunk_indexer.process_file_chunks(Path("test.py"), chunks)
+    chunk_ids = await chunk_indexer.process_file_chunks(chunks)
     
     # Verify
     assert len(chunk_ids) == 3
@@ -131,7 +131,7 @@ async def test_error_handling_during_summarization(chunk_indexer: ChunkIndexer, 
     ]
     
     # Process chunks - should continue despite errors
-    chunk_ids = await chunk_indexer.process_file_chunks(Path("test.py"), chunks)
+    chunk_ids = await chunk_indexer.process_file_chunks(chunks)
     
     # Verify no chunks were processed successfully
     assert len(chunk_ids) == 0
