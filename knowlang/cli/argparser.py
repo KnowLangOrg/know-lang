@@ -35,7 +35,6 @@ def _convert_to_args(parsed_namespace: argparse.Namespace) -> Union[ParseCommand
             **base_args,
             path=parsed_namespace.path,
             output=parsed_namespace.output,
-            extra_fields=parsed_namespace.extra_fields
         )
     elif parsed_namespace.command == "chat":
         command_func = chat_command
