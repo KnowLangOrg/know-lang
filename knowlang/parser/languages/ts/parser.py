@@ -105,13 +105,16 @@ class TypeScriptParser(LanguageParser):
         if not name:
             raise ValueError(f"Could not find class name in node: {node.__str__()}")
         
+        relative_path_str = str(file_path.relative_to(self.current_codebase_root))
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=TypescriptChunkType.CLASS,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
@@ -132,13 +135,16 @@ class TypeScriptParser(LanguageParser):
         if not name:
             raise ValueError(f"Could not find interface name in node: {node.__str__()}")
         
+        relative_path_str = str(file_path.relative_to(self.current_codebase_root))
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=TypescriptChunkType.INTERFACE,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
@@ -160,13 +166,16 @@ class TypeScriptParser(LanguageParser):
         if not name:
             raise ValueError(f"Could not find type alias name in node: {node.__str__()}")
         
+        relative_path_str = str(file_path.relative_to(self.current_codebase_root))
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=TypescriptChunkType.TYPE_ALIAS,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
@@ -201,13 +210,16 @@ class TypeScriptParser(LanguageParser):
         # Determine parent class for methods - this is no longer needed since we don't extract methods
         parent_name = None
 
+        relative_path_str = str(file_path.relative_to(self.current_codebase_root))
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=TypescriptChunkType.FUNCTION,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
@@ -218,10 +230,14 @@ class TypeScriptParser(LanguageParser):
             )
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
-        """Parse a single TypeScript file and return list of code chunks"""
+    def parse_file(self, file_path: Path, root_alias: str) -> List[CodeChunk]:
+        """
+        Parse a single TypeScript file and return list of code chunks.
+        file_path is the absolute path to the file.
+        root_alias is the alias of the codebase source.
+        """
         if not self.supports_extension(file_path.suffix):
-            LOG.debug(f"Skipping file {file_path}: unsupported extension")
+            LOG.debug(f"Skipping file {file_path} for alias {root_alias}: unsupported extension")
             return []
 
         try:
@@ -241,23 +257,34 @@ class TypeScriptParser(LanguageParser):
             tree = parser.parse(source_code)
             chunks: List[CodeChunk] = []
             
-            # Get the relative path for location information
-            relative_path = convert_to_relative_path(file_path, self.config.db)
+            relative_path_str = str(file_path.relative_to(self.current_codebase_root))
             
             def traverse_node(node: Node):
                 """Recursively traverse the syntax tree"""
                 try:
                     if node.type == "class_declaration":
-                        chunks.append(self._process_class(node, source_code, relative_path))
+                        chunks.append(self._process_class(node, source_code, relative_path_str, root_alias))
                         return  # Stop traversal for class nodes
                     elif node.type == "interface_declaration":
-                        chunks.append(self._process_interface(node, source_code, relative_path))
+                        chunks.append(self._process_interface(node, source_code, relative_path_str, root_alias))
                         return  # Stop traversal for interface nodes
                     elif node.type == "type_alias_declaration":
-                        chunks.append(self._process_type_alias(node, source_code, relative_path))
+                        chunks.append(self._process_type_alias(node, source_code, relative_path_str, root_alias))
                         return  # Stop traversal for type alias nodes
                     elif node.type in ("function_declaration", "method_definition", "lexical_declaration"):
-                        chunks.append(self._process_function(node, source_code, relative_path))
+                        # Ensuring _process_function handles these or has specific handlers
+                        if node.type == "lexical_declaration":
+                            is_func = False
+                            for child_node in node.children:
+                                if child_node.type == "variable_declarator":
+                                    val_node = child_node.child_by_field_name("value")
+                                    if val_node and val_node.type == "arrow_function":
+                                        is_func = True
+                                        break
+                            if is_func:
+                                chunks.append(self._process_function(node, source_code, relative_path_str, root_alias))
+                        else:
+                            chunks.append(self._process_function(node, source_code, relative_path_str, root_alias))
                         return  # Stop traversal for function nodes
                     elif node.type == "namespace_declaration" or node.type == "module":
                         # Special case for namespaces - we want to continue traversal

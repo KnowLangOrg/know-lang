@@ -11,8 +11,9 @@ from knowlang.core.types import CodeChunk, LanguageEnum
 class LanguageParser(ABC):
     """Abstract base class for language-specific parsers"""
     
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: AppConfig, current_codebase_root: Path):
         self.config : AppConfig = config
+        self.current_codebase_root: Path = current_codebase_root
         self.language_name : LanguageEnum = None
         self.language : Language = None
         self.parser : Parser = None
@@ -24,8 +25,12 @@ class LanguageParser(ABC):
         pass
 
     @abstractmethod
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
-        """Parse a single file and return code chunks"""
+    def parse_file(self, file_path: Path, root_alias: str) -> List[CodeChunk]:
+        """
+        Parse a single file and return code chunks.
+        file_path is the absolute path to the file.
+        root_alias is the alias of the codebase source.
+        """
         pass
 
     @abstractmethod

@@ -36,16 +36,18 @@ class CodeMetadata(BaseModel):
 
 class CodeLocation(BaseModel):
     """Location information for a code chunk"""
+    root_alias: str
     file_path: str
     start_line: int
     end_line: int
 
     def to_single_line(self) -> str:
         """Convert location to a single line string"""
-        return f"{self.file_path}:{self.start_line}-{self.end_line}"
+        return f"{self.root_alias}::{self.file_path}:{self.start_line}-{self.end_line}"
 
 class CodeChunk(BaseModel):
     """Generic code chunk that works across languages"""
+    root_alias: str
     type: str
     language: LanguageEnum
     location: CodeLocation
@@ -66,6 +68,7 @@ class DatabaseChunkMetadata(BaseModel):
     start_line: int
     end_line: int
     file_path: str
+    root_alias: str
 
     @classmethod
     def from_code_chunk(cls, chunk: CodeChunk) -> "DatabaseChunkMetadata":
@@ -76,7 +79,8 @@ class DatabaseChunkMetadata(BaseModel):
             language=chunk.language,
             start_line=chunk.location.start_line,
             end_line=chunk.location.end_line,
-            file_path=chunk.location.file_path
+            file_path=chunk.location.file_path,
+            root_alias=chunk.root_alias
         )
 
 class ModelProvider(str, Enum):

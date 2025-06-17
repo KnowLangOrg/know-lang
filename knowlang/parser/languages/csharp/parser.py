@@ -30,8 +30,8 @@ class CSharpChunkType(BaseChunkType):
     INTERFACE = "interface"
 
 class CSharpParser(LanguageParser):
-    def __init__(self, config: AppConfig):
-        super().__init__(config)
+    def __init__(self, config: AppConfig, current_codebase_root: Path): # Added current_codebase_root
+        super().__init__(config, current_codebase_root) # Pass current_codebase_root to super
         # LOG.info("CSharpParser initialized")
 
     def setup(self):
@@ -93,25 +93,32 @@ class CSharpParser(LanguageParser):
         else:
             return CSharpChunkType.OTHER
     
-    def _process_declaration_block(self, node: Node, source_code: bytes, file_path: Path) -> Optional[CodeChunk]:
-        name = node.child_by_field_name("name").text.decode('utf-8') 
+    def _process_declaration_block(self, node: Node, source_code: bytes, absolute_file_path: Path, root_alias: str) -> Optional[CodeChunk]:
+        name_node = node.child_by_field_name("name")
+        if not name_node: # record_declaration might not have a 'name' field directly, might be 'identifier'
+            if node.type == NODE_TYPE_RECORD_DECLARATION: # record struct declaration
+                 name_node = next((child for child in node.children if child.type == NODE_TYPE_IDENTIFIER), None)
+            if not name_node:
+                 LOG.warning(f"Could not find name for node type {node.type} in {absolute_file_path}")
+                 return None
 
-        if not name:
-            raise ValueError(f"Could not find class name in node: {node.text}")
-
+        name = self._get_node_text(name_node, source_code)
         docstring = self._get_preceding_docstring(node, source_code)
         namespace = self._get_namespace_context(node, source_code)
 
+        relative_path_str = str(absolute_file_path.relative_to(self.current_codebase_root))
 
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
-            type=self._chunk_type_from_node(node),
+            type=self._chunk_type_from_node(node).value, # Ensure string value from enum
             name=name,
-            content=node.text,
+            content=self._get_node_text(node, source_code), # Use _get_node_text for consistency
             location=CodeLocation(
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
-                end_line=node.end_point[0],
-                file_path=convert_to_relative_path(file_path, self.config.db)
+                end_line=node.end_point[0]
             ),
             docstring=docstring,
             metadata=CodeMetadata(
@@ -119,9 +126,14 @@ class CSharpParser(LanguageParser):
             )
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
+    def parse_file(self, file_path: Path, root_alias: str) -> List[CodeChunk]:
+        """
+        Parse a single C# file and return list of code chunks.
+        file_path is the absolute path to the file.
+        root_alias is the alias of the codebase source.
+        """
         if not self.supports_extension(file_path.suffix):
-            LOG.debug(f"Skipping file {file_path}: unsupported extension")
+            LOG.debug(f"Skipping file {file_path} for alias {root_alias}: unsupported extension")
             return []
 
         if not self.parser:
@@ -153,11 +165,14 @@ class CSharpParser(LanguageParser):
                     NODE_TYPE_INTERFACE_DECLARATION,
                     NODE_TYPE_RECORD_DECLARATION
                 ]:
-                    chunks.append(self._process_declaration_block(node, source_code, file_path))
-                    return
+                    # Pass absolute file_path and root_alias
+                    processed_chunk = self._process_declaration_block(node, source_code, file_path, root_alias)
+                    if processed_chunk:
+                        chunks.append(processed_chunk)
+                    return # Stop traversal for these top-level declarations
             except Exception as e:
-                LOG.error(f"Failed to process code {str(e)}")
-                return
+                LOG.error(f"Failed to process C# code block: {str(e)} in file {file_path}")
+                return # Stop processing this branch on error
 
             for child in node.children:
                 traverse_node(child)

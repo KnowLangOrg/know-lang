@@ -20,6 +20,7 @@ class StateChangeType(str, Enum):
 
 class FileState(BaseModel):
     """File state information"""
+    root_alias: str
     file_path: str
     last_modified: datetime
     file_hash: str
@@ -27,9 +28,10 @@ class FileState(BaseModel):
 
 class FileChange(BaseModel):
     """Represents a change in a file"""
+    root_alias: str
     path: Path
     change_type: StateChangeType
-    old_chunks: Set[str] = None
+    old_chunks: Optional[Set[str]] = None # Changed to Optional for ADDED cases
 
 # ----------------- Base Interface & Registry -----------------
 

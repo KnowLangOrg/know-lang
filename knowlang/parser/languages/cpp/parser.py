@@ -70,7 +70,7 @@ class CppParser(LanguageParser):
         else:
             return source_code[node.start_byte:node.end_byte].decode('utf-8')
     
-    def _process_class(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+    def _process_class(self, node: Node, source_code: bytes, relative_path_str: str, root_alias: str) -> CodeChunk:
         """Process a class node and return a CodeChunk"""
         # In C++, we need to look for the identifier within a sequence of nodes
         name = node.child_by_field_name("name").text.decode('utf-8')
@@ -79,14 +79,16 @@ class CppParser(LanguageParser):
             raise ValueError(f"Could not find class name in node: {node.text}")
         
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=BaseChunkType.CLASS,
             name=name,
             content=self._get_content(node, source_code),
             location=CodeLocation(
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
-                end_line=node.end_point[0],
-                file_path=str(file_path)
+                end_line=node.end_point[0]
             ),
             docstring=self._get_preceding_docstring(node, source_code),
             metadata=CodeMetadata(
@@ -95,7 +97,7 @@ class CppParser(LanguageParser):
             )
         )
 
-    def _process_function(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+    def _process_function(self, node: Node, source_code: bytes, relative_path_str: str, root_alias: str) -> CodeChunk:
         """Process a function node and return a CodeChunk"""
         # Find function name - need to handle both normal functions and methods
         name = None
@@ -113,14 +115,16 @@ class CppParser(LanguageParser):
         
 
         return CodeChunk(
+            root_alias=root_alias,
             type=BaseChunkType.FUNCTION,
             language=self.language_name,
             name=name,
             content=self._get_content(node, source_code),
             location=CodeLocation(
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
-                end_line=node.end_point[0],
-                file_path=str(file_path)
+                end_line=node.end_point[0]
             ),
             docstring=self._get_preceding_docstring(node, source_code),
             metadata=CodeMetadata(
@@ -129,10 +133,14 @@ class CppParser(LanguageParser):
             )
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
-        """Parse a single C++ file and return list of code chunks"""
+    def parse_file(self, file_path: Path, root_alias: str) -> List[CodeChunk]:
+        """
+        Parse a single C++ file and return list of code chunks.
+        file_path is the absolute path to the file.
+        root_alias is the alias of the codebase source.
+        """
         if not self.supports_extension(file_path.suffix):
-            LOG.debug(f"Skipping file {file_path}: unsupported extension")
+            LOG.debug(f"Skipping file {file_path} for alias {root_alias}: unsupported extension")
             return []
 
         try:
@@ -150,13 +158,13 @@ class CppParser(LanguageParser):
             tree = self.parser.parse(source_code)
             chunks: List[CodeChunk] = []
 
-            relative_path = convert_to_relative_path(file_path, self.config.db)
+            relative_path_str = str(file_path.relative_to(self.current_codebase_root))
             
             def traverse_node(node: Node):
                 """Recursively traverse the syntax tree"""
                 if node.type in ("class_specifier", "struct_specifier"):
                     try:
-                        chunks.append(self._process_class(node, source_code, relative_path))
+                        chunks.append(self._process_class(node, source_code, relative_path_str, root_alias))
                     except ValueError as e:
                         LOG.warning(f"Failed to process class: {str(e)}")
                     finally:
@@ -164,7 +172,7 @@ class CppParser(LanguageParser):
                         return
                 elif node.type == "function_definition":
                     try:
-                        chunks.append(self._process_function(node, source_code, relative_path))
+                        chunks.append(self._process_function(node, source_code, relative_path_str, root_alias))
                     except ValueError as e:
                         LOG.warning(f"Failed to process function: {str(e)}")
                     finally:

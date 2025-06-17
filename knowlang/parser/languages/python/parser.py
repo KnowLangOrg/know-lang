@@ -50,7 +50,7 @@ class PythonParser(LanguageParser):
             return True
         return any(self._has_syntax_error(child) for child in node.children)
 
-    def _process_class(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+    def _process_class(self, node: Node, source_code: bytes, relative_path_str: str, root_alias: str) -> CodeChunk:
         """Process a class node and return a CodeChunk"""
         name = next(
             (child.text.decode('utf-8') 
@@ -63,19 +63,21 @@ class PythonParser(LanguageParser):
             raise ValueError(f"Could not find class name in node: {node.text}")
         
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=BaseChunkType.CLASS,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
             docstring=self._get_preceding_docstring(node, source_code)
         )
 
-    def _process_function(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+    def _process_function(self, node: Node, source_code: bytes, relative_path_str: str, root_alias: str) -> CodeChunk:
         """Process a function node and return a CodeChunk"""
         name = next(
             (child.text.decode('utf-8') 
@@ -99,12 +101,14 @@ class PythonParser(LanguageParser):
             )
         
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=BaseChunkType.FUNCTION,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
@@ -112,7 +116,7 @@ class PythonParser(LanguageParser):
             docstring=self._get_preceding_docstring(node, source_code)
         )
 
-    def _process_decorated_function(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+    def _process_decorated_function(self, node: Node, source_code: bytes, relative_path_str: str, root_alias: str) -> CodeChunk:
         """Process a decorated function node and return a CodeChunk"""
         # Get the actual function definition node
         function_node = node.child_by_field_name("definition")
@@ -149,12 +153,14 @@ class PythonParser(LanguageParser):
             )
         
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=BaseChunkType.FUNCTION,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
@@ -162,7 +168,7 @@ class PythonParser(LanguageParser):
             docstring=self._get_preceding_docstring(node, source_code),
         )
 
-    def _process_decorated_class(self, node: Node, source_code: bytes, file_path: Path) -> CodeChunk:
+    def _process_decorated_class(self, node: Node, source_code: bytes, relative_path_str: str, root_alias: str) -> CodeChunk:
         """Process a decorated class node and return a CodeChunk"""
         # Get the actual class definition node
         class_node = node.child_by_field_name("definition")
@@ -188,22 +194,28 @@ class PythonParser(LanguageParser):
         ]
         
         return CodeChunk(
+            root_alias=root_alias,
             language=self.language_name,
             type=BaseChunkType.CLASS,
             name=name,
             content=source_code[node.start_byte:node.end_byte].decode('utf-8'),
             location=CodeLocation(
-                file_path=str(file_path),
+                root_alias=root_alias,
+                file_path=relative_path_str,
                 start_line=node.start_point[0],
                 end_line=node.end_point[0]
             ),
             docstring=self._get_preceding_docstring(node, source_code),
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
-        """Parse a single Python file and return list of code chunks"""
+    def parse_file(self, file_path: Path, root_alias: str) -> List[CodeChunk]:
+        """
+        Parse a single Python file and return list of code chunks.
+        file_path is the absolute path to the file.
+        root_alias is the alias of the codebase source.
+        """
         if not self.supports_extension(file_path.suffix):
-            LOG.debug(f"Skipping file {file_path}: unsupported extension")
+            LOG.debug(f"Skipping file {file_path} for alias {root_alias}: unsupported extension")
             return []
 
         try:
@@ -226,19 +238,21 @@ class PythonParser(LanguageParser):
                 return []
 
             chunks: List[CodeChunk] = []
-            relative_path = convert_to_relative_path(file_path, self.config.db)
+            relative_path_str = str(file_path.relative_to(self.current_codebase_root))
             
             # Process the syntax tree
             for node in tree.root_node.children:
                 if node.type == "decorated_definition":
-                    if node.child_by_field_name("definition").type == "function_definition":
-                        chunks.append(self._process_decorated_function(node, source_code, relative_path))
-                    elif node.child_by_field_name("definition").type == "class_definition":
-                        chunks.append(self._process_decorated_class(node, source_code, relative_path))
+                    definition_node = node.child_by_field_name("definition")
+                    if definition_node: # Check if definition_node is not None
+                        if definition_node.type == "function_definition":
+                            chunks.append(self._process_decorated_function(node, source_code, relative_path_str, root_alias))
+                        elif definition_node.type == "class_definition":
+                            chunks.append(self._process_decorated_class(node, source_code, relative_path_str, root_alias))
                 elif node.type == "class_definition":
-                    chunks.append(self._process_class(node, source_code, relative_path))
+                    chunks.append(self._process_class(node, source_code, relative_path_str, root_alias))
                 elif node.type == "function_definition":
-                    chunks.append(self._process_function(node, source_code, relative_path))
+                    chunks.append(self._process_function(node, source_code, relative_path_str, root_alias))
                 else:
                     # Skip other node types for now
                     pass

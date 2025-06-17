@@ -15,6 +15,12 @@ from .retrieval_config import MultiStageRetrievalConfig
 from .state_store_config import StateStoreConfig
 
 
+class CodebaseSource(BaseSettings):
+    alias: str = Field(description="Alias for the codebase root")
+    path: Path = Field(description="Path to the codebase root directory")
+    url: Optional[str] = Field(default=None, description="URL of the codebase repository, if applicable")
+
+
 class PathPatterns(BaseSettings):
     include: List[str] = Field(
         default=["**/*"],
@@ -154,6 +160,10 @@ class DBConfig(BaseSettings):
         description="Field to store the actual content in the vector store"
     )
     state_store: StateStoreConfig = Field(default_factory=StateStoreConfig)
+    codebase_sources: List[CodebaseSource] = Field(
+        default_factory=list,
+        description="List of codebase sources to index"
+    )
 
 class RerankerConfig(BaseSettings):
     enabled: bool = Field(
