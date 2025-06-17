@@ -52,5 +52,6 @@ app.include_router(health_router, prefix=router_prefix, tags=["health"])
 app.include_router(parse_router, prefix=router_prefix, tags=["parse"])
 
 if __name__ == "__main__":
-    # Run the server if this file is executed directly
-    uvicorn.run("knowlang.api.main:app", host="0.0.0.0", port=8080)
+    from knowlang.configs.config import AppConfig
+    config = AppConfig()
+    uvicorn.run("knowlang.api.main:app", host="0.0.0.0", port=config.server.port)

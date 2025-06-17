@@ -1,5 +1,4 @@
 import fnmatch
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
@@ -13,6 +12,7 @@ from .base import _validate_api_key, generate_model_config
 from .chat_config import ChatbotAnalyticsConfig, ChatConfig
 from .retrieval_config import MultiStageRetrievalConfig
 from .state_store_config import StateStoreConfig
+from .server_config import ServerConfig
 
 
 class PathPatterns(BaseSettings):
@@ -211,4 +211,4 @@ class AppConfig(BaseSettings):
     embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
     chat_analytics: ChatbotAnalyticsConfig = Field(default_factory=ChatbotAnalyticsConfig)
     retrieval: MultiStageRetrievalConfig = Field(default_factory=MultiStageRetrievalConfig)
-    extra_fields: Optional[Dict[str, Any]] = None
+    server: ServerConfig = Field(default_factory=ServerConfig)
