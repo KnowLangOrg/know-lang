@@ -15,7 +15,6 @@ from knowlang.vector_stores.factory import VectorStoreFactory
 LOG = FancyLogger(__name__)
 
 router = APIRouter()
-config = AppConfig()
 
 
 @ApiModelRegistry.register
@@ -25,19 +24,20 @@ class ServerSentChatEvent(BaseModel):
 
 
 # Dependency to get config
-async def get_app_config():
-    return config
+async def get_server_config():
+    from knowlang.api.config import asgi_server_config
+    return asgi_server_config
 
 
 # Dependency to get vector store
-async def get_vector_store(config: AppConfig = Depends(get_app_config)):
+async def get_vector_store(config: AppConfig = Depends(get_server_config)):
     return VectorStoreFactory.get(config)
 
 
 @router.get("/chat/stream")
 async def stream_chat(
     query: str,
-    config: AppConfig = Depends(get_app_config),
+    config: AppConfig = Depends(get_server_config),
     vector_store=Depends(get_vector_store),
 ):
     """
@@ -54,7 +54,7 @@ async def stream_chat(
 @router.websocket("/ws/chat/stream")
 async def websocket_chat_stream(
     websocket: WebSocket,
-    config: AppConfig = Depends(get_app_config),
+    config: AppConfig = Depends(get_server_config),
     vector_store=Depends(get_vector_store),
 ):
     await websocket.accept()

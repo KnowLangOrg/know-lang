@@ -15,24 +15,26 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
 # Custom OpenAPI schema generation
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title="KnowLang API",
         version="1.0.0",
         description="A FastAPI server for the KnowLang project, providing endpoints for all KnowLang features.",
         routes=app.routes,
     )
-    
+
     # Add our models to components/schemas
     openapi_schema["components"]["schemas"].update(ApiModelRegistry.get_all_schemas())
-    
+
     app.openapi_schema = openapi_schema
 
     return app.openapi_schema
+
 
 app.openapi = custom_openapi
 
@@ -53,4 +55,8 @@ app.include_router(parse_router, prefix=router_prefix, tags=["parse"])
 
 if __name__ == "__main__":
     # Run the server if this file is executed directly
-    uvicorn.run("knowlang.api.main:app", host="0.0.0.0", port=8080)
+    from knowlang.api.config import asgi_server_config
+
+    uvicorn.run(
+        "knowlang.api.main:app", host="0.0.0.0", port=asgi_server_config.server.port
+    )
