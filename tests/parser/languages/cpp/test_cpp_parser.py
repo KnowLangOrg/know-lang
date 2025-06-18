@@ -33,7 +33,8 @@ class TestCppParser:
         assert cpp_parser.supports_extension(".hpp")
         assert cpp_parser.supports_extension(".h")
 
-    def test_simple_file_parsing(self, cpp_parser: CppParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_simple_file_parsing(self, cpp_parser: CppParser, test_config: AppConfig):
         """Test parsing a simple C++ file with function and class"""
         simple_cpp = """
         /**
@@ -69,7 +70,7 @@ class TestCppParser:
         """
         test_file = Path(test_config.db.codebase_directory) / "simple.cpp"
         test_file.write_text(simple_cpp)
-        chunks = cpp_parser.parse_file(test_file)
+        chunks = await cpp_parser.parse_file(test_file)
 
         # Test function
         function_chunk = find_chunk_by_criteria(chunks, type=BaseChunkType.FUNCTION, name="add")
@@ -94,8 +95,8 @@ class TestCppParser:
         assert exported_chunk is not None
         assert "__declspec(dllexport)" in exported_chunk.content
 
-
-    def test_namespace_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_namespace_handling(self, cpp_parser: CppParser, test_config: AppConfig):
         """Test handling of namespaces"""
         namespace_cpp = """
         namespace test {
@@ -121,7 +122,7 @@ class TestCppParser:
         """
         test_file = Path(test_config.db.codebase_directory) / "namespace.cpp"
         test_file.write_text(namespace_cpp)
-        chunks = cpp_parser.parse_file(test_file)
+        chunks = await cpp_parser.parse_file(test_file)
 
         func = find_chunk_by_criteria(chunks, type=BaseChunkType.FUNCTION, name="namespace_func")
         assert func is not None
@@ -134,7 +135,8 @@ class TestCppParser:
         cls = find_chunk_by_criteria(chunks, type=BaseChunkType.CLASS, name="MyNamespace::SimpleClass")
         assert cls is not None
 
-    def test_template_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_template_handling(self, cpp_parser: CppParser, test_config: AppConfig):
         """Test handling of template classes and functions"""
         template_cpp = """
         /**
@@ -156,7 +158,7 @@ class TestCppParser:
         """
         test_file = Path(test_config.db.codebase_directory) / "template.cpp"
         test_file.write_text(template_cpp)
-        chunks = cpp_parser.parse_file(test_file)
+        chunks = await cpp_parser.parse_file(test_file)
 
         func = find_chunk_by_criteria(chunks, type=BaseChunkType.FUNCTION, name="max")
         assert func is not None
@@ -168,26 +170,28 @@ class TestCppParser:
         assert cls.metadata.is_template
         assert "template<typename T, typename U>" in cls.content
 
-    def test_error_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_error_handling(self, cpp_parser: CppParser, test_config: AppConfig):
         """Test error handling for various error cases"""
         # Test invalid syntax
         invalid_file = Path(test_config.db.codebase_directory) / "invalid.cpp"
         invalid_file.write_text("class { invalid syntax")
-        chunks = cpp_parser.parse_file(invalid_file)
+        chunks = await cpp_parser.parse_file(invalid_file)
         assert chunks == []
 
         # Test non-existent file
         nonexistent = Path(test_config.db.codebase_directory) / "nonexistent.cpp"
-        chunks = cpp_parser.parse_file(nonexistent)
+        chunks = await cpp_parser.parse_file(nonexistent)
         assert chunks == []
 
         # Test non-C++ file
         non_cpp = Path(test_config.db.codebase_directory) / "readme.md"
         non_cpp.write_text("# README")
-        chunks = cpp_parser.parse_file(non_cpp)
+        chunks = await cpp_parser.parse_file(non_cpp)
         assert chunks == []
 
-    def test_preprocessor_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_preprocessor_handling(self, cpp_parser: CppParser, test_config: AppConfig):
         """Test handling of preprocessor directives"""
         preprocessor_cpp = """
         #include <iostream>
@@ -205,7 +209,7 @@ class TestCppParser:
         """
         test_file = Path(test_config.db.codebase_directory) / "preprocessor.cpp"
         test_file.write_text(preprocessor_cpp)
-        chunks = cpp_parser.parse_file(test_file)
+        chunks = await cpp_parser.parse_file(test_file)
 
         cls = find_chunk_by_criteria(chunks, type=BaseChunkType.CLASS, name="PreprocessorTest")
         assert cls is not None

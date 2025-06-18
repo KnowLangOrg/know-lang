@@ -49,9 +49,10 @@ class TestPythonParser:
         assert python_parser.parser is not None
         assert python_parser.language is not None
 
-    def test_simple_file_parsing(self, python_parser: PythonParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_simple_file_parsing(self, python_parser: PythonParser, test_config: AppConfig):
         """Test parsing a simple Python file with function and class"""
-        chunks = python_parser.parse_file(test_config.db.codebase_directory / "simple.py")
+        chunks = await python_parser.parse_file(test_config.db.codebase_directory / "simple.py")
 
         # Test function
         function_chunk = find_chunk_by_criteria(
@@ -83,9 +84,10 @@ class TestPythonParser:
             expected.content_snippet
         )
 
-    def test_complex_file_parsing(self, python_parser: PythonParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_complex_file_parsing(self, python_parser: PythonParser, test_config: AppConfig):
         """Test parsing a complex Python file"""
-        chunks = python_parser.parse_file(Path(test_config.db.codebase_directory) / "complex.py")
+        chunks = await python_parser.parse_file(Path(test_config.db.codebase_directory) / "complex.py")
         
         # Test complex function
         complex_func = find_chunk_by_criteria(
@@ -117,32 +119,34 @@ class TestPythonParser:
             expected.content_snippet
         )
 
-    def test_error_handling(self, python_parser: PythonParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_error_handling(self, python_parser: PythonParser, test_config: AppConfig):
         """Test error handling for various error cases"""
         # Test invalid syntax
         invalid_file = Path(test_config.db.codebase_directory) / "invalid.py"
         invalid_file.write_text(INVALID_SYNTAX)
-        chunks = python_parser.parse_file(invalid_file)
+        chunks = await python_parser.parse_file(invalid_file)
         assert chunks == []
         
         # Test non-existent file
         nonexistent = Path(test_config.db.codebase_directory) / "nonexistent.py"
-        chunks = python_parser.parse_file(nonexistent)
+        chunks = await python_parser.parse_file(nonexistent)
         assert chunks == []
         
         # Test non-Python file
         non_python = Path(test_config.db.codebase_directory) / "readme.md"
         non_python.write_text("# README")
-        chunks = python_parser.parse_file(non_python)
+        chunks = await python_parser.parse_file(non_python)
         assert chunks == []
 
-    def test_file_size_limits(self, python_parser: PythonParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_file_size_limits(self, python_parser: PythonParser, test_config: AppConfig):
         """Test file size limit enforcement"""
         large_file = Path(test_config.db.codebase_directory) / "large.py"
         # Create a file larger than the limit
         large_file.write_text("x = 1\n" * 1_000_000)
         
-        chunks = python_parser.parse_file(large_file)
+        chunks = await python_parser.parse_file(large_file)
         assert chunks == []
 
     @pytest.mark.parametrize("test_file", TEST_FILES.keys())
@@ -150,9 +154,10 @@ class TestPythonParser:
         """Test file extension support"""
         assert any(test_file.endswith(ext) for ext in python_parser.language_config.file_extensions)
 
-    def test_decorated_components(self, python_parser: PythonParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_decorated_components(self, python_parser: PythonParser, test_config: AppConfig):
         """Test parsing Python files with decorated functions and classes"""
-        chunks = python_parser.parse_file(test_config.db.codebase_directory / "decorated.py")
+        chunks = await python_parser.parse_file(test_config.db.codebase_directory / "decorated.py")
         
         # Test decorated function
         decorated_func = find_chunk_by_criteria(

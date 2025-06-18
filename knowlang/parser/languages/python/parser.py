@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 import tree_sitter_python
+import aiofiles
 from tree_sitter import Language, Node, Parser
 
 from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
@@ -200,7 +201,7 @@ class PythonParser(LanguageParser):
             docstring=self._get_preceding_docstring(node, source_code),
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
+    async def parse_file(self, file_path: Path) -> List[CodeChunk]:
         """Parse a single Python file and return list of code chunks"""
         if not self.supports_extension(file_path.suffix):
             LOG.debug(f"Skipping file {file_path}: unsupported extension")
@@ -212,8 +213,8 @@ class PythonParser(LanguageParser):
                 LOG.warning(f"Skipping file {file_path}: exceeds size limit of {self.language_config.max_file_size} bytes")
                 return []
 
-            with open(file_path, 'rb') as f:
-                source_code = f.read()
+            async with aiofiles.open(file_path, 'rb') as f:
+                source_code = await f.read()
             
             if not self.parser:
                 raise RuntimeError("Parser not initialized. Call setup() first.")

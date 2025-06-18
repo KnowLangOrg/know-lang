@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List, Optional, Tuple
+import aiofiles
 
 from tree_sitter import Language, Node, Parser
 # Assuming LanguageEnum will be updated to include CSHARP
@@ -119,7 +120,7 @@ class CSharpParser(LanguageParser):
             )
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
+    async def parse_file(self, file_path: Path) -> List[CodeChunk]:
         if not self.supports_extension(file_path.suffix):
             LOG.debug(f"Skipping file {file_path}: unsupported extension")
             return []
@@ -130,12 +131,8 @@ class CSharpParser(LanguageParser):
 
         LOG.info(f"Parsing C# file: {file_path}")
 
-        try:
-            with open(file_path, "rb") as f:
-                source_code = f.read()
-        except Exception as e:
-            LOG.error(f"Error reading file {file_path}: {e}")
-            return []
+        async with aiofiles.open(file_path, "rb") as f:
+            source_code = await f.read()
 
         try:
             tree = self.parser.parse(source_code)

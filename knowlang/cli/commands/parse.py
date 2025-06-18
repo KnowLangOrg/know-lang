@@ -49,7 +49,7 @@ async def parse_command(args: ParseCommandArgs) -> None:
         
         parser = code_parser_factory.get_parser(changed_file_path)
         if parser:
-            chunks = parser.parse_file(changed_file_path)
+            chunks = await parser.parse_file(changed_file_path)
             total_chunks.extend(chunks)
 
     updater = IncrementalUpdater(config)

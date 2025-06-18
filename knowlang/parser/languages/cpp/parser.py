@@ -6,6 +6,7 @@ from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
                                  CodeMetadata, LanguageEnum)
 from knowlang.parser.base.parser import LanguageParser
 from knowlang.utils import convert_to_relative_path, FancyLogger
+import aiofiles 
 
 LOG = FancyLogger(__name__)
 
@@ -129,7 +130,7 @@ class CppParser(LanguageParser):
             )
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
+    async def parse_file(self, file_path: Path) -> List[CodeChunk]:
         """Parse a single C++ file and return list of code chunks"""
         if not self.supports_extension(file_path.suffix):
             LOG.debug(f"Skipping file {file_path}: unsupported extension")
@@ -141,8 +142,8 @@ class CppParser(LanguageParser):
                 LOG.warning(f"Skipping file {file_path}: exceeds size limit")
                 return []
 
-            with open(file_path, 'rb') as f:
-                source_code = f.read()
+            async with aiofiles.open(file_path, 'rb') as f:
+                source_code = await f.read()
             
             if not self.parser:
                 raise RuntimeError("Parser not initialized. Call setup() first.")

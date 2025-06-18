@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List, Optional
 import tree_sitter_typescript
 from tree_sitter import Language, Node, Parser
+import aiofiles
 
 from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
                                 CodeMetadata, LanguageEnum)
@@ -218,7 +219,7 @@ class TypeScriptParser(LanguageParser):
             )
         )
 
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
+    async def parse_file(self, file_path: Path) -> List[CodeChunk]:
         """Parse a single TypeScript file and return list of code chunks"""
         if not self.supports_extension(file_path.suffix):
             LOG.debug(f"Skipping file {file_path}: unsupported extension")
@@ -230,9 +231,9 @@ class TypeScriptParser(LanguageParser):
                 LOG.warning(f"Skipping file {file_path}: exceeds size limit of {self.language_config.max_file_size} bytes")
                 return []
 
-            with open(file_path, 'rb') as f:
-                source_code = f.read()
-            
+            async with aiofiles.open(file_path, 'rb') as f:
+                source_code = await f.read()
+
             # Select the appropriate parser based on file extension
             parser = self._get_parser_for_file(file_path)
             if not parser:
