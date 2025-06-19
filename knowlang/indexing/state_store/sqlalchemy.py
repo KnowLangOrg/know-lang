@@ -69,18 +69,6 @@ class SQLAlchemyStateStore(StateStore):
         
         LOG.info(f"Initialized {self.config.state_store.provider} state store schema at {self.config.state_store.store_path}")
 
-    def _compute_file_hash(self, file_path: Path) -> str:
-        """Compute SHA-256 hash of file contents"""
-        sha256_hash = hashlib.sha256()
-        try:
-            with open(file_path, "rb") as f:
-                for byte_block in iter(lambda: f.read(4096), b""):
-                    sha256_hash.update(byte_block)
-            return sha256_hash.hexdigest()
-        except IOError as e:
-            LOG.error(f"Error computing hash for {file_path}: {e}")
-            raise
-
     async def get_file_state(self, file_path: Path) -> Optional[FileState]:
         """Get current state of a file"""
         try:
@@ -115,7 +103,7 @@ class SQLAlchemyStateStore(StateStore):
                 relative_path = str(get_relative_path(file_path, self.config))
                 
                 # Compute new file hash
-                file_hash = compute_file_hash(file_path)
+                file_hash = await compute_file_hash(file_path)
                 current_mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
                 
                 # Get or create file state
@@ -212,7 +200,7 @@ class SQLAlchemyStateStore(StateStore):
                 if not file_path.exists():
                     continue
                     
-                current_hash = compute_file_hash(file_path)
+                current_hash = await compute_file_hash(file_path)
                 current_mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
                 
                 if file_path not in existing_states:

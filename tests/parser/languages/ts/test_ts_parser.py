@@ -66,9 +66,10 @@ class TestTypeScriptParser:
         assert typescript_parser._get_parser_for_file(ts_file) == typescript_parser.parser_ts
         assert typescript_parser._get_parser_for_file(tsx_file) == typescript_parser.parser_tsx
 
-    def test_simple_ts_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_simple_ts_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test parsing a simple TypeScript file with function, class, interface, and type alias"""
-        chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "simple.ts")
+        chunks = await typescript_parser.parse_file(test_config.db.codebase_directory / "simple.ts")
         
         # Test function extraction
         function_chunk = find_chunk_by_criteria(
@@ -138,9 +139,10 @@ class TestTypeScriptParser:
         )
         assert increment_method is None, "Methods inside classes should not be extracted"
 
-    def test_complex_ts_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_complex_ts_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test parsing a complex TypeScript file with generics, namespaces, and decorators"""
-        chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "complex.ts")
+        chunks = await typescript_parser.parse_file(test_config.db.codebase_directory / "complex.ts")
         
         
         # Test deprecated decorator function
@@ -236,9 +238,10 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
 
-    def test_simple_tsx_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_simple_tsx_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test parsing a simple React TSX file"""
-        chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "simple.tsx")
+        chunks = await typescript_parser.parse_file(test_config.db.codebase_directory / "simple.tsx")
         
         # Test interface for props
         props_chunk = find_chunk_by_criteria(
@@ -271,9 +274,10 @@ class TestTypeScriptParser:
             expected.content_snippet
         )
 
-    def test_complex_tsx_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_complex_tsx_file_parsing(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test parsing a complex React TSX file"""
-        chunks = typescript_parser.parse_file(test_config.db.codebase_directory / "complex.tsx")
+        chunks = await typescript_parser.parse_file(test_config.db.codebase_directory / "complex.tsx")
         
         # Test interface for user data
         user_interface_chunk = find_chunk_by_criteria(
@@ -329,41 +333,43 @@ class TestTypeScriptParser:
         )
         assert hook_chunk is None, "Functions inside other functions should not be extracted"
 
-    def test_error_handling(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_error_handling(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test error handling for various error cases"""
         # Test invalid TS syntax
         invalid_ts_file = Path(test_config.db.codebase_directory) / "invalid.ts"
-        chunks_ts = typescript_parser.parse_file(invalid_ts_file)
+        chunks_ts = await typescript_parser.parse_file(invalid_ts_file)
         # Should still try to extract what it can from invalid files
         assert chunks_ts != []
         
         # Test invalid TSX syntax
         invalid_tsx_file = Path(test_config.db.codebase_directory) / "invalid.tsx"
-        chunks_tsx = typescript_parser.parse_file(invalid_tsx_file)
+        chunks_tsx = await typescript_parser.parse_file(invalid_tsx_file)
         # Should still try to extract what it can from invalid files
         assert chunks_tsx != []
         
         # Test non-existent file
         nonexistent = Path(test_config.db.codebase_directory) / "nonexistent.ts"
-        chunks = typescript_parser.parse_file(nonexistent)
+        chunks = await typescript_parser.parse_file(nonexistent)
         assert chunks == []
         
         # Test non-TypeScript file
         non_ts = Path(test_config.db.codebase_directory) / "readme.md"
         non_ts.write_text("# README")
-        chunks = typescript_parser.parse_file(non_ts)
+        chunks = await typescript_parser.parse_file(non_ts)
         assert chunks == []
 
-    def test_file_size_limits(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
+    @pytest.mark.asyncio
+    async def test_file_size_limits(self, typescript_parser: TypeScriptParser, test_config: AppConfig):
         """Test file size limit enforcement"""
         # Test TS file size limit
         large_ts_file = Path(test_config.db.codebase_directory) / "large.ts"
         large_ts_file.write_text("const x = 1;\n" * 1_000_000)
-        chunks_ts = typescript_parser.parse_file(large_ts_file)
+        chunks_ts = await typescript_parser.parse_file(large_ts_file)
         assert chunks_ts == []
         
         # Test TSX file size limit
         large_tsx_file = Path(test_config.db.codebase_directory) / "large.tsx"
         large_tsx_file.write_text("const x = <div>Test</div>;\n" * 1_000_000)
-        chunks_tsx = typescript_parser.parse_file(large_tsx_file)
+        chunks_tsx = await typescript_parser.parse_file(large_tsx_file)
         assert chunks_tsx == []

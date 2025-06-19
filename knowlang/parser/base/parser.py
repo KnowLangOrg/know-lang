@@ -24,7 +24,7 @@ class LanguageParser(ABC):
         pass
 
     @abstractmethod
-    def parse_file(self, file_path: Path) -> List[CodeChunk]:
+    async def parse_file(self, file_path: Path) -> List[CodeChunk]:
         """Parse a single file and return code chunks"""
         pass
 

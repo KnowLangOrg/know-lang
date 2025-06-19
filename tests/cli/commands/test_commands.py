@@ -19,7 +19,8 @@ def mock_parser_factory():
     with patch('knowlang.cli.commands.parse.CodeParserFactory') as factory:
         # Set up the mock parser behavior
         mock_parser = Mock()
-        mock_parser.parse_file.return_value = [MagicMock(spec=CodeChunk)]
+        # Mock parse_file as an async method that returns a list of CodeChunk
+        mock_parser.parse_file = AsyncMock(return_value=[MagicMock(spec=CodeChunk)])
         factory.return_value.get_parser.return_value = mock_parser
         yield factory
 
@@ -118,7 +119,7 @@ class TestParseCommand:
         
         # Assert parser was used for changed files
         mock_parser_factory.return_value.get_parser.assert_called_once()
-        mock_parser_factory.return_value.get_parser.return_value.parse_file.assert_called_once()
+        mock_parser_factory.return_value.get_parser.return_value.parse_file.assert_awaited_once()
         
         # Assert IncrementalUpdater was created and used
         mock_incremental_updater.assert_called_once()
@@ -212,7 +213,8 @@ class TestParseCommand:
         def get_mock_parser(file_path):
             parser = Mock()
             num_chunks = 1 if "file1" in str(file_path) else 2 if "file2" in str(file_path) else 0
-            parser.parse_file.return_value = [MagicMock(spec=CodeChunk) for _ in range(num_chunks)]
+            # Mock parse_file as an async method
+            parser.parse_file = AsyncMock(return_value=[MagicMock(spec=CodeChunk) for _ in range(num_chunks)])
             return parser
         
         mock_parser_factory.return_value.get_parser.side_effect = get_mock_parser

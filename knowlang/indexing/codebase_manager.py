@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import tempfile
@@ -82,7 +81,7 @@ class CodebaseManager:
         return FileState(
             file_path=str(relative_path),
             last_modified=datetime.fromtimestamp(file_path.stat().st_mtime),
-            file_hash=compute_file_hash(file_path),
+            file_hash=await compute_file_hash(file_path),
             chunk_ids=chunk_ids
         )
     

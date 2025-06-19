@@ -1,12 +1,12 @@
 import hashlib
 from pathlib import Path
-
+import aiofiles
 from knowlang.configs import DBConfig
 from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
 
-def compute_file_hash(file_path: Path) -> str:
+async def compute_file_hash(file_path: Path) -> str:
     """Compute SHA-256 hash of file contents.
     
     Args:
@@ -19,14 +19,14 @@ def compute_file_hash(file_path: Path) -> str:
         IOError: If the file cannot be read
     """
     sha256_hash = hashlib.sha256()
-    try:
-        with open(file_path, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
-                sha256_hash.update(byte_block)
-        return sha256_hash.hexdigest()
-    except IOError as e:
-        LOG.error(f"Error computing hash for {file_path}: {e}")
-        raise
+    async with aiofiles.open(file_path, "rb") as f:
+        while True:
+            byte_block = await f.read(4096)
+            if not byte_block:
+                break
+            sha256_hash.update(byte_block)
+
+    return sha256_hash.hexdigest()
 
 def get_relative_path(file_path: Path, db_config: DBConfig) -> Path:
     """Convert an absolute path to a path relative to the codebase directory.

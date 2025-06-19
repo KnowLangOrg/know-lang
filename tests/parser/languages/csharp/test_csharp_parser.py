@@ -119,10 +119,11 @@ class TestCSharpParser:
         # Test case-insensitivity if specified by config (assuming lowercase in config)
         assert csharp_parser.supports_extension(".CS") is True
 
-    def test_simple_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
+    @pytest.mark.asyncio
+    async def test_simple_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
         """Test parsing the simple.cs file with basic classes and methods."""
         test_file = get_test_file_path("simple.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         expectations = test_expectations["simple.cs"]
 
@@ -137,10 +138,11 @@ class TestCSharpParser:
             assert chunk is not None, f"Expected chunk '{expected_name}' not found"
             validate_chunk_against_expectation(chunk, expectation)
 
-    def test_complex_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
+    @pytest.mark.asyncio
+    async def test_complex_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
         """Test parsing the complex.cs file with namespaces, generics, and attributes."""
         test_file = get_test_file_path("complex.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         expectations = test_expectations["complex.cs"]
 
@@ -155,10 +157,11 @@ class TestCSharpParser:
             assert chunk is not None, f"Expected chunk '{expected_name}' not found"
             validate_chunk_against_expectation(chunk, expectation)
 
-    def test_nested_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
+    @pytest.mark.asyncio
+    async def test_nested_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
         """Test parsing the nested.cs file with nested classes and static classes."""
         test_file = get_test_file_path("nested.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         expectations = test_expectations["nested.cs"]
 
@@ -172,12 +175,13 @@ class TestCSharpParser:
             assert chunk is not None, f"Expected chunk '{expected_name}' not found"
             validate_chunk_against_expectation(chunk, expectation)
 
-    def test_advanced_features_file_parsing(
+    @pytest.mark.asyncio
+    async def test_advanced_features_file_parsing(
         self, csharp_parser: CSharpParser, test_expectations
     ):
         """Test parsing the advanced_features.cs file with events, delegates, and properties."""
         test_file = get_test_file_path("advanced_features.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         expectations = test_expectations["advanced_features.cs"]
 
@@ -191,12 +195,13 @@ class TestCSharpParser:
             assert chunk is not None, f"Expected chunk '{expected_name}' not found"
             validate_chunk_against_expectation(chunk, expectation)
 
-    def test_modern_csharp_file_parsing(
+    @pytest.mark.asyncio
+    async def test_modern_csharp_file_parsing(
         self, csharp_parser: CSharpParser, test_expectations
     ):
         """Test parsing the modern.cs file with C# 9+ features like records."""
         test_file = get_test_file_path("modern.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         expectations = test_expectations["modern.cs"]
 
@@ -210,19 +215,21 @@ class TestCSharpParser:
             assert chunk is not None, f"Expected chunk '{expected_name}' not found"
             validate_chunk_against_expectation(chunk, expectation)
 
-    def test_invalid_file_handling(self, csharp_parser: CSharpParser):
+    @pytest.mark.asyncio
+    async def test_invalid_file_handling(self, csharp_parser: CSharpParser):
         """Test that invalid C# files are handled gracefully."""
         test_file = get_test_file_path("invalid.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         # Invalid files should either return empty list or handle errors gracefully
         # The exact behavior depends on tree-sitter's error recovery
         assert isinstance(chunks, list), "Should return a list even for invalid files"
 
-    def test_minimal_file_parsing(self, csharp_parser: CSharpParser):
+    @pytest.mark.asyncio
+    async def test_minimal_file_parsing(self, csharp_parser: CSharpParser):
         """Test parsing a minimal file with only using statements and empty namespace."""
         test_file = get_test_file_path("minimal.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         # Should produce no chunks since there are no classes or methods
         assert (
@@ -233,12 +240,13 @@ class TestCSharpParser:
         "test_file",
         ["simple.cs", "complex.cs", "nested.cs", "advanced_features.cs", "modern.cs"],
     )
-    def test_all_files_parse_successfully(
+    @pytest.mark.asyncio
+    async def test_all_files_parse_successfully(
         self, csharp_parser: CSharpParser, test_file: str, test_expectations
     ):
         """Test that all major test files parse without errors."""
         file_path = get_test_file_path(test_file)
-        chunks = csharp_parser.parse_file(file_path)
+        chunks = await csharp_parser.parse_file(file_path)
 
         # Should return a list (even if empty)
         assert isinstance(chunks, list), f"Failed to parse {test_file}"
@@ -249,10 +257,11 @@ class TestCSharpParser:
             if expectations:  # If we expect chunks
                 assert len(chunks) > 0, f"Expected chunks for {test_file} but got none"
 
-    def test_namespace_handling(self, csharp_parser: CSharpParser, test_expectations):
+    @pytest.mark.asyncio
+    async def test_namespace_handling(self, csharp_parser: CSharpParser, test_expectations):
         """Test that namespaces are correctly identified and assigned to chunks."""
         test_file = get_test_file_path("complex.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         # Check that chunks in MyApplication.Services namespace are correctly identified
         repo_chunk = find_chunk_by_criteria(chunks, name="IRepository")
@@ -264,10 +273,11 @@ class TestCSharpParser:
         assert user_chunk is not None
         assert user_chunk.metadata.namespace == "MyApplication.Models"
 
-    def test_generic_types_handling(self, csharp_parser: CSharpParser):
+    @pytest.mark.asyncio
+    async def test_generic_types_handling(self, csharp_parser: CSharpParser):
         """Test that generic types are handled correctly."""
         test_file = get_test_file_path("complex.cs")
-        chunks = csharp_parser.parse_file(test_file)
+        chunks = await csharp_parser.parse_file(test_file)
 
         # Find the generic repository
         generic_repo_chunk = find_chunk_by_criteria(chunks, name="GenericRepository")
@@ -287,13 +297,14 @@ class TestCSharpParser:
         assert not csharp_parser.supports_extension(".py")
         assert not csharp_parser.supports_extension(".js")
 
-    def test_empty_file(self, csharp_parser: CSharpParser):
+    @pytest.mark.asyncio
+    async def test_empty_file(self, csharp_parser: CSharpParser):
         """Test parsing an empty C# file."""
         import tempfile, os
         temp_fd, temp_file = tempfile.mkstemp(suffix=".cs", dir=Path(__file__).parent)
         with os.fdopen(temp_fd, 'w') as f:
             f.write("")  # Create an empty file
-        chunks = csharp_parser.parse_file(Path(temp_file))
+        chunks = await csharp_parser.parse_file(Path(temp_file))
         assert chunks == [], "Empty file should produce no chunks"
 
         # Clean up the temporary file
