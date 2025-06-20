@@ -1,3 +1,4 @@
-*
-!.gitignore
-!*example*
+.env.app
+.env.logging
+app_config.json
+eval_config.json

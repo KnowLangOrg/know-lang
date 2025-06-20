@@ -7,7 +7,6 @@ class DomainManagerData(BaseModel):
     name: str = Field(..., description="Name of the asset manager")
     metadata: Optional[Dict[str, str]] = Field(
         default=None,
-        default_factory=dict,
         description="Additional metadata about the asset manager"
     )
 
@@ -18,7 +17,6 @@ class GenericAssetData(BaseModel):
     asset_manager_id: str = Field(..., description="ID of the asset manager that manages this asset")
     metadata: Optional[Dict[str, str]] = Field(
         default=None,
-        default_factory=dict,
         description="Additional metadata about the asset"
     )
 
@@ -28,6 +26,5 @@ class GenericAssetChunkData(BaseModel):
     asset_id: str = Field(..., description="ID of the parent asset")
     metadata: Optional[Dict[str, str]] = Field(
         default=None,
-        default_factory=dict,
         description="Additional metadata about the asset chunk"
     )
