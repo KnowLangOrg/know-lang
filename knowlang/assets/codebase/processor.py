@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, AsyncGenerator
+import os
 from knowlang.assets.processor import (
     DomainContextMixin,
     DomainAssetSourceMixin,
@@ -6,7 +7,7 @@ from knowlang.assets.processor import (
     DomainAssetParserMixin,
 )
 from knowlang.assets.codebase.models import (
-    CodebaseAssetManagerData,
+    CodebaseManagerData,
     CodebaseMetaData,
     CodeAssetMetaData,
     CodeAssetChunkMetaData,
@@ -25,18 +26,32 @@ class CodebaseContext(
 
 class CodebaseAssetSource(
     CodebaseContext,
-    DomainAssetSourceMixin[CodebaseAssetManagerData, GenericAssetData]
+    DomainAssetSourceMixin[CodebaseManagerData, GenericAssetData]
 ):
     """Handles source management for codebase assets."""
 
-    async def get_all_assets(self) -> List[GenericAssetData]:
+    async def yield_all_assets(self, domain: CodebaseManagerData) -> AsyncGenerator[GenericAssetData, None]:
         """Get all assets for the codebase."""
-        raise NotImplementedError("This method should be implemented in subclasses.")
+
+        for top, dirs, files in os.walk(domain.directory_path):
+            for file in files:
+                file_path = os.path.join(top, file)
+                relative_path = os.path.relpath(file_path, domain.directory_path)
+                asset_data = GenericAssetData(
+                    id=relative_path,
+                    name=file,
+                    asset_manager_id=domain.id,
+                    metadata={
+                        "absolute_path": file_path,
+                        "relative_path": relative_path,
+                    }
+                )
+                yield asset_data
 
 
 class CodebaseAssetIndexing(
     CodebaseContext,
-    DomainAssetIndexingMixin[CodebaseAssetManagerData, GenericAssetData]
+    DomainAssetIndexingMixin[CodebaseManagerData, GenericAssetData]
 ):
     """Handles indexing of codebase assets."""
 
@@ -51,7 +66,7 @@ class CodebaseAssetIndexing(
 
 class CodebaseAssetParser(
     CodebaseContext,
-    DomainAssetParserMixin[CodebaseAssetManagerData, GenericAssetData, GenericAssetChunkData]
+    DomainAssetParserMixin[CodebaseManagerData, GenericAssetData, GenericAssetChunkData]
 ):
     """Handles parsing of codebase assets."""
 

@@ -4,13 +4,13 @@ from typing import Optional
 
 from knowlang.core.types import LanguageEnum
 from knowlang.assets.models import (
-    DomainAssetManagerData,
+    DomainManagerData,
     GenericAssetData,
     GenericAssetChunkData,
 )
 
 
-class CodebaseAssetManagerData(DomainAssetManagerData):
+class CodebaseManagerData(DomainManagerData):
     """Data model for a codebase asset manager (represents a single directory/repo)."""
 
     directory_path: str = Field(
