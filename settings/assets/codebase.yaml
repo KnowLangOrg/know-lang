@@ -1,0 +1,20 @@
+domain_type: "codebase"
+domain_id: "my_project_codebase"
+enabled: true
+
+manager_data:
+  id: "my_project_codebase" 
+  name: "My Project Codebase"
+  directory_path: "/path/to/my/project"
+  git_url: "https://github.com/user/project.git"
+  is_active: true
+
+mixins:
+  source: "CodebaseAssetSource"
+  indexer: "CodebaseAssetIndexing"
+  parser: "CodebaseAssetParser"
+  source_config:
+    file_extensions: [".py", ".js", ".ts"]
+  parser_config:
+    extract_docstrings: true
+    extract_comments: true

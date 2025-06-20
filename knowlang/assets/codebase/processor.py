@@ -16,6 +16,7 @@ from knowlang.assets.models import (
     GenericAssetData,
     GenericAssetChunkData,
 )
+from knowlang.assets.registry.factory import DomainProcessorFactory
 
 
 class CodebaseContext(
@@ -24,6 +25,7 @@ class CodebaseContext(
     pass
     
 
+@DomainProcessorFactory.register_mixin
 class CodebaseAssetSource(
     CodebaseContext,
     DomainAssetSourceMixin[CodebaseManagerData, GenericAssetData]
@@ -49,6 +51,7 @@ class CodebaseAssetSource(
                 yield asset_data
 
 
+@DomainProcessorFactory.register_mixin
 class CodebaseAssetIndexing(
     CodebaseContext,
     DomainAssetIndexingMixin[CodebaseManagerData, GenericAssetData]
@@ -64,6 +67,7 @@ class CodebaseAssetIndexing(
         return []
 
 
+@DomainProcessorFactory.register_mixin
 class CodebaseAssetParser(
     CodebaseContext,
     DomainAssetParserMixin[CodebaseManagerData, GenericAssetData, GenericAssetChunkData]
