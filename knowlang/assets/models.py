@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Dict
 
-class DomainAssetManagerData(BaseModel):
+class DomainManagerData(BaseModel):
     """Base class for domain asset manager data."""
     id: str = Field(..., description="Unique identifier for the asset manager")
     name: str = Field(..., description="Name of the asset manager")
