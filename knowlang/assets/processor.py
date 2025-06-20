@@ -32,8 +32,8 @@ class DomainAssetSourceMixin(ABC, Generic[DomainDataT, AssetDataT]):
     """Base class for domain asset source managers."""
 
     @abstractmethod
-    async def get_asset_source(self, asset_id: str) -> AssetDataT:
-        """Get the asset source by its ID."""
+    async def get_all_assets(self) -> List[AssetDataT]:
+        """Get all assets for the given asset ID."""
         pass
 
 class DomainAssetIndexingMixin(ABC, Generic[DomainDataT, AssetDataT]):

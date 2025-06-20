@@ -1,3 +1,4 @@
+from typing import List
 from knowlang.assets.processor import (
     DomainContextMixin,
     DomainAssetSourceMixin,
@@ -28,8 +29,8 @@ class CodebaseAssetSource(
 ):
     """Handles source management for codebase assets."""
 
-    async def get_asset_source(self, asset_id: str) -> GenericAssetData:
-        """Get the asset source by its ID."""
+    async def get_all_assets(self) -> List[GenericAssetData]:
+        """Get all assets for the codebase."""
         raise NotImplementedError("This method should be implemented in subclasses.")
 
 
@@ -39,11 +40,11 @@ class CodebaseAssetIndexing(
 ):
     """Handles indexing of codebase assets."""
 
-    async def index_asset(self, assets: list[GenericAssetData]) -> None:
+    async def index_asset(self, assets: List[GenericAssetData]) -> None:
         """Index the given codebase assets."""
         pass
 
-    async def get_dirty_assets(self, assets: list[GenericAssetData]) -> list[GenericAssetData]:
+    async def get_dirty_assets(self, assets: List[GenericAssetData]) -> List[GenericAssetData]:
         """Check if the codebase assets are dirty (i.e., need re-indexing)."""
         return []
 
@@ -54,7 +55,7 @@ class CodebaseAssetParser(
 ):
     """Handles parsing of codebase assets."""
 
-    async def parse_assets(self, assets: list[GenericAssetData]) -> list[GenericAssetChunkData]:
+    async def parse_assets(self, assets: List[GenericAssetData]) -> List[GenericAssetChunkData]:
         """Parse the given codebase assets."""
         return []
     
