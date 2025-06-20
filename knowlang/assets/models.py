@@ -27,7 +27,6 @@ class GenericAssetChunkData(BaseModel):
     """Base class for generic asset chunk data."""
     chunk_id: str = Field(..., description="Unique identifier for the asset chunk")
     asset_id: str = Field(..., description="ID of the parent asset")
-    content: str = Field(..., description="Content of the asset chunk")
     metadata: Optional[Dict[str, str]] = Field(
         default=None,
         default_factory=dict,
