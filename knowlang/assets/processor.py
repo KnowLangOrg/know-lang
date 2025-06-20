@@ -1,29 +1,34 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import Generic, List, TypeVar
+from knowlang.assets.models import (
+    GenericAssetChunkData,
+    GenericAssetData,
+    DomainAssetManagerData,
+)
 
 # Covariant type variables: allow being more specific
-AssetDataT = TypeVar('AssetDataT', covariant=True)
-AssetChunkDataT = TypeVar('AssetChunkDataT', covariant=True)
+DomainDataT = TypeVar('DomainDataT', covariant=True, bound=DomainAssetManagerData)
+AssetDataT = TypeVar('AssetDataT', covariant=True, bound=GenericAssetData)
+AssetChunkDataT = TypeVar('AssetChunkDataT', covariant=True, bound=GenericAssetChunkData)
 
 # Contravariant type variables: allow being more general
-DomainConfigDataT = TypeVar('DomainConfigDataT', default=None, contravariant=True)
+DomainMetaDataT = TypeVar('DomainMetaDataT', default=None, contravariant=True)
 AssetMetadataT = TypeVar('AssetMetadataT', default=None, contravariant=True)
 AssetChunkMetadataT = TypeVar('AssetChunkMetadataT', default=None, contravariant=True)
 
 @dataclass
-class DomainContext(Generic[DomainConfigDataT, AssetMetadataT, AssetChunkMetadataT]):
+class DomainContextContext(Generic[DomainMetaDataT, AssetMetadataT, AssetChunkMetadataT]):
     """Context for domain asset processing."""
-    config: DomainConfigDataT
+    domain_metadata: DomainMetaDataT
     asset_metadata: AssetMetadataT
     asset_chunk_metadata: AssetChunkMetadataT
 
-
-class Domain(ABC):
-    def __init__(self, ctx: DomainContext):
+class DomainContextMixin(ABC):
+    def __init__(self, ctx: DomainContextContext):
         self.ctx = ctx
 
-class DomainAssetSourceBase(ABC, Generic[AssetDataT], Domain):
+class DomainAssetSourceMixin(ABC, Generic[DomainDataT, AssetDataT]):
     """Base class for domain asset source managers."""
 
     @abstractmethod
@@ -31,7 +36,7 @@ class DomainAssetSourceBase(ABC, Generic[AssetDataT], Domain):
         """Get the asset source by its ID."""
         pass
 
-class DomainAssetIndexingBase(ABC, Generic[AssetDataT], Domain):
+class DomainAssetIndexingMixin(ABC, Generic[DomainDataT, AssetDataT]):
     """Base class for domain asset indexing managers."""
 
     @abstractmethod
@@ -44,7 +49,7 @@ class DomainAssetIndexingBase(ABC, Generic[AssetDataT], Domain):
         """Check if the assets are dirty (i.e., need re-indexing)."""
         pass
 
-class DomainAssetParserBase(ABC, Generic[AssetDataT, AssetChunkDataT], Domain):
+class DomainAssetParserMixin(ABC, Generic[DomainDataT, AssetDataT, AssetChunkDataT]):
     """Base class for domain asset parsers."""
 
     @abstractmethod
