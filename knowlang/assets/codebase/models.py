@@ -10,7 +10,7 @@ from knowlang.assets.models import (
 )
 
 
-class CodebaseManagerData(DomainManagerData):
+class CodebaseMetaData(BaseModel):
     """Data model for a codebase asset manager (represents a single directory/repo)."""
 
     directory_path: str = Field(
@@ -37,8 +37,6 @@ class CodebaseManagerData(DomainManagerData):
         """Get a human-readable display name for this asset manager."""
         # Implementation will be filled later
         pass
-
-class CodebaseMetaData(BaseModel):
     pass
 
 
@@ -73,3 +71,13 @@ class CodeAssetChunkMetaData(BaseModel):
     docstring: Optional[str] = Field(
         default=None, description="Associated documentation"
     )
+
+
+class CodebaseManagerData(DomainManagerData[CodebaseMetaData]):
+    pass
+
+class CodeAssetData(GenericAssetData[CodeAssetMetaData]):
+    pass
+
+class CodeAssetChunkData(GenericAssetChunkData[CodeAssetChunkMetaData]):
+    pass

@@ -10,6 +10,7 @@ from knowlang.assets.config import BaseDomainConfig
 class DomainRegistry():
     """Registry for domain processors and mixins."""
     _mixin_registry : Dict[str, type] = {}
+    _processor_registry: List[DomainProcessor] = []
 
     def __init__(self):
         """Initialize the domain processor factory."""
@@ -54,4 +55,10 @@ class DomainRegistry():
                 content = await f.read()
                 domain_config = BaseDomainConfig.model_validate(yaml.safe_load(content))
 
-                print(domain_config.model_dump_json(indent=2))
+                self._processor_registry.append(self.create_processor(domain_config))
+    
+    async def process_all_domains(self) -> None:
+        """Process all registered domains."""
+        for processor in self._processor_registry:
+            async for asset in processor.source_mixin.yield_all_assets():
+                processor.indexing_mixin.index_assets([asset])
