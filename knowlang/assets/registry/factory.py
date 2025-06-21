@@ -1,8 +1,9 @@
 from typing import Dict, Type
 import glob
 import os
-from pydantic_settings import SettingsConfigDict
-from knowlang.assets.registry.models import BaseDomainConfig, DomainMixinConfig, RegistryConfig
+import yaml
+import aiofiles
+from knowlang.assets.registry.models import BaseDomainConfig, RegistryConfig
 
 class DomainProcessorFactory():
     _mixin_registry : Dict[str, type] = {}
@@ -32,9 +33,8 @@ class DomainRegistry():
         """Discover and register all domain processors and mixins."""
         
         for file in glob.glob(os.path.join(config.discovery_path, '*.yaml')):
-            domain_config = BaseDomainConfig(
-                model_config=SettingsConfigDict(
-                    yaml_file=file,
-                )
-            )
-            print(domain_config.model_dump_json(indent=2))
+            async with aiofiles.open(file, mode='r') as f:
+                content = await f.read()
+                domain_config = BaseDomainConfig.model_validate(yaml.safe_load(content))
+
+                print(domain_config.model_dump_json(indent=2))
