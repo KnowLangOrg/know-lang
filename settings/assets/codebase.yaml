@@ -10,9 +10,9 @@ manager_data:
   is_active: true
 
 mixins:
-  source: "CodebaseAssetSource"
-  indexer: "CodebaseAssetIndexing"
-  parser: "CodebaseAssetParser"
+  source_cls: "CodebaseAssetSource"
+  indexer_cls: "CodebaseAssetIndexing"
+  parser_cls: "CodebaseAssetParser"
   source_config:
     file_extensions: [".py", ".js", ".ts"]
   parser_config:
