@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pydantic import BaseModel
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
@@ -7,19 +6,6 @@ from pydantic_settings import (
     YamlConfigSettingsSource
 )
 
-from knowlang.assets.models import DomainManagerData
-
-class BaseDomainConfig(BaseModel):
-    domain_type: str
-    domain_id: str
-    enabled: bool = True
-    manager_data: DomainManagerData
-    mixins: DomainMixinConfig
-    
-class DomainMixinConfig(BaseModel):
-    source_cls: str             # Class identifier (e.g., "CodebaseAssetSource")
-    indexer_cls: str            # Class identifier
-    parser_cls: str             # Class identifier
 
 class RegistryConfig(BaseSettings):
     """Configuration for the domain registry."""
