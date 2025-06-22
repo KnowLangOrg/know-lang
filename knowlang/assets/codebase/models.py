@@ -25,13 +25,6 @@ class CodebaseMetaData(BaseModel):
     git_commit_hash: Optional[str] = Field(
         default=None, description="Current git commit hash"
     )
-    is_active: bool = Field(
-        default=True, description="Whether this asset manager is active"
-    )
-    created_at: datetime = Field(default_factory=datetime.now)
-    last_indexed_at: Optional[datetime] = Field(
-        default=None, description="Last time this was indexed"
-    )
 
     def get_display_name(self) -> str:
         """Get a human-readable display name for this asset manager."""
@@ -44,7 +37,6 @@ class CodeAssetMetaData(BaseModel):
     """Metadata for a single code file in the codebase."""
 
     file_path: str = Field(..., description="Relative path from asset manager root")
-    absolute_path: str = Field(..., description="Absolute file path")
     language: LanguageEnum = Field(..., description="Programming language")
     file_size_bytes: int = Field(..., description="File size in bytes")
     last_modified: datetime = Field(..., description="File last modification time")

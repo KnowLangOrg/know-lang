@@ -2,19 +2,18 @@ domain_type: "codebase"
 domain_id: "my_project_codebase"
 enabled: true
 
-manager_data:
+metadata_types:
+  domain_metadata: "CodebaseMetaData"
+  asset_metadata: "CodebaseAssetMetaData"
+  chunk_metadata: "CodeAssetChunkMetaData"
+
+domain_data:
   id: "my_project_codebase" 
   name: "My Project Codebase"
-  directory_path: "/path/to/my/project"
-  git_url: "https://github.com/user/project.git"
-  is_active: true
+  metadata:
+    directory_path: "/path/to/my/project"
 
 mixins:
   source_cls: "CodebaseAssetSource"
   indexer_cls: "CodebaseAssetIndexing"
   parser_cls: "CodebaseAssetParser"
-  source_config:
-    file_extensions: [".py", ".js", ".ts"]
-  parser_config:
-    extract_docstrings: true
-    extract_comments: true

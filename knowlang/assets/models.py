@@ -13,7 +13,6 @@ class MetaDataMixin(BaseModel, Generic[MetaDataT]):
     )
 
     class Config:
-        extra = 'allow' 
         from_attributes = True
 
 class DomainManagerData(MetaDataMixin):

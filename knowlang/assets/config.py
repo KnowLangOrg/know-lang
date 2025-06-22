@@ -12,7 +12,7 @@ class BaseDomainConfig(BaseModel):
     domain_type: str
     domain_id: str
     enabled: bool = True
-    manager_data: DomainManagerData
+    domain_data: DomainManagerData
     mixins: DomainMixinConfig
     
 
