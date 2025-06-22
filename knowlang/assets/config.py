@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings
+
 from knowlang.assets.models import DomainManagerData
 
 class DomainMixinConfig(BaseModel):
@@ -13,3 +15,8 @@ class BaseDomainConfig(BaseModel):
     manager_data: DomainManagerData
     mixins: DomainMixinConfig
     
+
+class DatabaseConfig(BaseSettings):
+    """Configuration for database connections"""
+    provider: str = "sqlite"
+    connection_url: str = "sqlite:///./database.db"

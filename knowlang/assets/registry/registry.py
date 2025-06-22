@@ -5,7 +5,7 @@ import yaml
 import aiofiles
 from knowlang.assets.processor import DomainProcessor
 from knowlang.assets.registry.config import RegistryConfig
-from knowlang.assets.config import BaseDomainConfig
+from knowlang.assets.config import BaseDomainConfig, DatabaseConfig
 
 class DomainRegistry():
     """Registry for domain processors and mixins."""
@@ -59,6 +59,10 @@ class DomainRegistry():
     
     async def process_all_domains(self) -> None:
         """Process all registered domains."""
+        from knowlang.assets.db import KnowledgeSqlDatabase
+        db = KnowledgeSqlDatabase(config=DatabaseConfig())
+
         for processor in self._processor_registry:
             async for asset in processor.source_mixin.yield_all_assets():
-                processor.indexing_mixin.index_assets([asset])
+                db.index_assets([asset])
+                # processor.indexing_mixin.index_assets([asset])
