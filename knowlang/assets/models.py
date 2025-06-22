@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from enum import Enum
 from typing_extensions import Optional, Generic, TypeVar
 
 
@@ -46,3 +47,8 @@ class GenericAssetChunkData(MetaDataMixin):
         default=None,
         description="Parent asset data for this chunk",
     )
+
+class KnownDomainTypes(str, Enum):
+    """Known domain types for asset management."""
+    CODEBASE = "codebase"
+    DOCUMENT = "document"

@@ -1,0 +1,267 @@
+from typing import Dict, Type, Any, Optional
+import glob
+import os
+import yaml
+import aiofiles
+from pydantic import BaseModel
+from pydantic_settings import (
+    BaseSettings,
+    SettingsConfigDict,
+    PydanticBaseSettingsSource,
+    YamlConfigSettingsSource
+)
+from knowlang.assets.models import KnownDomainTypes
+from knowlang.assets.processor import DomainProcessor
+from knowlang.assets.config import BaseDomainConfig, DatabaseConfig
+
+
+class RegistryConfig(BaseSettings):
+    """Configuration for the domain registry."""
+    discovery_path: str = 'settings/'
+    model_config = SettingsConfigDict(
+        yaml_file='settings/registry.yaml',
+    )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        return (YamlConfigSettingsSource(settings_cls),)
+
+class TypeRegistry:
+    """Registry for mapping domain types to their metadata classes."""
+
+    def __init__(self):
+        self._metadata_types: Dict[str, Type[BaseModel]] = {}
+        self._data_model_types: Dict[str, Dict[str, Type[BaseModel]]] = {}
+
+    def register_metadata_type(
+        self, domain_type: str, metadata_class: Type[BaseModel]
+    ) -> None:
+        """Register a metadata class for a domain type."""
+        self._metadata_types[domain_type] = metadata_class
+
+    def register_data_models(
+        self,
+        domain_type: str,
+        domain_meta: Type[BaseModel],
+        asset_meta: Type[BaseModel],
+        chunk_meta: Type[BaseModel],
+    ) -> None:
+        """Register all data model classes for a domain."""
+        self._data_model_types[domain_type] = {
+            "domain": domain_meta,
+            "asset": asset_meta,
+            "chunk": chunk_meta,
+        }
+
+    def get_metadata_type(self, domain_type: str) -> Type[BaseModel]:
+        """Get metadata class for domain type."""
+        if domain_type not in self._metadata_types:
+            raise ValueError(f"No metadata type registered for domain: {domain_type}")
+        return self._metadata_types[domain_type]
+
+    def get_data_models(self, domain_type: str) -> Dict[str, Type[BaseModel]]:
+        """Get all data model classes for domain type."""
+        if domain_type not in self._data_model_types:
+            raise ValueError(f"No data models registered for domain: {domain_type}")
+        return self._data_model_types[domain_type]
+
+
+class MixinRegistry:
+    """Registry for domain processor mixins."""
+
+    def __init__(self):
+        self._mixins: Dict[str, Type] = {}
+
+    def register_mixin(self, name: str, mixin_class: Type) -> None:
+        """Register a mixin class."""
+        self._mixins[name] = mixin_class
+
+    def get_mixin(self, name: str) -> Type:
+        """Get mixin class by name."""
+        if name not in self._mixins:
+            raise ValueError(f"No mixin registered with name: {name}")
+        return self._mixins[name]
+
+    def create_mixin_instance(self, name: str) -> Any:
+        """Create an instance of the mixin."""
+        mixin_class = self.get_mixin(name)
+        return mixin_class()
+
+
+# Enhanced domain configuration with type resolution
+class DomainConfigFactory:
+    """Factory for creating properly typed domain configurations."""
+
+    def __init__(self, type_registry: TypeRegistry):
+        self.type_registry = type_registry
+
+    def create_config_from_dict(self, config_data: Dict[str, Any]) -> BaseDomainConfig:
+        """Create a properly typed domain config from dictionary data."""
+        domain_type = config_data.get("domain_type")
+        if not domain_type:
+            raise ValueError("domain_type is required in configuration")
+
+        # Get the metadata type for this domain
+        metadata_type = self.type_registry.get_metadata_type(domain_type)
+
+        # If there's domain_data with metadata, deserialize it properly
+        try:
+            metadata_dict = config_data["domain_data"]["metadata"]
+            if metadata_dict:
+                # Deserialize metadata with correct type
+                metadata_instance = metadata_type.model_validate(metadata_dict)
+                config_data["domain_data"]["metadata"] = metadata_instance
+        except Exception as e:
+            raise ValueError(f"Error deserializing domain metadata: {e}")
+
+        # Now create the config with properly typed metadata
+        return BaseDomainConfig.model_validate(config_data)
+
+
+# Main registry class
+class DomainRegistry:
+    """Centralized registry for all domain-related components."""
+
+    def __init__(self, config: RegistryConfig):
+        self.type_registry = TypeRegistry()
+        self.mixin_registry = MixinRegistry()
+        self.config_factory = DomainConfigFactory(self.type_registry)
+        self.registry_config = config
+
+        self._processors: Dict[str, DomainProcessor] = {}
+        self._configs: Dict[str, BaseDomainConfig] = {}
+
+        # Initialize with built-in types
+        self._register_builtin_types()
+
+    def _register_builtin_types(self) -> None:
+        """Register built-in domain types."""
+        # Register codebase types
+        from knowlang.assets.codebase.models import (
+            CodebaseMetaData,
+            CodeAssetMetaData,
+            CodeAssetChunkMetaData,
+            CodebaseManagerData,
+            CodeAssetData,
+            CodeAssetChunkData,
+        )
+
+        self.type_registry.register_metadata_type(KnownDomainTypes.CODEBASE, CodebaseMetaData)
+        self.type_registry.register_data_models(
+            KnownDomainTypes.CODEBASE, CodebaseManagerData, CodeAssetData, CodeAssetChunkData
+        )
+
+        # Register mixins
+        from knowlang.assets.codebase.processor import (
+            CodebaseAssetSource,
+            CodebaseAssetIndexing,
+            CodebaseAssetParser,
+        )
+
+        self.mixin_registry.register_mixin(CodebaseAssetSource.__name__, CodebaseAssetSource)
+        self.mixin_registry.register_mixin(CodebaseAssetIndexing.__name__, CodebaseAssetIndexing)
+        self.mixin_registry.register_mixin(CodebaseAssetParser.__name__, CodebaseAssetParser)
+
+    def register_domain_type(
+        self,
+        domain_type: str,
+        metadata_class: Type[BaseModel],
+        domain_meta: Type[BaseModel],
+        asset_meta: Type[BaseModel],
+        chunk_meta: Type[BaseModel],
+    ) -> None:
+        """Register a complete domain type."""
+        self.type_registry.register_metadata_type(domain_type, metadata_class)
+        self.type_registry.register_data_models(
+            domain_type, domain_meta, asset_meta, chunk_meta
+        )
+
+    def register_processor_mixins(
+        self,
+        mixinTypes: list[Type],
+    ) -> None:
+        """Register processor mixin classes."""
+        for mixin_class in mixinTypes:
+            self.mixin_registry.register_mixin(mixin_class.__name__, mixin_class)
+
+    def create_processor(self, config: BaseDomainConfig) -> DomainProcessor:
+        """Create a domain processor based on configuration."""
+        try:
+            processor = DomainProcessor()
+            processor.source_mixin = self.mixin_registry.create_mixin_instance(
+                config.mixins.source_cls
+            )
+            processor.indexing_mixin = self.mixin_registry.create_mixin_instance(
+                config.mixins.indexer_cls
+            )
+            processor.parser_mixin = self.mixin_registry.create_mixin_instance(
+                config.mixins.parser_cls
+            )
+            return processor
+        except Exception as e:
+            raise ValueError(
+                f"Failed to create processor for [{config.domain_type}]{config.domain_id}: {str(e)}"
+            )
+
+    async def discover_and_register(self, discovery_path: str = None) -> None:
+        """Discover and register all domain processors from configuration files."""
+        if discovery_path is None:
+            discovery_path = self.registry_config.discovery_path
+
+        for file in glob.glob(os.path.join(discovery_path, "*.yaml")):
+            await self._load_config_file(file)
+
+    async def _load_config_file(self, file_path: str) -> None:
+        """Load and register configuration from a single file."""
+        async with aiofiles.open(file_path, mode="r") as f:
+            content = await f.read()
+            config_dict = yaml.safe_load(content)
+
+            # Use factory to create properly typed config
+            # domain_config = self.config_factory.create_config_from_dict(config_dict)
+            base_domain_config = BaseDomainConfig.model_validate(config_dict)
+            domain_meta_type = self.type_registry.get_metadata_type(base_domain_config.domain_type)
+            domain_config = BaseDomainConfig[domain_meta_type].model_validate(config_dict)
+
+            # Create and register processor
+            processor = self.create_processor(domain_config)
+
+            self._processors[domain_config.domain_id] = processor
+            self._configs[domain_config.domain_id] = domain_config
+
+    def get_processor(self, domain_id: str) -> DomainProcessor:
+        """Get processor by domain ID."""
+        if domain_id not in self._processors:
+            raise ValueError(f"No processor registered for domain: {domain_id}")
+        return self._processors[domain_id]
+
+    def get_config(self, domain_id: str) -> BaseDomainConfig:
+        """Get configuration by domain ID."""
+        if domain_id not in self._configs:
+            raise ValueError(f"No config registered for domain: {domain_id}")
+        return self._configs[domain_id]
+
+    def list_domains(self) -> list[str]:
+        """List all registered domain IDs."""
+        return list(self._processors.keys())
+
+    async def process_all_domains(self) -> None:
+        """Process all registered domains."""
+        from knowlang.assets.db import KnowledgeSqlDatabase
+
+        db = KnowledgeSqlDatabase(config=DatabaseConfig())
+        await db.create_schema()
+
+        for domain_id, processor in self._processors.items():
+            domain_config = self._configs[domain_id]
+            async for asset in processor.source_mixin.yield_all_assets(
+                domain_config.domain_data
+            ):
+                await db.index_assets([asset])
