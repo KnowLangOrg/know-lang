@@ -61,8 +61,8 @@ class DomainRegistry():
         """Process all registered domains."""
         from knowlang.assets.db import KnowledgeSqlDatabase
         db = KnowledgeSqlDatabase(config=DatabaseConfig())
+        await db.create_schema()
 
         for processor in self._processor_registry:
             async for asset in processor.source_mixin.yield_all_assets():
-                db.index_assets([asset])
-                # processor.indexing_mixin.index_assets([asset])
+                await db.index_assets([asset])

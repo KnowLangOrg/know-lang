@@ -19,4 +19,4 @@ class BaseDomainConfig(BaseModel):
 class DatabaseConfig(BaseSettings):
     """Configuration for database connections"""
     provider: str = "sqlite"
-    connection_url: str = "sqlite:///./database.db"
+    connection_url: str = "sqlite+aiosqlite:///database.db"

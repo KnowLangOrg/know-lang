@@ -1,50 +1,49 @@
-from pydantic import BaseModel
-from typing_extensions import Generic, TypeVar, List
-from sqlmodel import SQLModel, Field, Relationship
+from pydantic import BaseModel, Field
+from typing_extensions import Optional, Generic, TypeVar
+
 
 MetaDataT = TypeVar('MetaDataT', bound=BaseModel, covariant=True)
 
-
-class MetaData(BaseModel, Generic[MetaDataT]):
-    meta_data: str = Field(
+class MetaDataMixin(BaseModel, Generic[MetaDataT]):
+    """Mixin for metadata in domain asset models."""
+    metadata: Optional[MetaDataT] = Field(
         default=None,
-        description="Additional metadata"
+        description="Additional metadata about the asset",
+        alias="metadata_"
     )
 
-    @property
-    def MetaData(self) -> MetaDataT:
-        """Return the metadata for this asset manager."""
-        return MetaDataT.model_validate_strings(self.meta_data)
+    class Config:
+        extra = 'allow' 
+        from_attributes = True
 
-class DomainManagerData(MetaData, SQLModel, table=True):
+class DomainManagerData(MetaDataMixin):
     """Base class for domain asset manager data."""
-    id: str = Field(..., description="Unique identifier for the asset manager", primary_key=True)
-    name: str = Field(..., description="Name of the asset manager", index=True)
-    assets: List['GenericAssetData'] = Relationship(
-        back_populates="domain",
-        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    id: str = Field(..., description="Unique identifier for the asset manager")
+    name: str = Field(..., description="Name of the asset manager")
+    assets: Optional[list['GenericAssetData']] = Field(
+        default=None,
+        description="List of assets managed by this asset manager",
     )
 
-class GenericAssetData(MetaData, SQLModel, table=True):
+class GenericAssetData(MetaDataMixin):
     """Base class for generic asset data."""
-    id: str = Field(..., description="Unique identifier for the asset", primary_key=True)
-    name: str = Field(..., description="Name of the asset", index=True)
-    domain_id: str = Field(..., description="ID of the domain that manages this asset" ,foreign_key="DomainManagerData.id")
-    asset_hash: str = Field(..., description="Hash of the asset content for change detection")
-    asset_chunks: List['GenericAssetChunkData'] = Relationship(
-        back_populates="asset",
-        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    id: str = Field(..., description="Unique identifier for the asset")
+    name: str = Field(..., description="Name of the asset")
+    domain_id: str = Field(..., description="ID of the domain that manages this asset")
+    domain: Optional[DomainManagerData] = Field(
+        default=None,
+        description="Domain manager data for the asset",
     )
-    domain: DomainManagerData = Relationship(
-        back_populates="assets",
-        sa_relationship_kwargs={"lazy": "joined"}
+    asset_chunks: Optional[list['GenericAssetChunkData']] = Field(
+        default=None,
+        description="List of chunks that make up this asset",
     )
 
-class GenericAssetChunkData(MetaData, SQLModel, table=True):
+class GenericAssetChunkData(MetaDataMixin):
     """Base class for generic asset chunk data."""
-    id: str = Field(..., description="Unique identifier for the asset chunk", primary_key=True)
-    asset_id: str = Field(..., description="ID of the parent asset", foreign_key="GenericAssetData.id")
-    asset: GenericAssetData = Relationship(
-        back_populates="asset_chunks",
-        sa_relationship_kwargs={"lazy": "joined"}
+    chunk_id: str = Field(..., description="Unique identifier for the asset chunk")
+    asset_id: str = Field(..., description="ID of the parent asset")
+    asset: Optional[GenericAssetData] = Field(
+        default=None,
+        description="Parent asset data for this chunk",
     )
