@@ -95,36 +95,6 @@ class MixinRegistry:
         return mixin_class()
 
 
-# Enhanced domain configuration with type resolution
-class DomainConfigFactory:
-    """Factory for creating properly typed domain configurations."""
-
-    def __init__(self, type_registry: TypeRegistry):
-        self.type_registry = type_registry
-
-    def create_config_from_dict(self, config_data: Dict[str, Any]) -> BaseDomainConfig:
-        """Create a properly typed domain config from dictionary data."""
-        domain_type = config_data.get("domain_type")
-        if not domain_type:
-            raise ValueError("domain_type is required in configuration")
-
-        # Get the metadata type for this domain
-        metadata_type = self.type_registry.get_metadata_type(domain_type)
-
-        # If there's domain_data with metadata, deserialize it properly
-        try:
-            metadata_dict = config_data["domain_data"]["metadata"]
-            if metadata_dict:
-                # Deserialize metadata with correct type
-                metadata_instance = metadata_type.model_validate(metadata_dict)
-                config_data["domain_data"]["metadata"] = metadata_instance
-        except Exception as e:
-            raise ValueError(f"Error deserializing domain metadata: {e}")
-
-        # Now create the config with properly typed metadata
-        return BaseDomainConfig.model_validate(config_data)
-
-
 # Main registry class
 class DomainRegistry:
     """Centralized registry for all domain-related components."""
@@ -132,7 +102,6 @@ class DomainRegistry:
     def __init__(self, config: RegistryConfig):
         self.type_registry = TypeRegistry()
         self.mixin_registry = MixinRegistry()
-        self.config_factory = DomainConfigFactory(self.type_registry)
         self.registry_config = config
 
         self._processors: Dict[str, DomainProcessor] = {}
@@ -224,11 +193,9 @@ class DomainRegistry:
             content = await f.read()
             config_dict = yaml.safe_load(content)
 
-            # Use factory to create properly typed config
-            # domain_config = self.config_factory.create_config_from_dict(config_dict)
             base_domain_config = BaseDomainConfig.model_validate(config_dict)
             domain_meta_type = self.type_registry.get_metadata_type(base_domain_config.domain_type)
-            domain_config = BaseDomainConfig[domain_meta_type].model_validate(config_dict)
+            domain_config = BaseDomainConfig[domain_meta_type].model_validate(config_dict, by_name=True)
 
             # Create and register processor
             processor = self.create_processor(domain_config)

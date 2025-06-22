@@ -16,21 +16,21 @@ class MetaDataMixin(BaseModel, Generic[MetaDataT]):
     class Config:
         from_attributes = True
 
-class DomainManagerData(MetaDataMixin):
+class DomainManagerData(MetaDataMixin, Generic[MetaDataT]):
     """Base class for domain asset manager data."""
     id: str = Field(..., description="Unique identifier for the asset manager")
     name: str = Field(..., description="Name of the asset manager")
-    assets: Optional[list['GenericAssetData']] = Field(
+    assets: Optional[list['GenericAssetData[MetaDataT]']] = Field(
         default=None,
         description="List of assets managed by this asset manager",
     )
 
-class GenericAssetData(MetaDataMixin):
+class GenericAssetData(MetaDataMixin, Generic[MetaDataT]):
     """Base class for generic asset data."""
     id: str = Field(..., description="Unique identifier for the asset")
     name: str = Field(..., description="Name of the asset")
     domain_id: str = Field(..., description="ID of the domain that manages this asset")
-    domain: Optional[DomainManagerData] = Field(
+    domain: Optional[DomainManagerData[MetaDataT]] = Field(
         default=None,
         description="Domain manager data for the asset",
     )
@@ -39,11 +39,11 @@ class GenericAssetData(MetaDataMixin):
         description="List of chunks that make up this asset",
     )
 
-class GenericAssetChunkData(MetaDataMixin):
+class GenericAssetChunkData(MetaDataMixin, Generic[MetaDataT]):
     """Base class for generic asset chunk data."""
     chunk_id: str = Field(..., description="Unique identifier for the asset chunk")
     asset_id: str = Field(..., description="ID of the parent asset")
-    asset: Optional[GenericAssetData] = Field(
+    asset: Optional[GenericAssetData[MetaDataT]] = Field(
         default=None,
         description="Parent asset data for this chunk",
     )
