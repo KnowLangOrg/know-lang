@@ -185,9 +185,9 @@ class DomainRegistry:
             discovery_path = self.registry_config.discovery_path
 
         for file in glob.glob(os.path.join(discovery_path, "*.yaml")):
-            await self._load_config_file(file)
+            await self._load_domain_file(file)
 
-    async def _load_config_file(self, file_path: str) -> None:
+    async def _load_domain_file(self, file_path: str) -> None:
         """Load and register configuration from a single file."""
         async with aiofiles.open(file_path, mode="r") as f:
             content = await f.read()
@@ -195,6 +195,8 @@ class DomainRegistry:
 
             base_domain_config = BaseDomainConfig.model_validate(config_dict)
             domain_meta_type = self.type_registry.get_metadata_type(base_domain_config.domain_type)
+
+            # make sure to use the by_name=True to validate by field names, since metadata has alias of 'metadata_'
             domain_config = BaseDomainConfig[domain_meta_type].model_validate(config_dict, by_name=True)
 
             # Create and register processor
