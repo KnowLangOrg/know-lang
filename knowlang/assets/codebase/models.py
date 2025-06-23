@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
+from knowlang.configs.config import LanguageConfig
 from knowlang.core.types import LanguageEnum
 from knowlang.assets.models import (
     DomainManagerData,
@@ -73,3 +74,41 @@ class CodeAssetData(GenericAssetData[CodeAssetMetaData]):
 
 class CodeAssetChunkData(GenericAssetChunkData[CodeAssetChunkMetaData]):
     pass
+
+class CodeProcessorConfig(BaseModel):
+    """Configuration for the codebase processor."""
+    directory_path: str = Field(
+        default="./",
+        description="Path to the codebase directory to index"
+    )
+    languages: List[LanguageConfig] = Field(
+        default=[
+            LanguageConfig(
+                file_extensions=[".py"],
+                tree_sitter_language="python",
+                chunk_types=["class_definition", "function_definition"],
+                max_file_size=1_000_000,
+            ),
+            LanguageConfig(
+                file_extensions=[".ts", ".tsx"],
+                tree_sitter_language="typescript",
+                chunk_types=["class_definition", "function_definition"],
+                max_file_size=1_000_000,
+            ),
+            LanguageConfig(
+                file_extensions=[".cpp", ".h", ".hpp", ".cc"],
+                tree_sitter_language="cpp",
+                chunk_types=["class_definition", "function_definition"],
+                max_file_size=1_000_000,
+            ),
+            LanguageConfig(
+                file_extensions=[".cs"],
+                tree_sitter_language="csharp",
+                chunk_types=[
+                    "class_declaration",
+                    "method_declaration",
+                ],  # Using common tree-sitter type names
+                max_file_size=1_000_000,
+            ),
+        ]
+    )

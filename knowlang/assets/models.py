@@ -3,7 +3,14 @@ from enum import Enum
 from typing_extensions import Optional, Generic, TypeVar
 
 
+# Covariant type variables: allow being more specific
 MetaDataT = TypeVar('MetaDataT', bound=BaseModel, covariant=True)
+DomainDataT = TypeVar("DomainDataT", covariant=True, bound="DomainManagerData")
+AssetDataT = TypeVar("AssetDataT", covariant=True, bound="GenericAssetData")
+AssetChunkDataT = TypeVar("AssetChunkDataT", covariant=True, bound="GenericAssetChunkData")
+MixinConfigT = TypeVar("MixinConfigT", bound=BaseModel, covariant=True)
+
+
 
 class MetaDataMixin(BaseModel, Generic[MetaDataT]):
     """Mixin for metadata in domain asset models."""

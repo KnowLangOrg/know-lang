@@ -1,4 +1,4 @@
-from typing import Dict, Type, Any, Optional
+from typing import Dict, Literal, Type, Any 
 import glob
 import os
 import yaml
@@ -37,14 +37,7 @@ class TypeRegistry:
     """Registry for mapping domain types to their metadata classes."""
 
     def __init__(self):
-        self._metadata_types: Dict[str, Type[BaseModel]] = {}
         self._data_model_types: Dict[str, Dict[str, Type[BaseModel]]] = {}
-
-    def register_metadata_type(
-        self, domain_type: str, metadata_class: Type[BaseModel]
-    ) -> None:
-        """Register a metadata class for a domain type."""
-        self._metadata_types[domain_type] = metadata_class
 
     def register_data_models(
         self,
@@ -52,25 +45,22 @@ class TypeRegistry:
         domain_meta: Type[BaseModel],
         asset_meta: Type[BaseModel],
         chunk_meta: Type[BaseModel],
+        mixin_config: Type[BaseModel]
     ) -> None:
         """Register all data model classes for a domain."""
         self._data_model_types[domain_type] = {
             "domain": domain_meta,
             "asset": asset_meta,
             "chunk": chunk_meta,
+            "mixin": mixin_config,
         }
 
-    def get_metadata_type(self, domain_type: str) -> Type[BaseModel]:
-        """Get metadata class for domain type."""
-        if domain_type not in self._metadata_types:
-            raise ValueError(f"No metadata type registered for domain: {domain_type}")
-        return self._metadata_types[domain_type]
-
-    def get_data_models(self, domain_type: str) -> Dict[str, Type[BaseModel]]:
+    def get_data_models(self, domain_type: str, target: Literal['domain', 'asset', 'chunk', 'mixin']) -> Type[BaseModel]:
         """Get all data model classes for domain type."""
-        if domain_type not in self._data_model_types:
-            raise ValueError(f"No data models registered for domain: {domain_type}")
-        return self._data_model_types[domain_type]
+        try:
+            return self._data_model_types[domain_type][target]
+        except KeyError:
+            raise ValueError(f"Invalid target '{target}' for domain type: {domain_type}")
 
 
 class MixinRegistry:
@@ -114,17 +104,18 @@ class DomainRegistry:
         """Register built-in domain types."""
         # Register codebase types
         from knowlang.assets.codebase.models import (
-            CodebaseMetaData,
-            CodeAssetMetaData,
-            CodeAssetChunkMetaData,
             CodebaseManagerData,
             CodeAssetData,
             CodeAssetChunkData,
+            CodeProcessorConfig,
         )
 
-        self.type_registry.register_metadata_type(KnownDomainTypes.CODEBASE, CodebaseMetaData)
         self.type_registry.register_data_models(
-            KnownDomainTypes.CODEBASE, CodebaseManagerData, CodeAssetData, CodeAssetChunkData
+            KnownDomainTypes.CODEBASE, 
+            CodebaseManagerData, 
+            CodeAssetData, 
+            CodeAssetChunkData,
+            CodeProcessorConfig,
         )
 
         # Register mixins
@@ -138,19 +129,6 @@ class DomainRegistry:
         self.mixin_registry.register_mixin(CodebaseAssetIndexing.__name__, CodebaseAssetIndexing)
         self.mixin_registry.register_mixin(CodebaseAssetParser.__name__, CodebaseAssetParser)
 
-    def register_domain_type(
-        self,
-        domain_type: str,
-        metadata_class: Type[BaseModel],
-        domain_meta: Type[BaseModel],
-        asset_meta: Type[BaseModel],
-        chunk_meta: Type[BaseModel],
-    ) -> None:
-        """Register a complete domain type."""
-        self.type_registry.register_metadata_type(domain_type, metadata_class)
-        self.type_registry.register_data_models(
-            domain_type, domain_meta, asset_meta, chunk_meta
-        )
 
     def register_processor_mixins(
         self,
@@ -194,10 +172,10 @@ class DomainRegistry:
             config_dict = yaml.safe_load(content)
 
             base_domain_config = BaseDomainConfig.model_validate(config_dict)
-            domain_meta_type = self.type_registry.get_metadata_type(base_domain_config.domain_type)
+            mixin_config = self.type_registry.get_data_models(base_domain_config.domain_type, 'mixin')
 
             # make sure to use the by_name=True to validate by field names, since metadata has alias of 'metadata_'
-            domain_config = BaseDomainConfig[domain_meta_type].model_validate(config_dict, by_name=True)
+            domain_config = BaseDomainConfig[mixin_config].model_validate(config_dict, by_name=True)
 
             # Create and register processor
             processor = self.create_processor(domain_config)

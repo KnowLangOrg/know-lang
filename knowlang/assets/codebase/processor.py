@@ -4,9 +4,11 @@ from knowlang.assets.processor import (
     DomainAssetSourceMixin,
     DomainAssetIndexingMixin,
     DomainAssetParserMixin,
+    DomainContext,
 )
 from knowlang.assets.codebase.models import (
     CodebaseManagerData,
+    CodeProcessorConfig,
 )
 from knowlang.assets.models import (
     GenericAssetData,
@@ -15,15 +17,27 @@ from knowlang.assets.models import (
 
 
 class CodebaseAssetSource(
-    DomainAssetSourceMixin[CodebaseManagerData, GenericAssetData]
+    DomainAssetSourceMixin[
+        CodebaseManagerData,
+        GenericAssetData,
+        GenericAssetChunkData,
+        CodeProcessorConfig,
+    ]
 ):
     """Handles source management for codebase assets."""
 
     async def yield_all_assets(
-        self, domain: CodebaseManagerData
+        self,
+        ctx: DomainContext[
+            CodebaseManagerData,
+            GenericAssetData,
+            GenericAssetChunkData,
+            CodeProcessorConfig,
+        ],
     ) -> AsyncGenerator[GenericAssetData, None]:
         """Get all assets for the codebase."""
 
+        domain = ctx.domain
         metadata = domain.metadata
 
         for top, dirs, files in os.walk(metadata.directory_path):
@@ -43,24 +57,46 @@ class CodebaseAssetSource(
 
 
 class CodebaseAssetIndexing(
-    DomainAssetIndexingMixin[CodebaseManagerData, GenericAssetData]
+    DomainAssetIndexingMixin[
+        CodebaseManagerData,
+        GenericAssetData,
+        GenericAssetChunkData,
+        CodeProcessorConfig,
+    ]
 ):
     """Handles indexing of codebase assets."""
 
     async def index_assets(
-        self, domain: CodebaseManagerData, assets: List[GenericAssetData]
+        self,
+        ctx: DomainContext[
+            CodebaseManagerData,
+            GenericAssetData,
+            GenericAssetChunkData,
+            CodeProcessorConfig,
+        ],
     ) -> None:
         """Index the given codebase assets."""
         pass
 
 
 class CodebaseAssetParser(
-    DomainAssetParserMixin[CodebaseManagerData, GenericAssetData, GenericAssetChunkData]
+    DomainAssetParserMixin[
+        CodebaseManagerData,
+        GenericAssetData,
+        GenericAssetChunkData,
+        CodeProcessorConfig,
+    ]
 ):
     """Handles parsing of codebase assets."""
 
-    async def parse_assets(self, assets: List[GenericAssetData]) -> List[GenericAssetChunkData]:
+    async def parse_assets(
+        self,
+        ctx: DomainContext[
+            CodebaseManagerData,
+            GenericAssetData,
+            GenericAssetChunkData,
+            CodeProcessorConfig,
+        ],
+    ) -> List[GenericAssetChunkData]:
         """Parse the given codebase assets."""
         return []
-    
-    

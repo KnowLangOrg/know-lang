@@ -10,10 +10,10 @@ metadata_types:
 domain_data:
   id: "my_project_codebase" 
   name: "My Project Codebase"
-  metadata:
-    directory_path: "/path/to/my/project"
 
 mixins:
   source_cls: "CodebaseAssetSource"
   indexer_cls: "CodebaseAssetIndexing"
   parser_cls: "CodebaseAssetParser"
+  mixin_config: 
+    directory_path: "./"
