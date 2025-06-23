@@ -180,8 +180,8 @@ class DomainRegistry:
             # Create and register processor
             processor = self.create_processor(domain_config)
 
-            self._processors[domain_config.domain_id] = processor
-            self._configs[domain_config.domain_id] = domain_config
+            self._processors[domain_config.domain_data.id] = processor
+            self._configs[domain_config.domain_data.id] = domain_config
 
     def get_processor(self, domain_id: str) -> DomainProcessor:
         """Get processor by domain ID."""
@@ -202,13 +202,18 @@ class DomainRegistry:
     async def process_all_domains(self) -> None:
         """Process all registered domains."""
         from knowlang.assets.db import KnowledgeSqlDatabase
+        from knowlang.assets.processor import DomainContext
 
         db = KnowledgeSqlDatabase(config=DatabaseConfig())
         await db.create_schema()
 
         for domain_id, processor in self._processors.items():
             domain_config = self._configs[domain_id]
-            async for asset in processor.source_mixin.yield_all_assets(
-                domain_config.domain_data
-            ):
+            ctx = DomainContext(
+                domain=domain_config.domain_data,
+                assets=[],
+                asset_chunks=[],
+                config=domain_config.mixins.mixin_config
+            )
+            async for asset in processor.source_mixin.yield_all_assets(ctx):
                 await db.index_assets([asset])

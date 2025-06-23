@@ -38,13 +38,14 @@ class CodebaseAssetSource(
         """Get all assets for the codebase."""
 
         domain = ctx.domain
-        metadata = domain.metadata
+        dir_path = ctx.config.directory_path
 
-        for top, dirs, files in os.walk(metadata.directory_path):
+        for top, dirs, files in os.walk(dir_path):
             for file in files:
                 file_path = os.path.join(top, file)
-                relative_path = os.path.relpath(file_path, metadata.directory_path)
+                relative_path = os.path.relpath(file_path, dir_path)
                 asset_data = GenericAssetData(
+                    domain_id=domain.id,
                     id=relative_path,
                     name=file,
                     asset_manager_id=domain.id,

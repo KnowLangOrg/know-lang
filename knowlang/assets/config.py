@@ -14,7 +14,6 @@ class DomainMixinConfig(BaseModel,  Generic[MixinConfigT]):
 
 class BaseDomainConfig(BaseModel, Generic[MixinConfigT]):
     domain_type: str
-    domain_id: str
     enabled: bool = True
     domain_data: DomainManagerData
     mixins: DomainMixinConfig[MixinConfigT]

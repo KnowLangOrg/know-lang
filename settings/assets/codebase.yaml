@@ -1,5 +1,4 @@
 domain_type: "codebase"
-domain_id: "my_project_codebase"
 enabled: true
 
 metadata_types:

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing_extensions import Generic, List, AsyncGenerator
 from knowlang.assets.models import (
     DomainDataT,
@@ -8,7 +9,7 @@ from knowlang.assets.models import (
 )
 from pydantic import BaseModel
 
-
+@dataclass
 class DomainContext(Generic[DomainDataT, AssetDataT, AssetChunkDataT, MixinConfigT]):
     domain: DomainDataT
     assets: List[AssetDataT]
