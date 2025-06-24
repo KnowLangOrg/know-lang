@@ -200,7 +200,7 @@ class DomainRegistry:
 
     async def process_all_domains(self) -> None:
         """Process all registered domains."""
-        from knowlang.assets.db import KnowledgeSqlDatabase
+        from knowlang.database.db import KnowledgeSqlDatabase
         from knowlang.assets.processor import DomainContext
         from knowlang.vector_stores.factory import VectorStoreFactory
 
@@ -219,5 +219,3 @@ class DomainRegistry:
                 await db.index_assets([asset.to_orm()])
             
             vector_store = VectorStoreFactory.get(domain_config)
-            
-

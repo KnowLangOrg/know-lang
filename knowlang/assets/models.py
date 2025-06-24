@@ -4,7 +4,7 @@ from typing_extensions import Optional, Generic, TypeVar, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from knowlang.assets.db import DomainManagerOrm, GenericAssetOrm, GenericAssetChunkOrm
+    from knowlang.database.db import DomainManagerOrm, GenericAssetOrm, GenericAssetChunkOrm
 
 # Covariant type variables: allow being more specific
 MetaDataT = TypeVar('MetaDataT', bound=BaseModel, covariant=True)
@@ -34,7 +34,7 @@ class DomainManagerData(MetaDataMixin, Generic[MetaDataT]):
     )
 
     def to_orm(self) -> 'DomainManagerOrm':
-        from knowlang.assets.db import DomainManagerOrm
+        from knowlang.database.db import DomainManagerOrm
         return DomainManagerOrm(
             id=self.id,
             name=self.name,
@@ -60,7 +60,7 @@ class GenericAssetData(MetaDataMixin, Generic[MetaDataT]):
     )
 
     def to_orm(self) -> 'GenericAssetOrm':
-        from knowlang.assets.db import GenericAssetOrm
+        from knowlang.database.db import GenericAssetOrm
         return GenericAssetOrm(
             id=self.id,
             name=self.name,
@@ -79,7 +79,7 @@ class GenericAssetChunkData(MetaDataMixin, Generic[MetaDataT]):
     )
 
     def to_orm(self) -> 'GenericAssetChunkOrm':
-        from knowlang.assets.db import GenericAssetChunkOrm
+        from knowlang.database.db import GenericAssetChunkOrm
         return GenericAssetChunkOrm(
             id=self.chunk_id,
             asset_id=self.asset_id,
