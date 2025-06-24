@@ -31,7 +31,7 @@ class TypeScriptParser(LanguageParser):
         self.parser_ts = Parser(self.language_ts)
         self.parser_tsx = Parser(self.language_tsx)
         
-        self.language_config = self.config.parser.languages["typescript"]
+        self.language_config = self.config.languages["typescript"]
     
     def _get_parser_for_file(self, file_path: Path) -> Parser:
         """Get the appropriate parser based on file extension"""
@@ -243,7 +243,7 @@ class TypeScriptParser(LanguageParser):
             chunks: List[CodeChunk] = []
             
             # Get the relative path for location information
-            relative_path = convert_to_relative_path(file_path, self.config.db)
+            relative_path = convert_to_relative_path(file_path, self.config.directory_path)
             
             def traverse_node(node: Node):
                 """Recursively traverse the syntax tree"""

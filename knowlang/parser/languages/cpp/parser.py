@@ -24,7 +24,7 @@ class CppParser(LanguageParser):
         self.language_name = LanguageEnum.CPP
         self.language = Language(tree_sitter_cpp.language())
         self.parser = Parser(self.language)
-        self.language_config = self.config.parser.languages["cpp"]
+        self.language_config = self.config.languages["cpp"]
     
     def _get_preceding_docstring(self, node: Node, source_code: bytes) -> Optional[str]:
         """Extract docstring from comments"""
@@ -151,7 +151,7 @@ class CppParser(LanguageParser):
             tree = self.parser.parse(source_code)
             chunks: List[CodeChunk] = []
 
-            relative_path = convert_to_relative_path(file_path, self.config.db)
+            relative_path = convert_to_relative_path(file_path, self.config.directory_path)
             
             def traverse_node(node: Node):
                 """Recursively traverse the syntax tree"""

@@ -15,9 +15,15 @@ class DomainContext(Generic[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorC
     asset_chunks: List[AssetChunkDataT]
     config: ProcessorConfigT
 
+class DomainContextInit(DomainContext[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]):
+    def __init__(
+        self,
+        ctx: DomainContext[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
+    ) -> None:
+        self.ctx = ctx
 
 class DomainAssetSourceMixin(
-    ABC, Generic[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
+    ABC, DomainContextInit[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
 ):
     """Base class for domain asset source managers."""
 
@@ -30,7 +36,7 @@ class DomainAssetSourceMixin(
 
 
 class DomainAssetIndexingMixin(
-    ABC, Generic[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
+    ABC, DomainContextInit[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
 ):
     """Base class for domain asset indexing managers."""
 
@@ -43,7 +49,7 @@ class DomainAssetIndexingMixin(
 
 
 class DomainAssetParserMixin(
-    ABC, Generic[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
+    ABC, DomainContextInit[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
 ):
     """Base class for domain asset parsers."""
 

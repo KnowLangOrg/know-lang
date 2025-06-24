@@ -1,6 +1,6 @@
-from typing import List, AsyncGenerator
+from typing import List, AsyncGenerator, TypeAlias
 import os
-from git import InvalidGitRepositoryError, Repo
+import aiofiles
 from knowlang.assets.processor import (
     DomainAssetSourceMixin,
     DomainAssetIndexingMixin,
@@ -8,7 +8,9 @@ from knowlang.assets.processor import (
     DomainContext,
 )
 from knowlang.assets.codebase.models import (
+    CodebaseMetaData,
     CodeAssetMetaData,
+    CodeAssetChunkMetaData,
     CodebaseManagerData,
     CodeProcessorConfig,
 )
@@ -16,32 +18,41 @@ from knowlang.assets.models import (
     GenericAssetData,
     GenericAssetChunkData,
 )
+from knowlang.parser.factory import CodeParserFactory
+
+# Type aliases to eliminate repetition
+CodebaseDomainType: TypeAlias = CodebaseManagerData[CodebaseMetaData]
+CodebaseAssetType: TypeAlias = GenericAssetData[CodeAssetMetaData]
+CodebaseChunkType: TypeAlias = GenericAssetChunkData[CodeAssetChunkMetaData]
+CodebaseConfigType: TypeAlias = CodeProcessorConfig
+
+# Main context type alias
+CodebaseDomainContext: TypeAlias = DomainContext[
+    CodebaseDomainType,
+    CodebaseAssetType,
+    CodebaseChunkType,
+    CodebaseConfigType,
+]
 
 
 class CodebaseAssetSource(
     DomainAssetSourceMixin[
-        CodebaseManagerData,
-        GenericAssetData,
-        GenericAssetChunkData,
-        CodeProcessorConfig,
+        CodebaseDomainType,
+        CodebaseAssetType,
+        CodebaseChunkType,
+        CodebaseConfigType,
     ]
 ):
     """Handles source management for codebase assets."""
 
     async def yield_all_assets(
         self,
-        ctx: DomainContext[
-            CodebaseManagerData,
-            GenericAssetData,
-            GenericAssetChunkData,
-            CodeProcessorConfig,
-        ],
-    ) -> AsyncGenerator[GenericAssetData, None]:
+        ctx: CodebaseDomainContext,
+    ) -> AsyncGenerator[CodebaseAssetType, None]:
         """Get all assets for the codebase."""
 
         import zlib
-        import aiofiles
-        from git import Repo
+        from git import Repo, InvalidGitRepositoryError
 
         domain = ctx.domain
         dir_path = ctx.config.directory_path
@@ -55,7 +66,7 @@ class CodebaseAssetSource(
                 if repo and repo.ignored(file):
                     continue
 
-                async with aiofiles.open(os.path.join(top, file), 'rb') as f:
+                async with aiofiles.open(os.path.join(top, file), "rb") as f:
                     file_content = await f.read()
                     file_hash = zlib.crc32(file_content)
 
@@ -76,22 +87,17 @@ class CodebaseAssetSource(
 
 class CodebaseAssetIndexing(
     DomainAssetIndexingMixin[
-        CodebaseManagerData,
-        GenericAssetData,
-        GenericAssetChunkData,
-        CodeProcessorConfig,
+        CodebaseDomainType,
+        CodebaseAssetType,
+        CodebaseChunkType,
+        CodebaseConfigType,
     ]
 ):
     """Handles indexing of codebase assets."""
 
     async def index_assets(
         self,
-        ctx: DomainContext[
-            CodebaseManagerData,
-            GenericAssetData,
-            GenericAssetChunkData,
-            CodeProcessorConfig,
-        ],
+        ctx: CodebaseDomainContext,
     ) -> None:
         """Index the given codebase assets."""
         pass
@@ -99,22 +105,30 @@ class CodebaseAssetIndexing(
 
 class CodebaseAssetParser(
     DomainAssetParserMixin[
-        CodebaseManagerData,
-        GenericAssetData,
-        GenericAssetChunkData,
-        CodeProcessorConfig,
+        CodebaseDomainType,
+        CodebaseAssetType,
+        CodebaseChunkType,
+        CodebaseConfigType,
     ]
 ):
     """Handles parsing of codebase assets."""
 
+    def __init__(
+        self,
+        ctx: CodebaseDomainContext,
+    ) -> None:
+        super().__init__(ctx)
+        self.code_parser_factory = CodeParserFactory(ctx.config)
+
     async def parse_assets(
         self,
-        ctx: DomainContext[
-            CodebaseManagerData,
-            GenericAssetData,
-            GenericAssetChunkData,
-            CodeProcessorConfig,
-        ],
-    ) -> List[GenericAssetChunkData]:
+        ctx: CodebaseDomainContext,
+    ) -> List[CodebaseChunkType]:
         """Parse the given codebase assets."""
+
+        for assets in ctx.assets:
+            file_path = assets.meta.file_path
+            parser = self.code_parser_factory.get_parser(file_path)
+            await parser.parse_file(file_path)
+
         return []

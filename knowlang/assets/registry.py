@@ -154,7 +154,7 @@ class DomainRegistry:
             return processor
         except Exception as e:
             raise ValueError(
-                f"Failed to create processor for [{config.domain_type}]{config.domain_id}: {str(e)}"
+                f"Failed to create processor for [{config.domain_type}]: {str(e)}"
             )
 
     async def discover_and_register(self, discovery_path: str = None) -> None:

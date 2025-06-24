@@ -7,10 +7,10 @@ if TYPE_CHECKING:
     from knowlang.database.db import DomainManagerOrm, GenericAssetOrm, GenericAssetChunkOrm
 
 # Covariant type variables: allow being more specific
-MetaDataT = TypeVar('MetaDataT', bound=BaseModel, covariant=True)
-DomainDataT = TypeVar("DomainDataT", covariant=True, bound="DomainManagerData")
-AssetDataT = TypeVar("AssetDataT", covariant=True, bound="GenericAssetData")
-AssetChunkDataT = TypeVar("AssetChunkDataT", covariant=True, bound="GenericAssetChunkData")
+MetaDataT = TypeVar('MetaDataT', default=BaseModel, bound=BaseModel, covariant=True)
+DomainDataT = TypeVar("DomainDataT", default='DomainManagerData', covariant=True, bound="DomainManagerData")
+AssetDataT = TypeVar("AssetDataT", default='GenericAssetData', covariant=True, bound="GenericAssetData")
+AssetChunkDataT = TypeVar("AssetChunkDataT", default='GenericAssetChunkData', covariant=True, bound="GenericAssetChunkData")
 
 
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from knowlang.configs.config import LanguageConfig
 from knowlang.assets.models import (
@@ -70,34 +70,31 @@ class CodeProcessorConfig(ProcessorConfigBase):
         default="./",
         description="Path to the codebase directory to index"
     )
-    languages: List[LanguageConfig] = Field(
-        default=[
-            LanguageConfig(
+    languages: Dict[str, LanguageConfig] = Field(
+        default={
+            "python": LanguageConfig(
                 file_extensions=[".py"],
                 tree_sitter_language="python",
                 chunk_types=["class_definition", "function_definition"],
-                max_file_size=1_000_000,
+                max_file_size=1_000_000
             ),
-            LanguageConfig(
+            "typescript": LanguageConfig(
                 file_extensions=[".ts", ".tsx"],
                 tree_sitter_language="typescript",
                 chunk_types=["class_definition", "function_definition"],
-                max_file_size=1_000_000,
+                max_file_size=1_000_000
             ),
-            LanguageConfig(
+            "cpp": LanguageConfig(
                 file_extensions=[".cpp", ".h", ".hpp", ".cc"],
                 tree_sitter_language="cpp",
                 chunk_types=["class_definition", "function_definition"],
-                max_file_size=1_000_000,
+                max_file_size=1_000_000
             ),
-            LanguageConfig(
+            "csharp": LanguageConfig(
                 file_extensions=[".cs"],
                 tree_sitter_language="csharp",
-                chunk_types=[
-                    "class_declaration",
-                    "method_declaration",
-                ],  # Using common tree-sitter type names
-                max_file_size=1_000_000,
-            ),
-        ]
+                chunk_types=["class_declaration", "method_declaration"], # Using common tree-sitter type names
+                max_file_size=1_000_000
+            )
+        }
     )

@@ -48,7 +48,7 @@ class CSharpParser(LanguageParser):
         self.language_name = LanguageEnum.CSHARP
         self.language = Language(tree_sitter_c_sharp.language())
         self.parser = Parser(self.language)
-        self.language_config = self.config.parser.languages["csharp"]
+        self.language_config = self.config.languages["csharp"]
 
     def supports_extension(self, ext: str) -> bool:
         return ext.lower() in self.language_config.file_extensions
@@ -112,7 +112,7 @@ class CSharpParser(LanguageParser):
             location=CodeLocation(
                 start_line=node.start_point[0],
                 end_line=node.end_point[0],
-                file_path=convert_to_relative_path(file_path, self.config.db)
+                file_path=convert_to_relative_path(file_path, self.config.directory_path)
             ),
             docstring=docstring,
             metadata=CodeMetadata(
