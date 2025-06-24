@@ -1,0 +1,100 @@
+{
+  "llm": {
+    "model_name": "llama3.2:1b",
+    "model_provider": "ollama",
+    "api_key": "",
+    "model_settings": {
+      "base_url": "http://127.0.0.1:11434/v1"
+    }
+  },
+  "db": {
+    "db_provider": "sqlite",
+    "connection_url": "sqlite:///./vectordb/knowlang.db",
+    "persist_directory": "./vectordb",
+    "collection_name": "code",
+    "codebase_directory": "/Users/kolbeyang/Documents/Programming/know-lang",
+    "codebase_url": null,
+    "similarity_metric": "cosine",
+    "content_field": "content",
+    "state_store": {
+      "provider": "sqlite",
+      "store_path": "./statedb/file_state.db",
+      "connection_url": null,
+      "pool_size": 5,
+      "max_overflow": 10,
+      "pool_timeout": 30,
+      "pool_recycle": 3600,
+      "echo": false,
+      "extra_config": {}
+    }
+  },
+  "parser": {
+    "languages": {
+      "python": {
+        "enabled": true,
+        "file_extensions": [".py"],
+        "tree_sitter_language": "python",
+        "chunk_types": ["class_definition", "function_definition"],
+        "max_file_size": 1000000
+      },
+      "cpp": {
+        "enabled": true,
+        "file_extensions": [".cpp", ".h", ".hpp", ".cc"],
+        "tree_sitter_language": "cpp",
+        "chunk_types": ["class_definition", "function_definition"],
+        "max_file_size": 1000000
+      },
+      "typescript": {
+        "enabled": true,
+        "file_extensions": [".ts", ".tsx"],
+        "tree_sitter_language": "typescript",
+        "chunk_types": ["class_definition", "function_definition"],
+        "max_file_size": 1000000
+      },
+      "unity-asset": {
+        "enabled": true,
+        "file_extensions": [".asset"],
+        "tree_sitter_language": "unity-asset",
+        "chunk_types": ["function_definition"],
+        "max_file_size": 1000000
+      }
+    },
+    "path_patterns": {
+      "include": ["**/*.py", "**/*.cpp", "**/*.h", "**/*.hpp", "**/*.cc", "**/*.ts", "**/*.tsx", "**/*.asset"],
+      "exclude": ["**/venv/**", "**/.git/**", "**/__pycache__/**", "**/tests/**"]
+    },
+    "enable_code_summarization": false
+  },
+  "embedding": {
+    "model_name": "nomic-embed-text",
+    "model_provider": "ollama",
+    "api_key": "",
+    "dimension": 768,
+    "settings": {}
+  },
+  "chat": {
+    "llm": {
+      "model_name": "llama3.2:1b",
+      "model_provider": "ollama",
+      "api_key": "",
+      "model_settings": {
+        "base_url": "http://127.0.0.1:11434/v1"
+      }
+    }
+  },
+  "retrieval": {
+    "enabled": true,
+    "keyword_search": {
+      "enabled": false,
+      "top_k": 10,
+      "score_threshold": 0.0,
+      "max_retries": 5
+    },
+    "vector_search": {
+      "enabled": true,
+      "top_k": 10,
+      "score_threshold": 0.0,
+      "max_retries": 5
+    }
+  }
+}

@@ -88,9 +88,9 @@ class ParserConfig(BaseSettings):
             ),
             "unity-asset": LanguageConfig(
                 file_extensions=[".asset"],
-                tree_sitter_language=None,
+                tree_sitter_language="unity-asset",
                 # TODO: revisit these chunk types
-                chunk_typese=[],
+                chunk_types=["function_definition"],
                 max_file_size=1_000_000,
             ),
         }
@@ -213,4 +213,3 @@ class AppConfig(BaseSettings):
         default_factory=MultiStageRetrievalConfig
     )
     server: ServerConfig = Field(default_factory=ServerConfig)
-

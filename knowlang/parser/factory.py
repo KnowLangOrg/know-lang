@@ -3,40 +3,53 @@ from typing import Dict, Optional, Type
 
 from knowlang.configs import AppConfig
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.core.types import LanguageEnum # Added
+from knowlang.core.types import LanguageEnum  # Added
 from knowlang.parser.languages.cpp.parser import CppParser
-from knowlang.parser.languages.csharp.parser import CSharpParser # Added
+from knowlang.parser.languages.csharp.parser import CSharpParser  # Added
 from knowlang.parser.languages.python.parser import PythonParser
 from knowlang.parser.languages.ts.parser import TypeScriptParser
+from knowlang.parser.languages.unity_asset.parser import UnityAssetParser
+
+# Import Unity asset parser using importlib to handle the hyphen in the module name
+import importlib
+
+unity_asset_module = importlib.import_module(
+    "knowlang.parser.languages.unity-asset.parser"
+)
+UnityAssetParser = unity_asset_module.UnityAssetParser
 
 
-class CodeParserFactory():
+class CodeParserFactory:
     """Concrete implementation of parser factory"""
-    
+
     def __init__(self, config: AppConfig):
         self.config = config
         self._parsers: Dict[str, LanguageParser] = {}
         self._parser_classes = self._register_parsers()
-    
+
     def _register_parsers(self) -> Dict[str, Type[LanguageParser]]:
         """Register available parser implementations"""
         return {
             LanguageEnum.PYTHON.value: PythonParser,
             LanguageEnum.CPP.value: CppParser,
             LanguageEnum.TYPESCRIPT.value: TypeScriptParser,
-            LanguageEnum.CSHARP.value: CSharpParser, # Added
+            LanguageEnum.CSHARP.value: CSharpParser,  # Added
+            LanguageEnum.UNITYASSET.value: UnityAssetParser,  # Added Unity Asset parser
             # Add more languages here
         }
-    
+
     def get_parser(self, file_path: Path) -> Optional[LanguageParser]:
         """Get appropriate parser for a file"""
         extension = file_path.suffix
-        
+
         # Find parser class for this extension
         for lang, parser_class in self._parser_classes.items():
-            if not self.config.parser.languages.get(lang, None) or not self.config.parser.languages[lang].enabled:
+            if (
+                not self.config.parser.languages.get(lang, None)
+                or not self.config.parser.languages[lang].enabled
+            ):
                 continue
-                
+
             parser = self._parsers.get(lang)
             if parser is None:
                 parser = parser_class(self.config)
@@ -45,5 +58,6 @@ class CodeParserFactory():
 
             if parser.supports_extension(extension):
                 return self._parsers[lang]
-        
+
         return None
+

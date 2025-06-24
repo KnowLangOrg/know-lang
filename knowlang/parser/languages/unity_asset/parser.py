@@ -133,7 +133,16 @@ class UnityAssetParser(LanguageParser):
         json_content = json_content.replace("\n      ", "")  # Remove YAML indentation
         json_content = json_content.replace('""', '"')  # Fix double quotes
 
-        graph_data = json.loads(json_content)
+        # Check to make sure we have JSON content
+        if len(json_content) == 0:
+            LOG.warning(f"Skipping file {file_path}: No JSON content found")
+            return []
+
+        try:
+            graph_data = json.loads(json_content)
+        except json.JSONDecodeError as e:
+            LOG.warning(f"Skipping file {file_path}: JSON content not parseable")
+            return []
 
         # Extract all raw elements from the graph
         raw_elements = graph_data.get("graph", {}).get("elements", [])
@@ -197,7 +206,9 @@ class UnityAssetParser(LanguageParser):
 
         chunks = []
 
-        for graph_elements in elements_by_graph.values():
+        relative_path = convert_to_relative_path(file_path, self.config.db)
+
+        for i, graph_elements in enumerate(elements_by_graph.values()):
             raw_json_elements = map(lambda e: e.raw_json, graph_elements)
             content = "[" + (", ").join(raw_json_elements) + "]"
 
@@ -207,10 +218,10 @@ class UnityAssetParser(LanguageParser):
                 name="",
                 content=content,
                 location=CodeLocation(
-                    file_path=str(file_path),
+                    file_path=str(relative_path),
                     # TODO: better handling for this
-                    start_line=0,
-                    end_line=1,
+                    start_line=i,
+                    end_line=i + 1,
                 ),
                 # TODO: implement docstring based on the yaml's metadata
                 docstring="",

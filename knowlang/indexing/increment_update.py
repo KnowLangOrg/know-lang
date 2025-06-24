@@ -45,11 +45,15 @@ class IncrementalUpdater:
         self.state_manager = StateManager(app_config)
         self.chunk_indexer = ChunkIndexer(app_config)
 
-    def _group_chunks_by_file(self, chunks: List[CodeChunk]) -> Dict[Path, List[CodeChunk]]:
-        """Group chunks by their source file path"""
+    def _group_chunks_by_file(self, chunks: List[CodeChunk]) -> Dict[str, List[CodeChunk]]:
+        """Group chunks by their source file path (using relative paths)"""
         chunks_by_file = defaultdict(list)
         for chunk in chunks:
-            chunks_by_file[chunk.location.file_path].append(chunk)
+            file_path_str = chunk.location.file_path
+            file_path = Path(file_path_str)
+            # Convert to relative path to match what change detection uses
+            relative_path = convert_to_relative_path(file_path, self.app_config.db)
+            chunks_by_file[relative_path].append(chunk)
         return dict(chunks_by_file)
 
     async def process_changes(
@@ -61,8 +65,13 @@ class IncrementalUpdater:
         stats = UpdateStats()
         chunks_by_file = self._group_chunks_by_file(chunks)
         
+        print(f"DEBUG: Processing {len(changes)} changes")
+        print(f"DEBUG: Chunks grouped by file: {list(chunks_by_file.keys())}")
+        
         for change in track(changes, description="Processing code changes"):
             try:
+                LOG.debug(f"Processing change: {change.path} ({change.change_type})")
+                
                 # Handle deletions and modifications (remove old chunks)
                 if change.change_type in (StateChangeType.MODIFIED, StateChangeType.DELETED):
                     old_state = await self.state_manager.get_file_state(change.path)
@@ -73,8 +82,14 @@ class IncrementalUpdater:
                 # Handle additions and modifications (add new chunks)
                 if change.change_type in (StateChangeType.ADDED, StateChangeType.MODIFIED):
                     change_path_str = convert_to_relative_path(change.path, self.app_config.db)
+                    print(f"DEBUG: Change path: {change.path}")
+                    print(f"DEBUG: Converted path: {change_path_str}")
+                    print(f"DEBUG: Available chunk files: {list(chunks_by_file.keys())}")
+                    
                     if change_path_str in chunks_by_file:
                         file_chunks = chunks_by_file[change_path_str]
+                        print(f"DEBUG: Found {len(file_chunks)} chunks for file {change_path_str}")
+                        
                         chunk_ids = await self.chunk_indexer.process_file_chunks(file_chunks)
                         
                         if chunk_ids:
@@ -87,6 +102,9 @@ class IncrementalUpdater:
                                 new_state
                             )
                             stats.chunks_added += len(chunk_ids)
+                            print(f"DEBUG: Added {len(chunk_ids)} chunks for file {change_path_str}")
+                    else:
+                        print(f"DEBUG: No chunks found for file {change_path_str}")
                 
                 # Update stats
                 if change.change_type == StateChangeType.ADDED:

@@ -28,7 +28,7 @@ async def main(args: Optional[Sequence[str]] = None) -> int:
     Returns:
         Exit code (0 for success, non-zero for error)
     """
-    parsed_args = parse_args()
+    parsed_args = parse_args(args)
     
     # Setup logging
     if parsed_args.verbose:
