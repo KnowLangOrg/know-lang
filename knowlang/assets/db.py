@@ -18,7 +18,7 @@ class DomainManagerOrm(Base):
     __tablename__ = DOMAIN_TABLE_NAME
     id = Column(String, primary_key=True, index=True)
     name = Column(String, index=True)
-    metadata_ = Column(String, nullable=True)
+    meta = Column(String, nullable=True)
     assets = relationship(
         "GenericAssetOrm",
         back_populates="domain",
@@ -30,8 +30,8 @@ class GenericAssetOrm(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, index=True)
     domain_id = Column(String, ForeignKey(f'{DOMAIN_TABLE_NAME}.id'), nullable=False)
-    asset_hash = Column(String, nullable=False)
-    metadata_ = Column(String, nullable=True)
+    asset_hash = Column(String, nullable=True)
+    meta = Column(String, nullable=True)
     asset_chunks = relationship(
         "GenericAssetChunkOrm",
         back_populates="asset",
@@ -48,7 +48,7 @@ class GenericAssetChunkOrm(Base):
 
     id = Column(String, primary_key=True, index=True)
     asset_id = Column(String, ForeignKey(f'{ASSET_TABLE_NAME}.id'), nullable=False)
-    metadata_ = Column(String, nullable=True)
+    meta = Column(String, nullable=True)
     asset = relationship(
         "GenericAssetOrm",
         back_populates="asset_chunks",
@@ -66,7 +66,7 @@ class KnowledgeSqlDatabase:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     
-    async def index_assets(self, assets: List[GenericAssetData]):
+    async def index_assets(self, assets: List[GenericAssetChunkOrm]):
         """Index a new asset into the database."""
         async with self.AsyncSession() as session:
             try:

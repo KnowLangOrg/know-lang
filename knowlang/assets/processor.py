@@ -7,7 +7,6 @@ from knowlang.assets.models import (
     AssetChunkDataT,
     MixinConfigT,
 )
-from pydantic import BaseModel
 
 @dataclass
 class DomainContext(Generic[DomainDataT, AssetDataT, AssetChunkDataT, MixinConfigT]):
@@ -56,7 +55,7 @@ class DomainAssetParserMixin(
         pass
 
 
-class DomainProcessor:
-    source_mixin: DomainAssetSourceMixin
-    indexing_mixin: DomainAssetIndexingMixin
-    parser_mixin: DomainAssetParserMixin
+class DomainProcessor(Generic[DomainDataT, AssetDataT, AssetChunkDataT, MixinConfigT]):
+    source_mixin: DomainAssetSourceMixin[DomainDataT, AssetDataT, AssetChunkDataT, MixinConfigT]
+    indexing_mixin: DomainAssetIndexingMixin[DomainDataT, AssetDataT, AssetChunkDataT, MixinConfigT]
+    parser_mixin: DomainAssetParserMixin[DomainDataT, AssetDataT, AssetChunkDataT, MixinConfigT]

@@ -36,21 +36,11 @@ class CodebaseMetaData(BaseModel):
 
 class CodeAssetMetaData(BaseModel):
     """Metadata for a single code file in the codebase."""
-
     file_path: str = Field(..., description="Relative path from asset manager root")
-    language: LanguageEnum = Field(..., description="Programming language")
-    file_size_bytes: int = Field(..., description="File size in bytes")
-    last_modified: datetime = Field(..., description="File last modification time")
-    file_hash: str = Field(..., description="File content hash for change detection")
 
 
 class CodeAssetChunkMetaData(BaseModel):
     """Metadata for a code chunk within a code file."""
-
-    chunk_type: str = Field(
-        ..., description="Type of code chunk (function, class, etc.)"
-    )
-    language: LanguageEnum = Field(..., description="Programming language")
 
     # Location information
     file_path: str = Field(..., description="Relative path from asset manager root")

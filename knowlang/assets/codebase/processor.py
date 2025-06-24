@@ -7,6 +7,7 @@ from knowlang.assets.processor import (
     DomainContext,
 )
 from knowlang.assets.codebase.models import (
+    CodeAssetMetaData,
     CodebaseManagerData,
     CodeProcessorConfig,
 )
@@ -37,11 +38,18 @@ class CodebaseAssetSource(
     ) -> AsyncGenerator[GenericAssetData, None]:
         """Get all assets for the codebase."""
 
+        import zlib
+        import aiofiles
+
         domain = ctx.domain
         dir_path = ctx.config.directory_path
 
         for top, dirs, files in os.walk(dir_path):
             for file in files:
+                async with aiofiles.open(os.path.join(top, file), 'rb') as f:
+                    file_content = await f.read()
+                    file_hash = zlib.crc32(file_content)
+
                 file_path = os.path.join(top, file)
                 relative_path = os.path.relpath(file_path, dir_path)
                 asset_data = GenericAssetData(
@@ -49,10 +57,10 @@ class CodebaseAssetSource(
                     id=relative_path,
                     name=file,
                     asset_manager_id=domain.id,
-                    metadata={
-                        "absolute_path": file_path,
-                        "relative_path": relative_path,
-                    },
+                    asset_hash=str(file_hash),
+                    meta=CodeAssetMetaData(
+                        file_path=file_path,
+                    ),
                 )
                 yield asset_data
 

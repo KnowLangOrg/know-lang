@@ -174,8 +174,7 @@ class DomainRegistry:
             base_domain_config = BaseDomainConfig.model_validate(config_dict)
             mixin_config = self.type_registry.get_data_models(base_domain_config.domain_type, 'mixin')
 
-            # make sure to use the by_name=True to validate by field names, since metadata has alias of 'metadata_'
-            domain_config = BaseDomainConfig[mixin_config].model_validate(config_dict, by_name=True)
+            domain_config = BaseDomainConfig[mixin_config].model_validate(config_dict)
 
             # Create and register processor
             processor = self.create_processor(domain_config)
@@ -216,4 +215,4 @@ class DomainRegistry:
                 config=domain_config.mixins.mixin_config
             )
             async for asset in processor.source_mixin.yield_all_assets(ctx):
-                await db.index_assets([asset])
+                await db.index_assets([asset.to_orm()])
