@@ -1,5 +1,6 @@
 from typing import List, AsyncGenerator
 import os
+from git import InvalidGitRepositoryError, Repo
 from knowlang.assets.processor import (
     DomainAssetSourceMixin,
     DomainAssetIndexingMixin,
@@ -40,12 +41,20 @@ class CodebaseAssetSource(
 
         import zlib
         import aiofiles
+        from git import Repo
 
         domain = ctx.domain
         dir_path = ctx.config.directory_path
+        try:
+            repo = Repo(dir_path)
+        except InvalidGitRepositoryError:
+            repo = None
 
         for top, dirs, files in os.walk(dir_path):
             for file in files:
+                if repo and repo.ignored(file):
+                    continue
+
                 async with aiofiles.open(os.path.join(top, file), 'rb') as f:
                     file_content = await f.read()
                     file_hash = zlib.crc32(file_content)
