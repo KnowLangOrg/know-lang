@@ -4,6 +4,7 @@ from abc import abstractmethod
 from functools import reduce
 from typing import Any, Dict, List, Optional
 
+from knowlang.database.config import VectorStoreConfig
 from knowlang.configs.config import AppConfig
 from knowlang.search import SearchResult
 from knowlang.search.base import SearchMethodology
@@ -38,6 +39,12 @@ class VectorStore(SearchableStore):
     def assert_initialized(cls) -> None:
         """Assert that the vector store is initialized"""
         pass
+
+    @classmethod
+    def from_cfg(cls, cfg: VectorStoreConfig) -> "VectorStore":
+        raise NotImplementedError(
+            "VectorStore subclasses must implement the from_cfg method to create an instance from configuration."
+        )
 
     @classmethod
     @abstractmethod

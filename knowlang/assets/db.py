@@ -1,12 +1,11 @@
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, String
 from typing import List
 
 from knowlang.assets.config import DatabaseConfig
-from knowlang.assets.models import GenericAssetData, GenericAssetChunkData
 
 Base = declarative_base()
 

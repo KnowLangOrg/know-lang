@@ -1,14 +1,13 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
 from typing import List, Optional
 
 from knowlang.configs.config import LanguageConfig
-from knowlang.core.types import LanguageEnum
 from knowlang.assets.models import (
     DomainManagerData,
     GenericAssetData,
     GenericAssetChunkData,
 )
+from knowlang.assets.config import ProcessorConfigBase
 
 
 class CodebaseMetaData(BaseModel):
@@ -65,7 +64,7 @@ class CodeAssetData(GenericAssetData[CodeAssetMetaData]):
 class CodeAssetChunkData(GenericAssetChunkData[CodeAssetChunkMetaData]):
     pass
 
-class CodeProcessorConfig(BaseModel):
+class CodeProcessorConfig(ProcessorConfigBase):
     """Configuration for the codebase processor."""
     directory_path: str = Field(
         default="./",

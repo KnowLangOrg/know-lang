@@ -11,7 +11,6 @@ MetaDataT = TypeVar('MetaDataT', bound=BaseModel, covariant=True)
 DomainDataT = TypeVar("DomainDataT", covariant=True, bound="DomainManagerData")
 AssetDataT = TypeVar("AssetDataT", covariant=True, bound="GenericAssetData")
 AssetChunkDataT = TypeVar("AssetChunkDataT", covariant=True, bound="GenericAssetChunkData")
-MixinConfigT = TypeVar("MixinConfigT", bound=BaseModel, covariant=True)
 
 
 

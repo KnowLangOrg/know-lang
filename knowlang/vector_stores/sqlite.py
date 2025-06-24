@@ -20,6 +20,7 @@ from sqlalchemy import (
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+from knowlang.database.config import VectorStoreConfig
 from knowlang.configs import AppConfig
 from knowlang.core.types import VectorStoreProvider
 from knowlang.vector_stores.base import (
@@ -59,6 +60,16 @@ class VectorDocumentModel(Base):
 @register_vector_store(VectorStoreProvider.SQLITE)
 class SqliteVectorStore(VectorStore):
     """SQLite implementation of VectorStore using SQLAlchemy and the sqlite-vec extension."""
+
+    @classmethod
+    def from_cfg(cls, cfg: VectorStoreConfig) -> "SqliteVectorStore":
+        """Create SqliteVectorStore from VectorStoreConfig."""
+        return cls(
+            app_config=cfg,
+            db_path=cfg.connection_string,
+            table_name=cfg.table_name,
+            embedding_dim=cfg.embedding_dimension,
+        )
 
     @classmethod
     def create_from_config(cls, config: AppConfig) -> "SqliteVectorStore":
