@@ -1,0 +1,42 @@
+name: Package Python Executable (Windows)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: |
+          pip install uv pyinstaller
+
+      - name: Create virtual environment
+        run: uv venv
+
+      - name: Sync dependencies
+        run: uv sync --all-groups
+
+      - name: Build executable
+        run: uv run pyinstaller --noconfirm knowlang/api/main.spec
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowlang-executable
+          path: dist/main/main.exe
