@@ -10,14 +10,6 @@ from knowlang.parser.languages.python.parser import PythonParser
 from knowlang.parser.languages.ts.parser import TypeScriptParser
 from knowlang.parser.languages.unity_asset.parser import UnityAssetParser
 
-# Import Unity asset parser using importlib to handle the hyphen in the module name
-import importlib
-
-unity_asset_module = importlib.import_module(
-    "knowlang.parser.languages.unity-asset.parser"
-)
-UnityAssetParser = unity_asset_module.UnityAssetParser
-
 
 class CodeParserFactory:
     """Concrete implementation of parser factory"""
@@ -60,4 +52,3 @@ class CodeParserFactory:
                 return self._parsers[lang]
 
         return None
-

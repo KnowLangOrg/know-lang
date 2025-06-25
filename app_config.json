@@ -12,7 +12,7 @@
     "connection_url": "sqlite:///./vectordb/knowlang.db",
     "persist_directory": "./vectordb",
     "collection_name": "code",
-    "codebase_directory": "/Users/kolbeyang/Documents/Programming/know-lang",
+    "codebase_directory": "/Users/kolbeyang/Documents/Programming/unity-assets",
     "codebase_url": null,
     "similarity_metric": "cosine",
     "content_field": "content",

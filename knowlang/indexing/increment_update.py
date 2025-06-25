@@ -50,10 +50,8 @@ class IncrementalUpdater:
         chunks_by_file = defaultdict(list)
         for chunk in chunks:
             file_path_str = chunk.location.file_path
-            file_path = Path(file_path_str)
-            # Convert to relative path to match what change detection uses
-            relative_path = convert_to_relative_path(file_path, self.app_config.db)
-            chunks_by_file[relative_path].append(chunk)
+            # Since parser now outputs relative paths, use them directly
+            chunks_by_file[file_path_str].append(chunk)
         return dict(chunks_by_file)
 
     async def process_changes(
