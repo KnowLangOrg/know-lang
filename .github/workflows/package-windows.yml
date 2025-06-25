@@ -17,6 +17,22 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Cache pip download cache
+        uses: actions/cache@v3
+        with:
+          path: C:\Users\RunnerAdmin\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache project virtual environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-venv-
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
