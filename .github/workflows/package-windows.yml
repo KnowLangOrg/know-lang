@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -17,7 +14,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Cache pip download cache
+      - name: Cache pip wheel cache
         uses: actions/cache@v3
         with:
           path: C:\Users\RunnerAdmin\AppData\Local\pip\Cache
@@ -25,22 +22,33 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Cache project virtual environment
+      # - name: Cache project venv
+      #   id: cache-venv
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: .venv
+      #     key: ${{ runner.os }}-venv-${{ hashFiles('**/uv.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-venv-
+
+      - name: Cache global pip packages
+        id: cache-tooling
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/uv.lock') }}
+          path: ${{ env.pythonLocation }}\Lib\site-packages
+          key: ${{ runner.os }}-global-pip-uv-pyinstaller-${{ hashFiles('**/uv.lock') }}
           restore-keys: |
-            ${{ runner.os }}-venv-
+            ${{ runner.os }}-global-pip-uv-pyinstaller-
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
 
       - name: Install tooling
-        run: |
-          pip install uv pyinstaller
+        if: steps.cache-tooling.outputs.cache-hit != 'true'
+        run: pip install uv pyinstaller
 
       - name: Create virtual environment
         run: uv venv
@@ -49,6 +57,7 @@ jobs:
         run: uv sync --all-groups
 
       - name: Build executable
+        shell: pwsh
         run: uv run pyinstaller --noconfirm knowlang/api/main.spec
 
       - name: Upload executable
