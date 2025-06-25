@@ -65,6 +65,13 @@
           "tree_sitter_language": "typescript",
           "chunk_types": ["class_definition", "function_definition"],
           "max_file_size": 1000000
+        },
+        "unity-asset": {
+          "enabled": true,
+          "file_extensions": [".asset"],
+          "tree_sitter_language": "unity-asset",
+          "chunk_types": ["function_definition"],
+          "max_file_size": 1000000
         }
       },
       "path_patterns": {

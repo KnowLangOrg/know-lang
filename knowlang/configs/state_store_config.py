@@ -9,44 +9,39 @@ from knowlang.core.types import StateStoreProvider
 
 class StateStoreConfig(BaseSettings):
     """Configuration for state storage"""
+
     provider: StateStoreProvider = Field(
-        default=StateStoreProvider.SQLITE,
-        description="state store provider to use"
+        default=StateStoreProvider.SQLITE, description="state store provider to use"
     )
     store_path: Path = Field(
         default=Path("./statedb/file_state.db"),
-        description="Path to store state data (for file-based stores)"
+        description="Path to store state data (for file-based stores)",
     )
     connection_url: Optional[str] = Field(
         default=None,
-        description="Database connection URL (for network-based stores like PostgreSQL)"
+        description="Database connection URL (for network-based stores like PostgreSQL)",
     )
     pool_size: int = Field(
-        default=5,
-        description="Connection pool size for database connections"
+        default=5, description="Connection pool size for database connections"
     )
     max_overflow: int = Field(
         default=10,
-        description="Maximum number of connections that can be created beyond pool_size"
+        description="Maximum number of connections that can be created beyond pool_size",
     )
     pool_timeout: int = Field(
         default=30,
-        description="Number of seconds to wait before timing out on getting a connection"
+        description="Number of seconds to wait before timing out on getting a connection",
     )
     pool_recycle: int = Field(
-        default=3600,
-        description="Number of seconds after which to recycle connections"
+        default=3600, description="Number of seconds after which to recycle connections"
     )
-    echo: bool = Field(
-        default=False,
-        description="Echo SQL queries for debugging"
-    )
+    echo: bool = Field(default=False, description="Echo SQL queries for debugging")
     extra_config: Dict[str, Any] = Field(
         default_factory=dict,
-        description="Additional store-specific configuration options"
+        description="Additional store-specific configuration options",
     )
 
-    @field_validator('store_path')
+    @field_validator("store_path")
     def validate_store_path(cls, v: Path) -> Path:
         """Ensure store path parent directory exists"""
         if v.parent and not v.parent.exists():
@@ -56,23 +51,31 @@ class StateStoreConfig(BaseSettings):
     def get_connection_args(self) -> Dict[str, Any]:
         """Get connection arguments based on store type"""
         common_args = {
-            'pool_size': self.pool_size,
-            'max_overflow': self.max_overflow,
-            'pool_timeout': self.pool_timeout,
-            'pool_recycle': self.pool_recycle,
-            'echo': self.echo,
+            "pool_size": self.pool_size,
+            "max_overflow": self.max_overflow,
+            "pool_timeout": self.pool_timeout,
+            "pool_recycle": self.pool_recycle,
+            "echo": self.echo,
             **self.extra_config,
         }
-        
+
         if self.provider == StateStoreProvider.SQLITE:
+            url = (
+                self.connection_url
+                if self.connection_url
+                else f"sqlite:///{self.store_path}"
+            )
             return {
-                'url': self.connection_url,
+                "url": url,
                 **common_args,
             }
         elif self.provider == StateStoreProvider.POSTGRES:
             if not self.connection_url:
-                raise ValueError("For PostgreSQL, the 'connection_url' must be provided.")
+                raise ValueError(
+                    "For PostgreSQL, the 'connection_url' must be provided."
+                )
             return {
-                'url': self.connection_url,
+                "url": self.connection_url,
                 **common_args,
             }
+
