@@ -49,8 +49,7 @@ class UnityAssetParser(LanguageParser):
 
     def setup(self) -> None:
         """Initialize parser for Unity Assets"""
-        # TODO: change this to UNITY ASSET
-        self.language_name = LanguageEnum.PYTHON
+        self.language_name = LanguageEnum.UNITYASSET
         self.language_config = self.config.parser.languages["unity-asset"]
 
     def _parse_element(self, raw_element: dict) -> Union[Node, Connection, Group]:
@@ -219,7 +218,6 @@ class UnityAssetParser(LanguageParser):
                 content=content,
                 location=CodeLocation(
                     file_path=str(relative_path),
-                    # TODO: better handling for this
                     start_line=i,
                     end_line=i + 1,
                 ),
