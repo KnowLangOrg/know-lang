@@ -1,7 +1,7 @@
 """Type definitions for CLI arguments."""
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from knowlang.evaluations.types import DatasetType
 
@@ -11,7 +11,6 @@ class BaseCommandArgs:
     """Base arguments for all commands."""
     verbose: bool = False
     config: Optional[Path] = None
-    command_func: Optional[Callable[[Any], Any]] = None
 
 @dataclass
 class ParseCommandArgs(BaseCommandArgs):

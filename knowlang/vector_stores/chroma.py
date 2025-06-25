@@ -48,7 +48,6 @@ class ChromaVectorStore(VectorStore):
         collection_name: str,
         similarity_metric: Literal['cosine'] = 'cosine'
     ):
-        super().__init__()  # Initialize SearchableStore capabilities
         self.app_config = app_config
         self.persist_directory = persist_directory
         self.collection_name = collection_name
