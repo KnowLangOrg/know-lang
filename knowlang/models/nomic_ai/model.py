@@ -30,6 +30,9 @@ def generate_embeddings(inputs: List[str], model_name: str, input_type: Optional
     # Get or create SentenceTransformer model
     if model_name not in _NOMIC_CACHE:
         try:
+            import os
+            # Disable parallelism to avoid issues with tokenizers when using asyncio (asyncio spawns multiple threads by default)
+            os.environ["TOKENIZERS_PARALLELISM"] = "false"
             model = SentenceTransformer(model_name)
         except Exception as e:
             LOG.warning(f"Failed to load model {model_name}: {e}, try loading with trust_remote_code=True")
