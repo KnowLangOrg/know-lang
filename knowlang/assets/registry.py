@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Type, Any 
+from typing import Dict, List, Set, Type, Any 
 import glob
 import os
 import yaml
@@ -227,22 +227,29 @@ class DomainRegistry:
         await db.create_schema()
 
         for domain_id, processor in self._processors.items():
+            # 1. Ensure domain is registered in DB
             LOG.info(f"Start processing domain: {domain_id}")
+            await db.upsert_domains([processor.source_mixin.ctx.domain.to_orm()])
+
+            # 2. Process domain assets with batching
             await self._process_domain_with_batching(db, processor, batch_size)
     
     async def _process_domain_with_batching(
-        self, 
-        db: KnowledgeSqlDatabase, 
-        processor : DomainProcessor, 
+        self,
+        db: KnowledgeSqlDatabase,
+        processor: DomainProcessor,
         batch_size: int
     ) -> None:
         """Process a single domain with batching."""
         
         asset_batch = []
+        seen_asset_ids: Set[str] = set()
         
         async for asset in processor.source_mixin.yield_all_assets():
+            assert isinstance(asset, GenericAssetData), "Asset must be of type GenericAssetData"
             asset_batch.append(asset)
-            
+            seen_asset_ids.add(asset.id)
+
             if len(asset_batch) >= batch_size:
                 await self._process_asset_batch(db, processor, asset_batch)
                 asset_batch.clear()
@@ -250,6 +257,40 @@ class DomainRegistry:
         # Process remaining assets
         if asset_batch:
             await self._process_asset_batch(db, processor, asset_batch)
+        
+        domain_id = processor.source_mixin.ctx.domain.id
+        await self._cleanup_deleted_assets(db, processor, domain_id, seen_asset_ids)
+    
+    async def _cleanup_deleted_assets(
+        self,
+        db: KnowledgeSqlDatabase,
+        processor: DomainProcessor,
+        domain_id: str,
+        seen_asset_ids: Set[str]
+    ) -> None:
+        """Remove assets that exist in DB but were not seen during scan."""
+        
+        # Find assets that are in DB but not seen during scan
+        stored_asset_ids = await db.get_all_asset_ids_for_domain(domain_id)
+        deleted_asset_ids = set(stored_asset_ids) - set(seen_asset_ids)
+        
+        if not deleted_asset_ids:
+            LOG.info(f"No deleted assets found for domain: {domain_id}")
+            return
+        
+        LOG.info(f"Found {len(deleted_asset_ids)} deleted assets for domain: {domain_id}")
+        
+        deleted_list = list(deleted_asset_ids)
+            
+        # Get chunks that will be deleted (for vector store cleanup)
+        chunks_to_delete = await db.get_chunks_given_assets(deleted_list)
+        
+        # Clean up from vector store first
+        chunk_data = [GenericAssetChunkData.model_validate(chunk) for chunk in chunks_to_delete]
+        await processor.indexing_mixin.delete_chunks(chunk_data)
+        
+        # Delete from database (will cascade to chunks)
+        await db.delete_assets_by_ids(deleted_list)
     
     async def _process_asset_batch(
         self,

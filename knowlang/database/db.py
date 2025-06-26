@@ -2,10 +2,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, ForeignKey, String, select
+from sqlalchemy import Column, ForeignKey, String, delete, select
+from sqlalchemy.dialects.sqlite import insert
 from typing import Dict, List
 
 from knowlang.assets.config import DatabaseConfig
+from knowlang.utils.fancy_log import FancyLogger
+
+LOG = FancyLogger(__name__)
 
 Base = declarative_base()
 
@@ -65,12 +69,56 @@ class KnowledgeSqlDatabase:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     
-    async def upsert_assets(self, assets: List[GenericAssetChunkOrm]):
+    async def upsert_domains(self, domains: List[DomainManagerOrm]):
+        """Index a new domain into the database."""
+        async with self.AsyncSession() as session:
+            try:
+                for domain in domains:
+                    await session.merge(domain)
+                await session.commit()
+            except SQLAlchemyError as e:
+                await session.rollback()
+                raise e
+    
+    async def upsert_assets(self, assets: List[GenericAssetOrm]):
         """Index a new asset into the database."""
         async with self.AsyncSession() as session:
             try:
+                # Convert ORM objects to dictionaries
+                asset_dict_list = []
                 for asset in assets:
-                    session.merge(asset)  # Use merge to handle upsert
+                    asset_dict = {
+                        'id': asset.id,
+                        'name': asset.name,
+                        'domain_id': asset.domain_id,
+                        'asset_hash': asset.asset_hash,
+                        'meta': asset.meta
+                    }
+                    asset_dict_list.append(asset_dict)
+                
+                # Use PostgreSQL's ON CONFLICT for upsert (adjust for your database)
+                stmt = insert(GenericAssetOrm).values(asset_dict_list)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=['id'],
+                    set_=dict(
+                        name=stmt.excluded.name,
+                        domain_id=stmt.excluded.domain_id,
+                        asset_hash=stmt.excluded.asset_hash,
+                        meta=stmt.excluded.meta
+                    )
+                )
+                
+            except SQLAlchemyError as e:
+                await session.rollback()
+                raise e
+    
+    async def index_asset_chunks(self, asset_chunks: List[GenericAssetChunkOrm]):
+        """Index new asset chunks into the database."""
+
+        # We don't upsert assset chunks, since the 
+        async with self.AsyncSession() as session:
+            try:
+                session.add_all(asset_chunks)
                 await session.commit()
             except SQLAlchemyError as e:
                 await session.rollback()
@@ -92,3 +140,30 @@ class KnowledgeSqlDatabase:
                 select(GenericAssetChunkOrm).where(GenericAssetChunkOrm.asset_id.in_(asset_ids))
             )
             return result.scalars().all()
+    
+    async def get_all_asset_ids_for_domain(self, domain_id: str) -> List[str]:
+        """Get all asset IDs currently stored for a domain."""
+        async with self.AsyncSession() as session:
+            result = await session.execute(
+                select(GenericAssetOrm.id).where(GenericAssetOrm.domain_id == domain_id)
+            )
+            return [row[0] for row in result.fetchall()]
+    
+    async def delete_assets_by_ids(self, asset_ids: List[str]) -> None:
+        """Delete assets by their IDs. Returns count of deleted assets."""
+        if not asset_ids:
+            return 0
+            
+        async with self.AsyncSession() as session:
+            try:
+                # Delete assets (chunks will be deleted via cascade)
+                result = await session.execute(
+                    delete(GenericAssetOrm).where(GenericAssetOrm.id.in_(asset_ids))
+                )
+                deleted_count = result.rowcount
+                await session.commit()
+                LOG.debug(f"Deleted {deleted_count} assets with IDs: {asset_ids}")
+            except SQLAlchemyError as e:
+                await session.rollback()
+                LOG.error(f"Failed to delete assets with IDs {asset_ids}: {e}")
+                raise e
