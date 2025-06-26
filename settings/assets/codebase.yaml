@@ -9,15 +9,19 @@ metadata_types:
 domain_data:
   id: "my_project_codebase" 
   name: "My Project Codebase"
+  meta:
+    directory_path: "./"
 
 mixins:
   source_cls: "CodebaseAssetSource"
   indexer_cls: "CodebaseAssetIndexing"
   parser_cls: "CodebaseAssetParser"
-  mixin_config: 
-    directory_path: "./"
-    vector_store:
-      provider: "sqlite"
-      connection_string: "sqlite:///codebase.db"
-      embedding_dimension: 768
-      table_name: "vector_store"
+
+processor_config: 
+  directory_path: "./"
+  vector_store:
+    provider: "sqlite"
+    connection_string: "sqlite:///codebase.db"
+    table_name: "vector_store"
+    embedding:
+      dimension: 768

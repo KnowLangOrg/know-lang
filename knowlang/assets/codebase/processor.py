@@ -12,47 +12,38 @@ from knowlang.assets.codebase.models import (
     CodeAssetMetaData,
     CodeAssetChunkMetaData,
     CodebaseManagerData,
+    CodeAssetData,
+    CodeAssetChunkData,
     CodeProcessorConfig,
 )
 from knowlang.assets.models import (
     GenericAssetData,
-    GenericAssetChunkData,
 )
 from knowlang.parser.factory import CodeParserFactory
 
 # Type aliases to eliminate repetition
-CodebaseDomainType: TypeAlias = CodebaseManagerData[CodebaseMetaData]
-CodebaseAssetType: TypeAlias = GenericAssetData[CodeAssetMetaData]
-CodebaseChunkType: TypeAlias = GenericAssetChunkData[CodeAssetChunkMetaData]
 CodebaseConfigType: TypeAlias = CodeProcessorConfig
 
 # Main context type alias
 CodebaseDomainContext: TypeAlias = DomainContext[
-    CodebaseDomainType,
-    CodebaseAssetType,
-    CodebaseChunkType,
-    CodebaseConfigType,
+    CodebaseManagerData,
+    CodeAssetData,
+    CodeAssetChunkData,
 ]
 
 
-class CodebaseAssetSource(
-    DomainAssetSourceMixin[
-        CodebaseDomainType,
-        CodebaseAssetType,
-        CodebaseChunkType,
-        CodebaseConfigType,
-    ]
-):
+class CodebaseAssetSource(DomainAssetSourceMixin):
     """Handles source management for codebase assets."""
 
     async def yield_all_assets(
         self,
         ctx: CodebaseDomainContext,
-    ) -> AsyncGenerator[CodebaseAssetType, None]:
+    ) -> AsyncGenerator[CodeAssetData, None]:
         """Get all assets for the codebase."""
 
         import zlib
         from git import Repo, InvalidGitRepositoryError
+        assert isinstance(ctx.config, CodeProcessorConfig)
 
         domain = ctx.domain
         dir_path = ctx.config.directory_path
@@ -85,32 +76,39 @@ class CodebaseAssetSource(
                 yield asset_data
 
 
-class CodebaseAssetIndexing(
-    DomainAssetIndexingMixin[
-        CodebaseDomainType,
-        CodebaseAssetType,
-        CodebaseChunkType,
-        CodebaseConfigType,
-    ]
-):
+class CodebaseAssetIndexing(DomainAssetIndexingMixin):
     """Handles indexing of codebase assets."""
+
+    def __init__(
+        self,
+        ctx: CodebaseDomainContext,
+    ) -> None:
+        super().__init__(ctx)
+        from knowlang.vector_stores.factory import VectorStoreFactory
+        self.vector_store = VectorStoreFactory.get(ctx.config.vector_store)
 
     async def index_assets(
         self,
         ctx: CodebaseDomainContext,
     ) -> None:
         """Index the given codebase assets."""
+        from knowlang.models import generate_embedding
+
+        for asset in ctx.assets:
+            for chunk in ctx.asset_chunks:
+                assert isinstance(chunk.meta, CodeAssetChunkMetaData)
+                embedding = await generate_embedding(chunk)
+                self.vector_store.add_documents(
+                    documents=[chunk.meta.content],
+                    embeddings=[embedding],
+                    metadatas=[chunk.meta.model_dump()],
+                    ids=[chunk.chunk_id],
+                )
+
         pass
 
 
-class CodebaseAssetParser(
-    DomainAssetParserMixin[
-        CodebaseDomainType,
-        CodebaseAssetType,
-        CodebaseChunkType,
-        CodebaseConfigType,
-    ]
-):
+class CodebaseAssetParser(DomainAssetParserMixin):
     """Handles parsing of codebase assets."""
 
     def __init__(
@@ -123,12 +121,23 @@ class CodebaseAssetParser(
     async def parse_assets(
         self,
         ctx: CodebaseDomainContext,
-    ) -> List[CodebaseChunkType]:
+    ) -> List[CodeAssetChunkData]:
         """Parse the given codebase assets."""
 
-        for assets in ctx.assets:
-            file_path = assets.meta.file_path
-            parser = self.code_parser_factory.get_parser(file_path)
-            await parser.parse_file(file_path)
+        chunks = []
+        for asset in ctx.assets:
+            assert isinstance(asset.meta, CodeAssetMetaData)
 
-        return []
+            file_path = asset.meta.file_path
+            parser = self.code_parser_factory.get_parser(file_path)
+            _chunks_raw = await parser.parse_file(file_path)
+            chunks.extend(
+                [CodeAssetChunkData(
+                    chunk_id=chunk.location.to_single_line(),
+                    asset_id=asset.id,
+                    content=chunk.content,
+                    meta=CodeAssetChunkMetaData.from_code_chunk(chunk),
+                ) for chunk in _chunks_raw]
+            )
+
+        return chunks

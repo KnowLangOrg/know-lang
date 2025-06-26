@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 
 from knowlang.core.types import VectorStoreProvider
+from knowlang.configs import EmbeddingConfig
 
 
 class VectorStoreConfig(BaseModel):
@@ -16,7 +17,7 @@ class VectorStoreConfig(BaseModel):
         default="vector_store",
         description="Name of the table in the vector store"
     )
-    embedding_dimension: int = Field(
-        ...,
-        description="Dimension of the embeddings stored in the vector store"
-    )        
+    embedding: EmbeddingConfig = Field(
+        default_factory=EmbeddingConfig,
+        description="Configuration for the embeddings"
+    )

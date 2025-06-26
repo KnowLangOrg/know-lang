@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypeAlias
 
 from knowlang.configs.config import LanguageConfig
 from knowlang.assets.models import (
@@ -8,6 +8,7 @@ from knowlang.assets.models import (
     GenericAssetChunkData,
 )
 from knowlang.assets.config import ProcessorConfigBase
+from knowlang.core.types import CodeChunk
 
 
 class CodebaseMetaData(BaseModel):
@@ -41,6 +42,10 @@ class CodeAssetMetaData(BaseModel):
 class CodeAssetChunkMetaData(BaseModel):
     """Metadata for a code chunk within a code file."""
 
+    content: str = Field(
+        ..., description="The actual code content of the chunk"
+    )
+
     # Location information
     file_path: str = Field(..., description="Relative path from asset manager root")
     start_line: int = Field(..., description="Starting line number")
@@ -54,15 +59,21 @@ class CodeAssetChunkMetaData(BaseModel):
         default=None, description="Associated documentation"
     )
 
+    @classmethod
+    def from_code_chunk(cls, chunk: 'CodeChunk') -> 'CodeAssetChunkMetaData':
+        """Create metadata from a CodeChunk instance."""
+        return cls(
+            file_path=chunk.location.file_path,
+            start_line=chunk.location.start_line,
+            end_line=chunk.location.end_line,
+            chunk_name=chunk.name,
+            docstring=chunk.docstring
+        )
 
-class CodebaseManagerData(DomainManagerData[CodebaseMetaData]):
-    pass
 
-class CodeAssetData(GenericAssetData[CodeAssetMetaData]):
-    pass
-
-class CodeAssetChunkData(GenericAssetChunkData[CodeAssetChunkMetaData]):
-    pass
+CodebaseManagerData : TypeAlias = DomainManagerData[CodebaseMetaData]
+CodeAssetData : TypeAlias = GenericAssetData[CodeAssetMetaData]
+CodeAssetChunkData : TypeAlias = GenericAssetChunkData[CodeAssetChunkMetaData]
 
 class CodeProcessorConfig(ProcessorConfigBase):
     """Configuration for the codebase processor."""

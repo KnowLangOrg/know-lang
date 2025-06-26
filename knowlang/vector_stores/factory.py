@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, Type, TypeVar, Union, cast
 
-from knowlang.assets.config import BaseDomainConfig
 from knowlang.configs.config import AppConfig
 from knowlang.core.types import VectorStoreProvider
 from knowlang.vector_stores.base import (
@@ -46,19 +45,19 @@ class VectorStoreFactory:
     @classmethod
     def _get(
         cls,
-        cfg: BaseDomainConfig
+        cfg: VectorStoreConfig
     ):
-        vector_config: VectorStoreConfig = cfg.mixins.mixin_config.vector_store
-        instance_key = f"{cfg.domain_type}_{vector_config.provider}"
+        cfg: VectorStoreConfig = cfg
+        instance_key = f"{cfg.provider}_{cfg.connection_string}"
 
         if instance_key in cls._instances:
             return cls._instances[instance_key]
         
         try:
             # Get the vector store class based on the provider
-            store_cls: Type[VectorStore] = get_vector_store(vector_config.provider)
+            store_cls: Type[VectorStore] = get_vector_store(cfg.provider)
             # Create an instance from the configuration
-            vector_store: VectorStore = store_cls.from_cfg(vector_config)
+            vector_store: VectorStore = store_cls.from_cfg(cfg)
 
             # Initialize the vector store
             vector_store.initialize()
@@ -88,7 +87,7 @@ class VectorStoreFactory:
             VectorStoreInitError: If initialization fails
         """
         # FIXME: we should deprcated this method and use _get instead after refactoring
-        if isinstance(app_config, BaseDomainConfig):
+        if isinstance(app_config, VectorStoreConfig):
             return cls._get(app_config)
 
         db_config = app_config.db

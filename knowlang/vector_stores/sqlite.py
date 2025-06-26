@@ -68,7 +68,7 @@ class SqliteVectorStore(VectorStore):
             app_config=cfg,
             db_path=cfg.connection_string,
             table_name=cfg.table_name,
-            embedding_dim=cfg.embedding_dimension,
+            embedding_dim=cfg.embedding.dimension,
         )
 
     @classmethod
