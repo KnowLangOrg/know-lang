@@ -10,7 +10,8 @@ class VectorStoreConfig(BaseModel):
         description="Vector Database provider"
     )
     connection_string: str = Field(
-        default="sqlite:///vector_store.db",
+        # TODO: sqlite.py vector store is not yet implemented to be async
+        default="sqlite:///database.db",
         description="Connection string for the vector store"
     )
     table_name: str = Field(

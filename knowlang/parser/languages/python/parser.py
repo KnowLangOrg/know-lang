@@ -1,13 +1,18 @@
 from pathlib import Path
 from typing import List, Optional
 import tree_sitter_python
+import os
 import aiofiles
 from tree_sitter import Language, Node, Parser
 
-from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
-                                 LanguageEnum)
+from knowlang.core.types import (
+    BaseChunkType, 
+    CodeChunk, 
+    CodeLocation,
+    LanguageEnum
+)
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.utils import convert_to_relative_path, FancyLogger
+from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
 
@@ -227,7 +232,7 @@ class PythonParser(LanguageParser):
                 return []
 
             chunks: List[CodeChunk] = []
-            relative_path = convert_to_relative_path(file_path, self.config.directory_path)
+            relative_path = os.path.relpath(file_path, self.config.directory_path)
             
             # Process the syntax tree
             for node in tree.root_node.children:

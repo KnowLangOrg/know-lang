@@ -1,11 +1,12 @@
 from pathlib import Path
 from typing import List, Optional
+import os
 from tree_sitter import Language, Node, Parser
 
 from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
                                  CodeMetadata, LanguageEnum)
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.utils import convert_to_relative_path, FancyLogger
+from knowlang.utils import FancyLogger
 import aiofiles 
 
 LOG = FancyLogger(__name__)
@@ -151,8 +152,8 @@ class CppParser(LanguageParser):
             tree = self.parser.parse(source_code)
             chunks: List[CodeChunk] = []
 
-            relative_path = convert_to_relative_path(file_path, self.config.directory_path)
-            
+            relative_path = os.path.relpath(file_path, self.config.directory_path)
+
             def traverse_node(node: Node):
                 """Recursively traverse the syntax tree"""
                 if node.type in ("class_specifier", "struct_specifier"):

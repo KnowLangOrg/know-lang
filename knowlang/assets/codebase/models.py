@@ -67,7 +67,8 @@ class CodeAssetChunkMetaData(BaseModel):
             start_line=chunk.location.start_line,
             end_line=chunk.location.end_line,
             chunk_name=chunk.name,
-            docstring=chunk.docstring
+            docstring=chunk.docstring,
+            content=chunk.content,
         )
 
 

@@ -242,13 +242,8 @@ class DomainRegistry:
 
         for domain_id, processor in self._processors.items():
             domain_config = self._configs[domain_id]
-            ctx = DomainContext(
-                domain=domain_config.domain_data,
-                assets=[],
-                asset_chunks=[],
-                config=domain_config.processor_config
-            )
-            async for asset in processor.source_mixin.yield_all_assets(ctx):
+
+            async for asset in processor.source_mixin.yield_all_assets():
                 await db.index_assets([asset.to_orm()])
-                chunks = await processor.parser_mixin.parse_assets(ctx, [asset])
-                processor.indexing_mixin.index_assets(ctx, chunks)
+                chunks = await processor.parser_mixin.parse_assets([asset])
+                await processor.indexing_mixin.index_chunks(chunks)

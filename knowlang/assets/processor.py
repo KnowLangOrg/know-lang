@@ -33,22 +33,9 @@ class DomainAssetSourceMixin(
 
     @abstractmethod
     async def yield_all_assets(
-        self, ctx: DomainCtxT,
+        self, ctx: DomainCtxT = None,
     ) -> AsyncGenerator[AssetDataT, None]:
         """Get all assets for the given asset ID."""
-        pass
-
-
-class DomainAssetIndexingMixin(
-    ABC, DomainContextInit
-):
-    """Base class for domain asset indexing managers."""
-
-    @abstractmethod
-    async def index_assets(
-        self, ctx: DomainCtxT
-    ) -> None:
-        """Index the given assets."""
         pass
 
 
@@ -59,10 +46,23 @@ class DomainAssetParserMixin(
 
     @abstractmethod
     async def parse_assets(
-        self, ctx: DomainCtxT
+        self, assets: List[AssetDataT], ctx: DomainCtxT = None
     ) -> List[AssetChunkDataT]:
         """Parse the given assets."""
         pass
+
+class DomainAssetIndexingMixin(
+    ABC, DomainContextInit
+):
+    """Base class for domain asset indexing managers."""
+
+    @abstractmethod
+    async def index_chunks(
+        self, chunks: List[AssetChunkDataT], ctx: DomainCtxT = None
+    ) -> None:
+        """Index the given assets."""
+        pass
+
 
 
 class DomainProcessor():

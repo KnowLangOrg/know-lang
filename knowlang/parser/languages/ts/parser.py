@@ -3,11 +3,13 @@ from typing import List, Optional
 import tree_sitter_typescript
 from tree_sitter import Language, Node, Parser
 import aiofiles
+import os
 
 from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
                                 CodeMetadata, LanguageEnum)
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.utils import convert_to_relative_path, FancyLogger
+from knowlang.utils import FancyLogger
+
 
 LOG = FancyLogger(__name__)
 
@@ -243,7 +245,7 @@ class TypeScriptParser(LanguageParser):
             chunks: List[CodeChunk] = []
             
             # Get the relative path for location information
-            relative_path = convert_to_relative_path(file_path, self.config.directory_path)
+            relative_path = os.path.relpath(file_path, self.config.directory_path)
             
             def traverse_node(node: Node):
                 """Recursively traverse the syntax tree"""

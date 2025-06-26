@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Optional, Tuple
 import aiofiles
+import os
 
 from tree_sitter import Language, Node, Parser
 # Assuming LanguageEnum will be updated to include CSHARP
@@ -8,7 +9,7 @@ from tree_sitter import Language, Node, Parser
 from knowlang.core.types import CodeChunk, CodeLocation, CodeMetadata, BaseChunkType, LanguageEnum
 from knowlang.parser.base.parser import LanguageParser
 from knowlang.configs import AppConfig
-from knowlang.utils import FancyLogger, convert_to_relative_path
+from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
 
@@ -112,7 +113,7 @@ class CSharpParser(LanguageParser):
             location=CodeLocation(
                 start_line=node.start_point[0],
                 end_line=node.end_point[0],
-                file_path=convert_to_relative_path(file_path, self.config.directory_path)
+                file_path=os.path.relpath(file_path, self.config.directory_path)
             ),
             docstring=docstring,
             metadata=CodeMetadata(
