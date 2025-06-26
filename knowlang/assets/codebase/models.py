@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, TypeAlias
 
-from knowlang.configs.config import LanguageConfig
+from knowlang.configs.config import LanguageConfig, PathPatterns
 from knowlang.assets.models import (
     DomainManagerData,
     GenericAssetData,
@@ -110,3 +110,4 @@ class CodeProcessorConfig(ProcessorConfigBase):
             )
         }
     )
+    path_patterns: PathPatterns = Field(default_factory=PathPatterns)

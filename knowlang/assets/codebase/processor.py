@@ -55,6 +55,7 @@ class CodebaseAssetSource(DomainAssetSourceMixin):
 
         domain = ctx.domain
         dir_path = ctx.config.directory_path
+        path_pattern = ctx.config.path_patterns
         try:
             repo = Repo(dir_path)
         except InvalidGitRepositoryError:
@@ -68,6 +69,10 @@ class CodebaseAssetSource(DomainAssetSourceMixin):
 
             for file in files:
                 file_path = os.path.join(top, file)
+
+                if not path_pattern.should_process_path(file_path):
+                    continue
+
                 if repo and repo.ignored(file_path):
                     continue
 
@@ -122,8 +127,10 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
                 metadatas=[chunk.meta.model_dump()],
                 ids=[chunk.chunk_id],
             )
+        
+        if chunks:
+            LOG.debug(f"Indexed {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
 
-        pass
 
 
 class CodebaseAssetParser(DomainAssetParserMixin):
@@ -153,17 +160,18 @@ class CodebaseAssetParser(DomainAssetParserMixin):
             file_path = Path(asset.meta.file_path)
             parser = self.code_parser_factory.get_parser(file_path)
             if parser is None:
-                LOG.info(f"No parser found for file: {file_path}, skipping.")
+                LOG.debug(f"No parser found for file: {file_path}, skipping.")
                 continue
 
+            LOG.debug(f"Parsing file: {file_path} with parser: {parser.__class__.__name__}")
             _chunks_raw = await parser.parse_file(file_path)
-            chunks.extend(
-                [CodeAssetChunkData(
+            curr_chunks = [CodeAssetChunkData(
                     chunk_id=chunk.location.to_single_line(),
                     asset_id=asset.id,
                     content=chunk.content,
                     meta=CodeAssetChunkMetaData.from_code_chunk(chunk),
                 ) for chunk in _chunks_raw]
-            )
+
+            chunks.extend(curr_chunks)
 
         return chunks
