@@ -63,6 +63,12 @@ class DomainAssetIndexingMixin(
         """Index the given assets."""
         pass
 
+    @abstractmethod
+    async def delete_chunks(
+        self, chunks: List[AssetChunkDataT], ctx: DomainCtxT = None
+    ) -> None:
+        """Delete the given asset chunks."""
+        pass
 
 
 class DomainProcessor():

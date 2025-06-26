@@ -153,10 +153,10 @@ class PostgresVectorStore(VectorStore):
         self.assert_initialized()
         self.collection.delete(ids)
 
-    async def get_document(self, id: str) -> Optional[SearchResult]:
+    async def get_documents(self, ids: List[str]) -> Optional[List[SearchResult]]:
         self.assert_initialized()
-        results = self.collection.fetch(ids=[id])
-        return results[0] if results else None
+        results = self.collection.fetch(ids=ids)
+        return results if results else None
 
     async def update_document(
         self,

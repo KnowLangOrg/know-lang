@@ -2,8 +2,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, ForeignKey, String
-from typing import List
+from sqlalchemy import Column, ForeignKey, String, select
+from typing import Dict, List
 
 from knowlang.assets.config import DatabaseConfig
 
@@ -65,13 +65,30 @@ class KnowledgeSqlDatabase:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     
-    async def index_assets(self, assets: List[GenericAssetChunkOrm]):
+    async def upsert_assets(self, assets: List[GenericAssetChunkOrm]):
         """Index a new asset into the database."""
         async with self.AsyncSession() as session:
             try:
-                session.add_all(assets)
+                for asset in assets:
+                    session.merge(asset)  # Use merge to handle upsert
                 await session.commit()
             except SQLAlchemyError as e:
                 await session.rollback()
                 raise e
 
+    async def get_asset_hash(self, asset_ids: List[str]) -> Dict[str, str]:
+        """Retrieve assets from the database."""
+        async with self.AsyncSession() as session:
+            result =  await session.execute(
+                select(GenericAssetOrm.id, GenericAssetOrm.asset_hash).where(GenericAssetOrm.id.in_(asset_ids))
+            )
+        
+        return {row[0]: row[1] for row in result.fetchall()}
+
+    async def get_chunks_given_assets(self, asset_ids: List[str]) -> List[GenericAssetChunkOrm]:
+        """Retrieve asset chunks for a given asset."""
+        async with self.AsyncSession() as session:
+            result = await session.execute(
+                select(GenericAssetChunkOrm).where(GenericAssetChunkOrm.asset_id.in_(asset_ids))
+            )
+            return result.scalars().all()

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Type, Any 
+from typing import Dict, List, Type, Any 
 import glob
 import os
 import yaml
@@ -11,9 +11,13 @@ from pydantic_settings import (
     PydanticBaseSettingsSource,
     YamlConfigSettingsSource
 )
-from knowlang.assets.models import KnownDomainTypes, DomainManagerData
+from knowlang.assets.models import GenericAssetData, KnownDomainTypes, DomainManagerData, GenericAssetChunkData
 from knowlang.assets.processor import DomainProcessor, DomainContext
 from knowlang.assets.config import BaseDomainConfig, DatabaseConfig
+from knowlang.database.db import KnowledgeSqlDatabase
+from knowlang.utils.fancy_log import FancyLogger
+
+LOG = FancyLogger(__file__)
 
 
 class DataModelTarget(str, Enum):
@@ -215,35 +219,64 @@ class DomainRegistry:
             self._processors[domain_config.domain_data.id] = processor
             self._configs[domain_config.domain_data.id] = domain_config
 
-    def get_processor(self, domain_id: str) -> DomainProcessor:
-        """Get processor by domain ID."""
-        if domain_id not in self._processors:
-            raise ValueError(f"No processor registered for domain: {domain_id}")
-        return self._processors[domain_id]
 
-    def get_config(self, domain_id: str) -> BaseDomainConfig:
-        """Get configuration by domain ID."""
-        if domain_id not in self._configs:
-            raise ValueError(f"No config registered for domain: {domain_id}")
-        return self._configs[domain_id]
-
-    def list_domains(self) -> list[str]:
-        """List all registered domain IDs."""
-        return list(self._processors.keys())
-
-    async def process_all_domains(self) -> None:
-        """Process all registered domains."""
-        from knowlang.database.db import KnowledgeSqlDatabase
-        from knowlang.assets.processor import DomainContext
-        from knowlang.vector_stores.factory import VectorStoreFactory
-
+    async def process_all_domains(self, batch_size: int = 200) -> None:
+        """Process all registered domains with efficient batching."""
+        
         db = KnowledgeSqlDatabase(config=DatabaseConfig())
         await db.create_schema()
 
         for domain_id, processor in self._processors.items():
-            domain_config = self._configs[domain_id]
+            LOG.info(f"Start processing domain: {domain_id}")
+            await self._process_domain_with_batching(db, processor, batch_size)
+    
+    async def _process_domain_with_batching(
+        self, 
+        db: KnowledgeSqlDatabase, 
+        processor : DomainProcessor, 
+        batch_size: int
+    ) -> None:
+        """Process a single domain with batching."""
+        
+        asset_batch = []
+        
+        async for asset in processor.source_mixin.yield_all_assets():
+            asset_batch.append(asset)
+            
+            if len(asset_batch) >= batch_size:
+                await self._process_asset_batch(db, processor, asset_batch)
+                asset_batch.clear()
+        
+        # Process remaining assets
+        if asset_batch:
+            await self._process_asset_batch(db, processor, asset_batch)
+    
+    async def _process_asset_batch(
+        self,
+        db: KnowledgeSqlDatabase,
+        processor: DomainProcessor,
+        assets: List[GenericAssetData],
+    ) -> None:
+        """Process a batch of assets efficiently."""
 
-            async for asset in processor.source_mixin.yield_all_assets():
-                await db.index_assets([asset.to_orm()])
-                chunks = await processor.parser_mixin.parse_assets([asset])
-                await processor.indexing_mixin.index_chunks(chunks)
+        # 1. Bulk dirty checking
+        existing_hashes = await db.get_asset_hash([asset.id for asset in assets])
+        dirty_assets = [
+            asset for asset in assets 
+            if asset.id not in existing_hashes or existing_hashes[asset.id] != asset.asset_hash
+        ]
+        
+        if not dirty_assets:
+            # Nothing to process
+            return  
+        
+        # 2. Bulk database update for dirty assets
+        dirty_chunks = await db.get_chunks_given_assets([asset.id for asset in dirty_assets])
+        await processor.indexing_mixin.delete_chunks([GenericAssetChunkData.model_validate(chunk) for chunk in dirty_chunks])
+        await db.upsert_assets([asset.to_orm() for asset in dirty_assets])
+
+        # 3. Parse and index 
+        chunks = await processor.parser_mixin.parse_assets(dirty_assets)
+        await processor.indexing_mixin.index_chunks(chunks)
+
+        LOG.info(f"Processed {len(dirty_assets)} dirty assets in batch of size {len(assets)}")

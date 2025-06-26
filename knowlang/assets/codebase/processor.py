@@ -30,10 +30,10 @@ CodebaseConfigType: TypeAlias = CodeProcessorConfig
 
 # Main context type alias
 CodebaseDomainContext: TypeAlias = DomainContext[
-    CodebaseManagerData,
-    CodeAssetData,
-    CodeAssetChunkData,
-]
+        CodebaseManagerData,
+        CodeAssetData, 
+        CodeAssetChunkData,
+    ]
 
 
 class CodebaseAssetSource(DomainAssetSourceMixin):
@@ -47,7 +47,6 @@ class CodebaseAssetSource(DomainAssetSourceMixin):
         if ctx is not None:
             self.ctx = ctx
         ctx = self.ctx
-
 
         import zlib
         from git import Repo, InvalidGitRepositoryError
@@ -131,6 +130,13 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
         if chunks:
             LOG.debug(f"Indexed {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
 
+    async def delete_chunks(self, chunks: List[CodeAssetChunkData], ctx: CodebaseDomainContext = None) -> None:
+        """Delete the given asset chunks."""
+        if ctx is not None:
+            self.ctx = ctx
+        
+        LOG.debug(f"Deleting {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
+        await self.vector_store.delete(ids=[chunk.chunk_id for chunk in chunks])
 
 
 class CodebaseAssetParser(DomainAssetParserMixin):

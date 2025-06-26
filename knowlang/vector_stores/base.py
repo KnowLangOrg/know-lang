@@ -111,8 +111,8 @@ class VectorStore(SearchableStore):
         pass
     
     @abstractmethod
-    async def get_document(self, id: str) -> Optional[SearchResult]:
-        """Retrieve a single document by ID"""
+    async def get_documents(self, ids: List[str], **kwargs) -> Optional[List[SearchResult]]:
+        """Retrieve multiple documents by their IDs"""
         pass
     
     @abstractmethod

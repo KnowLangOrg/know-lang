@@ -379,7 +379,7 @@ class SqliteVectorStore(VectorStore):
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to delete documents: {e}")
 
-    async def get_document(self, id: str) -> Optional[SearchResult]:
+    async def get_documents(self, ids: List[str]) -> Optional[List[SearchResult]]:
         if not self.engine or not self.Session:
             raise VectorStoreError(
                 "Vector store is not initialized. Call initialize() first."
@@ -387,23 +387,21 @@ class SqliteVectorStore(VectorStore):
 
         try:
             with self.Session() as session:
-                stmt = select(VectorDocumentModel).where(VectorDocumentModel.id == id)
-                doc = session.execute(stmt).scalar_one_or_none()
+                stmt = select(VectorDocumentModel).where(VectorDocumentModel.id.in_(ids))
+                docs = session.execute(stmt).scalars().all()
 
-                if doc:
-                    try:
-                        metadata = (
-                            json.loads(doc.doc_metadata) if doc.doc_metadata else {}
-                        )
-                    except json.JSONDecodeError:
-                        metadata = {}
-                    return SearchResult(
+                results = []
+                for doc in docs:
+                    metadata = (
+                        json.loads(doc.doc_metadata) if doc.doc_metadata else {}
+                    )
+                    results.append(SearchResult(
                         id=doc.id,
                         document=getattr(doc, self.content_field, doc.content),
                         metadata=metadata,
                         score=0.0,
-                    )
-                return None
+                    ))
+                return results
 
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to get document: {e}")
