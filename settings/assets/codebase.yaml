@@ -21,7 +21,7 @@ processor_config:
   directory_path: "./"
   vector_store:
     provider: "sqlite"
-    connection_string: "sqlite:///codebase.db"
+    connection_string: "sqlite:///database.db"
     table_name: "vector_store"
     embedding:
       dimension: 768
