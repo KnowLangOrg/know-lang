@@ -82,6 +82,12 @@ class KnowledgeSqlDatabase:
     
     async def upsert_assets(self, assets: List[GenericAssetOrm]):
         """Index a new asset into the database."""
+        if not assets:
+            LOG.debug("No assets to upsert")
+            return
+            
+        LOG.debug(f"Starting upsert for {len(assets)} assets")
+        
         async with self.AsyncSession() as session:
             try:
                 # Convert ORM objects to dictionaries
@@ -96,7 +102,7 @@ class KnowledgeSqlDatabase:
                     }
                     asset_dict_list.append(asset_dict)
                 
-                # Use PostgreSQL's ON CONFLICT for upsert (adjust for your database)
+                # Use SQLite's ON CONFLICT for upsert
                 stmt = insert(GenericAssetOrm).values(asset_dict_list)
                 stmt = stmt.on_conflict_do_update(
                     index_elements=['id'],
@@ -107,9 +113,13 @@ class KnowledgeSqlDatabase:
                         meta=stmt.excluded.meta
                     )
                 )
+
+                await session.execute(stmt)
+                await session.commit()
                 
             except SQLAlchemyError as e:
                 await session.rollback()
+                LOG.error(f"Failed to upsert assets: {e}")
                 raise e
     
     async def index_asset_chunks(self, asset_chunks: List[GenericAssetChunkOrm]):
