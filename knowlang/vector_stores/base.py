@@ -54,7 +54,7 @@ class VectorStore(SearchableStore):
 
     @classmethod
     @abstractmethod
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
         """Initialize the vector store"""
         pass
 

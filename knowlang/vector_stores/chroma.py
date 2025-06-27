@@ -59,7 +59,7 @@ class ChromaVectorStore(VectorStore):
         self.client = None
         self.collection = None
 
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
         """Initialize ChromaDB client and collection"""
         try:
             import chromadb

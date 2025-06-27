@@ -131,7 +131,7 @@ class SqliteVectorStore(VectorStore):
                     f"Failed to load sqlite-vec extension. Ensure it's installed and accessible. {e}"
                 ) from e
 
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
         try:
             # Create engine
             self.engine = create_engine(self.db_path)

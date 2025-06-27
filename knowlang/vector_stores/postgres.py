@@ -59,7 +59,7 @@ class PostgresVectorStore(VectorStore):
         if self.collection is None:
             raise ValueError(f"{self.__class__.__name__} is not initialized.")
 
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
         """Initialize the Postgres vector store client and create a collection of vectors."""
         try:
             self.measure() # Validate similarity metric
