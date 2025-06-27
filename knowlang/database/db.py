@@ -125,7 +125,7 @@ class KnowledgeSqlDatabase:
     async def index_asset_chunks(self, asset_chunks: List[GenericAssetChunkOrm]):
         """Index new asset chunks into the database."""
 
-        # We don't upsert assset chunks, since the 
+        # We don't upsert assset chunks, since the cascade delete on asset will handle it.
         async with self.AsyncSession() as session:
             try:
                 session.add_all(asset_chunks)

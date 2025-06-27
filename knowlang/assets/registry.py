@@ -319,5 +319,6 @@ class DomainRegistry:
         # 3. Parse and index 
         chunks = await processor.parser_mixin.parse_assets(dirty_assets)
         await processor.indexing_mixin.index_chunks(chunks)
+        await db.index_asset_chunks([chunk.to_orm() for chunk in chunks])
 
         LOG.info(f"Processed {len(dirty_assets)} dirty assets in batch of size {len(assets)}")
