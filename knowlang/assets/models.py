@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from typing_extensions import Optional, Generic, TypeVar, TYPE_CHECKING
-
+import json
 
 if TYPE_CHECKING:
     from knowlang.database.db import DomainManagerOrm, GenericAssetOrm, GenericAssetChunkOrm
@@ -23,6 +23,16 @@ class MetaDataMixin(BaseModel, Generic[MetaDataT]):
 
     class Config:
         from_attributes = True
+    
+    @field_validator('meta', mode='before')
+    @classmethod
+    def _validate_meta_from_json(cls, v: object) -> object:
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError as e:
+                raise ValueError('meta field contains invalid JSON') from e
+        return v
 
 class DomainManagerData(MetaDataMixin, Generic[MetaDataT]):
     """Base class for domain asset manager data."""
@@ -71,7 +81,7 @@ class GenericAssetData(MetaDataMixin, Generic[MetaDataT]):
 
 class GenericAssetChunkData(MetaDataMixin, Generic[MetaDataT]):
     """Base class for generic asset chunk data."""
-    chunk_id: str = Field(..., description="Unique identifier for the asset chunk")
+    id: str = Field(..., description="Unique identifier for the asset chunk")
     asset_id: str = Field(..., description="ID of the parent asset")
     asset: Optional[GenericAssetData[MetaDataT]] = Field(
         default=None,
@@ -81,7 +91,7 @@ class GenericAssetChunkData(MetaDataMixin, Generic[MetaDataT]):
     def to_orm(self) -> 'GenericAssetChunkOrm':
         from knowlang.database.db import GenericAssetChunkOrm
         return GenericAssetChunkOrm(
-            id=self.chunk_id,
+            id=self.id,
             asset_id=self.asset_id,
             meta=self.meta.model_dump_json(),
         )

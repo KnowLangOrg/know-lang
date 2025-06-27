@@ -124,7 +124,7 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
                 documents=[chunk.meta.content],
                 embeddings=[embedding],
                 metadatas=[chunk.meta.model_dump()],
-                ids=[chunk.chunk_id],
+                ids=[chunk.id],
             )
         
         if chunks:
@@ -136,7 +136,7 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
             self.ctx = ctx
         
         LOG.debug(f"Deleting {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
-        await self.vector_store.delete(ids=[chunk.chunk_id for chunk in chunks])
+        await self.vector_store.delete(ids=[chunk.id for chunk in chunks])
 
 
 class CodebaseAssetParser(DomainAssetParserMixin):
@@ -172,7 +172,7 @@ class CodebaseAssetParser(DomainAssetParserMixin):
             LOG.debug(f"Parsing file: {file_path} with parser: {parser.__class__.__name__}")
             _chunks_raw = await parser.parse_file(file_path)
             curr_chunks = [CodeAssetChunkData(
-                    chunk_id=chunk.location.to_single_line(),
+                    id=chunk.location.to_single_line(),
                     asset_id=asset.id,
                     content=chunk.content,
                     meta=CodeAssetChunkMetaData.from_code_chunk(chunk),

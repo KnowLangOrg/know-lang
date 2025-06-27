@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing_extensions import TypeVar, Generic
 from knowlang.assets.models import DomainManagerData, MetaDataT 
+from knowlang.configs.defaults import DEFAULT_SQLITE_DB_CONNECTION_URL_ASYNC
 from knowlang.database.config import VectorStoreConfig
 
 ProcessorConfigT = TypeVar('ProcessorConfigT', bound='ProcessorConfigBase', covariant=True, default='ProcessorConfigBase')
@@ -24,5 +25,5 @@ class BaseDomainConfig(BaseModel, Generic[MetaDataT, ProcessorConfigT]):
 class DatabaseConfig(BaseModel):
     """Configuration for database connections"""
     provider: str = "sqlite"
-    connection_url: str = "sqlite+aiosqlite:///database.db"
+    connection_url: str = DEFAULT_SQLITE_DB_CONNECTION_URL_ASYNC
 

@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
+from knowlang.configs.defaults import DEFAULT_VECTOR_COLLECTION_NAME
 from knowlang.configs.llm_config import LLMConfig
 from knowlang.core.types import ModelProvider, VectorStoreProvider
 
@@ -137,7 +138,8 @@ class DBConfig(BaseSettings):
         default=Path("./vectordb"), description="Directory to vector store"
     )
     collection_name: str = Field(
-        default="code", description="Name of the vector store collection"
+        default=DEFAULT_VECTOR_COLLECTION_NAME,
+        description="Name of the vector store collection"
     )
     codebase_directory: Path = Field(
         default=Path("./"), description="Root directory of the codebase to analyze"

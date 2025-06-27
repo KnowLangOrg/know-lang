@@ -229,7 +229,8 @@ class DomainRegistry:
         for domain_id, processor in self._processors.items():
             # 1. Ensure domain is registered in DB
             LOG.info(f"Start processing domain: {domain_id}")
-            await db.upsert_domains([processor.source_mixin.ctx.domain.to_orm()])
+            async with db.get_session() as session:
+                await db.upsert_domains(session, [processor.source_mixin.ctx.domain.to_orm()])
 
             # 2. Process domain assets with batching
             await self._process_domain_with_batching(db, processor, batch_size)
@@ -301,24 +302,35 @@ class DomainRegistry:
         """Process a batch of assets efficiently."""
 
         # 1. Bulk dirty checking
-        existing_hashes = await db.get_asset_hash([asset.id for asset in assets])
-        dirty_assets = [
-            asset for asset in assets 
-            if asset.id not in existing_hashes or existing_hashes[asset.id] != asset.asset_hash
-        ]
-        
-        if not dirty_assets:
-            # Nothing to process
-            return  
-        
-        # 2. Bulk database update for dirty assets
-        dirty_chunks = await db.get_chunks_given_assets([asset.id for asset in dirty_assets])
-        await processor.indexing_mixin.delete_chunks([GenericAssetChunkData.model_validate(chunk) for chunk in dirty_chunks])
-        await db.upsert_assets([asset.to_orm() for asset in dirty_assets])
+        async with db.get_session() as session:
+            existing_hashes = await db.get_asset_hash(session, [asset.id for asset in assets])
+            dirty_assets = [
+                asset for asset in assets 
+                if asset.id not in existing_hashes or existing_hashes[asset.id] != asset.asset_hash
+            ]
+            
+            if not dirty_assets:
+                # Nothing to process
+                return  
+            
+            # 2. Bulk database update for dirty assets
+            dirty_chunks = await db.get_chunks_given_assets(session, [asset.id for asset in dirty_assets])
 
-        # 3. Parse and index 
-        chunks = await processor.parser_mixin.parse_assets(dirty_assets)
-        await processor.indexing_mixin.index_chunks(chunks)
-        await db.index_asset_chunks([chunk.to_orm() for chunk in chunks])
+            await processor.indexing_mixin.delete_chunks([
+                GenericAssetChunkData(
+                    id=chunk.id,
+                    asset_id=chunk.asset_id,
+                    meta=chunk.meta,
+                    # excluding the asset to avoid implicit asyncIO by sqlalchemy
+                    # https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html#asyncio-orm-avoid-lazyloads
+                    asset=None
+                ) for chunk in dirty_chunks
+            ])
+            await db.upsert_assets(session, [asset.to_orm() for asset in dirty_assets])
 
-        LOG.info(f"Processed {len(dirty_assets)} dirty assets in batch of size {len(assets)}")
+            # 3. Parse and index 
+            chunks = await processor.parser_mixin.parse_assets(dirty_assets)
+            await processor.indexing_mixin.index_chunks(chunks)
+            await db.index_asset_chunks(session, [chunk.to_orm() for chunk in chunks])
+
+            LOG.info(f"Processed {len(dirty_assets)} dirty assets in batch of size {len(assets)}")
