@@ -15,7 +15,6 @@ class BaseCommandArgs:
 @dataclass
 class ParseCommandArgs(BaseCommandArgs):
     """Arguments for the parse command."""
-    path: str
     output: Literal["table", "json"]  = "table"
     command: Literal["parse"] = "parse"
 
