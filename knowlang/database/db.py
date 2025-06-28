@@ -131,8 +131,6 @@ class KnowledgeSqlDatabase:
         )
         
         return {row[0]: row[1] for row in result.fetchall()}
-    
-
 
     async def get_chunks_given_assets(self, session : AsyncSession, asset_ids: List[str]) -> List[GenericAssetChunkOrm]:
         """Retrieve asset chunks for a given asset."""
@@ -153,12 +151,10 @@ class KnowledgeSqlDatabase:
         if not asset_ids:
             return 0
 
-        await session.execute(
-            delete(GenericAssetOrm).where(GenericAssetOrm.id.in_(asset_ids))
+        target_assets = await session.execute(
+            select(GenericAssetOrm).where(GenericAssetOrm.id.in_(asset_ids))
         )
-        # Delete assets (chunks will be deleted via cascade)
-        result = await session.execute(
-            delete(GenericAssetOrm).where(GenericAssetOrm.id.in_(asset_ids))
-        )
-        deleted_count = result.rowcount
-        LOG.debug(f"Deleted {deleted_count} assets with IDs: {asset_ids}")
+        
+        for asset in target_assets.scalars().all():
+            await session.delete(asset)
+        LOG.debug(f"Deleted {len(target_assets.scalars().all())} assets with IDs: {asset_ids}")
