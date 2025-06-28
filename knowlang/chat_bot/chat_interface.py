@@ -109,7 +109,7 @@ class CodeQAChatInterface:
                 content=f"An error occurred while processing your request: {str(e)}",
                 metadata={
                     "title": "❌ Error",
-                    "status": "error"
+                    "status": "done"
                 }
             ))
             yield history
