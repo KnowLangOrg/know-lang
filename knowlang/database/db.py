@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, String, delete, select, tuple_
-from sqlalchemy.dialects.sqlite import insert
 from typing import Dict, List
 from contextlib import asynccontextmanager
 
@@ -54,7 +53,7 @@ class GenericAssetChunkOrm(Base):
     __tablename__ = ASSET_CHUNK_TABLE_NAME
 
     id = Column(String, primary_key=True, index=True)
-    asset_id = Column(String, ForeignKey(f'{ASSET_TABLE_NAME}.id'), nullable=False)
+    asset_id = Column(String, ForeignKey(f'{ASSET_TABLE_NAME}.id'), nullable=False, primary_key=True)
     meta = Column(String, nullable=True)
     asset = relationship(
         "GenericAssetOrm",
@@ -99,33 +98,20 @@ class KnowledgeSqlDatabase:
             LOG.debug("No assets to upsert")
             return
             
-        LOG.debug(f"Starting upsert for {len(assets)} assets")
-
-        # Convert ORM objects to dictionaries
-        asset_dict_list = []
-        for asset in assets:
-            asset_dict = {
-                'id': asset.id,
-                'name': asset.name,
-                'domain_id': asset.domain_id,
-                'asset_hash': asset.asset_hash,
-                'meta': asset.meta
-            }
-            asset_dict_list.append(asset_dict)
-        
-        # Use SQLite's ON CONFLICT for upsert
-        stmt = insert(GenericAssetOrm).values(asset_dict_list)
-        stmt = stmt.on_conflict_do_update(
-            index_elements=['id', 'domain_id'],
-            set_=dict(
-                name=stmt.excluded.name,
-                domain_id=stmt.excluded.domain_id,
-                asset_hash=stmt.excluded.asset_hash,
-                meta=stmt.excluded.meta
+        # 1. Cascade delete existing assets before upsert
+        stale_assets = await session.execute(
+            select(GenericAssetOrm).where(
+                tuple_(GenericAssetOrm.id, GenericAssetOrm.domain_id).in_(
+                    [(asset.id, asset.domain_id) for asset in assets]
+                )
             )
         )
+        for asset in stale_assets.scalars().all():
+            await session.delete(asset)
+        await session.flush()
 
-        await session.execute(stmt)
+        # 2. Upsert assets
+        session.add_all(assets)
 
     async def index_asset_chunks(self, session: AsyncSession, asset_chunks: List[GenericAssetChunkOrm]):
         """Index new asset chunks into the database."""

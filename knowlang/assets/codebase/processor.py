@@ -135,7 +135,7 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
         if ctx is not None:
             self.ctx = ctx
         
-        LOG.debug(f"Deleting {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
+        LOG.debug(f"Try deleting {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
         await self.vector_store.delete(ids=[chunk.id for chunk in chunks])
 
 

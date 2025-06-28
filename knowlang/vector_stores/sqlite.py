@@ -363,8 +363,8 @@ class SqliteVectorStore(VectorStore):
                     await session.execute(
                         text(
                             f"""
-                        DELETE FROM {self.virtual_table} WHERE id = :id
-                        """
+                            DELETE FROM {self.virtual_table} WHERE id = :id
+                            """
                         ),
                         {"id": doc.id},
                     )
@@ -374,7 +374,7 @@ class SqliteVectorStore(VectorStore):
                     delete(VectorDocumentModel).where(VectorDocumentModel.id.in_(ids))
                 )
 
-                LOG.debug(f"Deleted {result.rowcount} documents from vector store.")
+                LOG.debug(f"Successfully deleted {result.rowcount} documents from vector store.")
 
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to delete documents: {e}")
