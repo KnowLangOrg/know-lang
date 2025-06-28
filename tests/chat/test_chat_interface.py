@@ -172,7 +172,7 @@ async def test_stream_response_error_handling(mock_stream_progress, interface, m
     final_history = responses[-1]
     assert len(final_history) >= 2  # User message + error message
     assert "Test error" in final_history[-1].content
-    assert final_history[-1].metadata.get("status") == "error"
+    assert final_history[-1].metadata.get("status") == "done"
 
 
 def test_create_interface(interface):

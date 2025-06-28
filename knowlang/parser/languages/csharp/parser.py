@@ -1,14 +1,12 @@
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import aiofiles
 import os
 
 from tree_sitter import Language, Node, Parser
-# Assuming LanguageEnum will be updated to include CSHARP
-# from knowlang.core.types import LanguageEnum
+from knowlang.assets.codebase.models import CodeProcessorConfig
 from knowlang.core.types import CodeChunk, CodeLocation, CodeMetadata, BaseChunkType, LanguageEnum
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.configs import AppConfig
 from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
@@ -32,10 +30,6 @@ class CSharpChunkType(BaseChunkType):
     INTERFACE = "interface"
 
 class CSharpParser(LanguageParser):
-    def __init__(self, config: AppConfig):
-        super().__init__(config)
-        # LOG.info("CSharpParser initialized")
-
     def setup(self):
 
         try:

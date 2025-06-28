@@ -3,7 +3,7 @@ from typing import List
 
 import pytest
 
-from knowlang.configs import AppConfig
+from knowlang.assets.codebase.models import CodeProcessorConfig
 from knowlang.core.types import BaseChunkType, CodeChunk
 from knowlang.parser.languages.cpp.parser import CppParser
 
@@ -34,7 +34,7 @@ class TestCppParser:
         assert cpp_parser.supports_extension(".h")
 
     @pytest.mark.asyncio
-    async def test_simple_file_parsing(self, cpp_parser: CppParser, test_config: AppConfig):
+    async def test_simple_file_parsing(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
         """Test parsing a simple C++ file with function and class"""
         simple_cpp = """
         /**
@@ -68,7 +68,7 @@ class TestCppParser:
         };
 
         """
-        test_file = Path(test_config.db.codebase_directory) / "simple.cpp"
+        test_file = Path(test_config.directory_path) / "simple.cpp"
         test_file.write_text(simple_cpp)
         chunks = await cpp_parser.parse_file(test_file)
 
@@ -96,7 +96,7 @@ class TestCppParser:
         assert "__declspec(dllexport)" in exported_chunk.content
 
     @pytest.mark.asyncio
-    async def test_namespace_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    async def test_namespace_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
         """Test handling of namespaces"""
         namespace_cpp = """
         namespace test {
@@ -120,7 +120,7 @@ class TestCppParser:
             }
         };
         """
-        test_file = Path(test_config.db.codebase_directory) / "namespace.cpp"
+        test_file = Path(test_config.directory_path) / "namespace.cpp"
         test_file.write_text(namespace_cpp)
         chunks = await cpp_parser.parse_file(test_file)
 
@@ -136,7 +136,7 @@ class TestCppParser:
         assert cls is not None
 
     @pytest.mark.asyncio
-    async def test_template_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    async def test_template_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
         """Test handling of template classes and functions"""
         template_cpp = """
         /**
@@ -156,7 +156,7 @@ class TestCppParser:
             U second;
         };
         """
-        test_file = Path(test_config.db.codebase_directory) / "template.cpp"
+        test_file = Path(test_config.directory_path) / "template.cpp"
         test_file.write_text(template_cpp)
         chunks = await cpp_parser.parse_file(test_file)
 
@@ -171,27 +171,27 @@ class TestCppParser:
         assert "template<typename T, typename U>" in cls.content
 
     @pytest.mark.asyncio
-    async def test_error_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    async def test_error_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
         """Test error handling for various error cases"""
         # Test invalid syntax
-        invalid_file = Path(test_config.db.codebase_directory) / "invalid.cpp"
+        invalid_file = Path(test_config.directory_path) / "invalid.cpp"
         invalid_file.write_text("class { invalid syntax")
         chunks = await cpp_parser.parse_file(invalid_file)
         assert chunks == []
 
         # Test non-existent file
-        nonexistent = Path(test_config.db.codebase_directory) / "nonexistent.cpp"
+        nonexistent = Path(test_config.directory_path) / "nonexistent.cpp"
         chunks = await cpp_parser.parse_file(nonexistent)
         assert chunks == []
 
         # Test non-C++ file
-        non_cpp = Path(test_config.db.codebase_directory) / "readme.md"
+        non_cpp = Path(test_config.directory_path) / "readme.md"
         non_cpp.write_text("# README")
         chunks = await cpp_parser.parse_file(non_cpp)
         assert chunks == []
 
     @pytest.mark.asyncio
-    async def test_preprocessor_handling(self, cpp_parser: CppParser, test_config: AppConfig):
+    async def test_preprocessor_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
         """Test handling of preprocessor directives"""
         preprocessor_cpp = """
         #include <iostream>
@@ -207,7 +207,7 @@ class TestCppParser:
             void release() {}
         };
         """
-        test_file = Path(test_config.db.codebase_directory) / "preprocessor.cpp"
+        test_file = Path(test_config.directory_path) / "preprocessor.cpp"
         test_file.write_text(preprocessor_cpp)
         chunks = await cpp_parser.parse_file(test_file)
 

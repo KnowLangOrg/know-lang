@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing_extensions import TypeVar, Generic
 from knowlang.assets.models import DomainManagerData, MetaDataT 
 from knowlang.configs.defaults import DEFAULT_SQLITE_DB_CONNECTION_URL_ASYNC
@@ -8,7 +8,10 @@ ProcessorConfigT = TypeVar('ProcessorConfigT', bound='ProcessorConfigBase', cova
 
 class ProcessorConfigBase(BaseModel):
     """Base class for processor configurations."""
-    vector_store: VectorStoreConfig
+    vector_store: VectorStoreConfig = Field(
+        default_factory=VectorStoreConfig,
+        description="Configuration for the vector store used by the processor"
+    )
 
 class DomainMixinConfig(BaseModel):
     source_cls: str             # Class identifier (e.g., "CodebaseAssetSource")

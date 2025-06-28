@@ -4,6 +4,7 @@ from typing import Generator
 import git
 import pytest
 from knowlang.configs import AppConfig, DBConfig, LanguageConfig, ParserConfig
+from knowlang.assets.codebase.models import CodeProcessorConfig
 from tests.parser.languages.ts.ts_files import TEST_FILES
 
 
@@ -20,18 +21,14 @@ def test_config() -> Generator[AppConfig, None, None]:
         
         repo.index.commit("Initial commit")
         
-        yield AppConfig(
-            parser=ParserConfig(
-                languages={
-                    "typescript": LanguageConfig(
-                        file_extensions=[".ts", ".tsx"],
-                        tree_sitter_language="typescript",
-                        max_file_size=1_000_000,
-                        chunk_types=["class_declaration", "function_declaration", "interface_declaration", "type_alias_declaration"]
-                    )
-                }
-            ),
-            db=DBConfig(
-                codebase_directory=Path(temp_dir)
-            )
+        yield CodeProcessorConfig(
+            languages={
+                "typescript": LanguageConfig(
+                    file_extensions=[".ts", ".tsx"],
+                    tree_sitter_language="typescript",
+                    max_file_size=1_000_000,
+                    chunk_types=["class_declaration", "function_declaration", "interface_declaration", "type_alias_declaration"]
+                )
+            },
+            directory_path=str(temp_dir)
         )
