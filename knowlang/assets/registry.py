@@ -272,26 +272,33 @@ class DomainRegistry:
         """Remove assets that exist in DB but were not seen during scan."""
         
         # Find assets that are in DB but not seen during scan
-        stored_asset_ids = await db.get_all_asset_ids_for_domain(domain_id)
-        deleted_asset_ids = set(stored_asset_ids) - set(seen_asset_ids)
+        async with db.get_session() as session:
+            stored_asset_ids = await db.get_all_asset_ids_for_domain(session, domain_id)
+            deleted_asset_ids = set(stored_asset_ids) - set(seen_asset_ids)
         
-        if not deleted_asset_ids:
-            LOG.info(f"No deleted assets found for domain: {domain_id}")
-            return
-        
-        LOG.info(f"Found {len(deleted_asset_ids)} deleted assets for domain: {domain_id}")
-        
-        deleted_list = list(deleted_asset_ids)
+            if not deleted_asset_ids:
+                LOG.info(f"No deleted assets found for domain: {domain_id}")
+                return
             
-        # Get chunks that will be deleted (for vector store cleanup)
-        chunks_to_delete = await db.get_chunks_given_assets(deleted_list)
+            LOG.info(f"Found {len(deleted_asset_ids)} deleted assets for domain: {domain_id}")
         
-        # Clean up from vector store first
-        chunk_data = [GenericAssetChunkData.model_validate(chunk) for chunk in chunks_to_delete]
-        await processor.indexing_mixin.delete_chunks(chunk_data)
-        
-        # Delete from database (will cascade to chunks)
-        await db.delete_assets_by_ids(deleted_list)
+            if not deleted_asset_ids:
+                LOG.info(f"No deleted assets found for domain: {domain_id}")
+                return
+            
+            LOG.info(f"Found {len(deleted_asset_ids)} deleted assets for domain: {domain_id}")
+            
+            deleted_list = list(deleted_asset_ids)
+                
+            # Get chunks that will be deleted (for vector store cleanup)
+            chunks_to_delete = await db.get_chunks_given_assets(session, deleted_list)
+            
+            # Clean up from vector store first
+            chunk_data = [GenericAssetChunkData.model_validate(chunk) for chunk in chunks_to_delete]
+            await processor.indexing_mixin.delete_chunks(chunk_data)
+            
+            # Delete from database (will cascade to chunks)
+            await db.delete_assets_by_ids(session, deleted_list)
     
     async def _process_asset_batch(
         self,

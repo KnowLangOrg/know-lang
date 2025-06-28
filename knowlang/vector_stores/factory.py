@@ -59,9 +59,6 @@ class VectorStoreFactory:
             # Create an instance from the configuration
             vector_store: VectorStore = store_cls.from_cfg(cfg)
 
-            # Initialize the vector store
-            vector_store.initialize()
-            
             # Save the instance
             cls._instances[instance_key] = vector_store
             
@@ -100,9 +97,6 @@ class VectorStoreFactory:
                 # Create new instance
                 store_cls: Type[VectorStore] = get_vector_store(db_config.db_provider)
                 vector_store: VectorStore = store_cls.create_from_config(app_config)
-                
-                # Initialize the store
-                vector_store.initialize()
                 
                 # Save the instance
                 cls._instances[instance_key] = vector_store
