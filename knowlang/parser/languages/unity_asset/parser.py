@@ -105,8 +105,12 @@ class UnityAssetParser(LanguageParser):
             )
             return []
 
-        async with aiofiles.open(file_path, "r") as f:
-            source_code = await f.read()
+        try:
+            async with aiofiles.open(file_path, "r") as f:
+                source_code = await f.read()
+        except UnicodeDecodeError:
+            LOG.warning(f"Skipping file{file_path}: binary encoded files are skipped")
+            return []
 
         # Parse Unity asset file and extract Visual Script JSON
         json_content = ""

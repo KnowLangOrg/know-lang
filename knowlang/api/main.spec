@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
-from PyInstaller.utils.hooks import collect_data_files, copy_metadata, collect_dynamic_libs
+from PyInstaller.utils.hooks import collect_data_files, copy_metadata, collect_dynamic_libs, collect_submodules
 
 # Get the project root directory
 project_root = Path.cwd()
@@ -40,7 +40,15 @@ def collect_knowlang_binaries():
 hidden_imports = [
     # fix the module not found error
     "knowlang.api.main",
-]
+    # Fix transformers models - include commonly needed ones
+    "transformers.models.deepseek_v3",
+    "transformers.models.deepseek_v3.configuration_deepseek_v3",
+    "transformers.models.deepseek_v3.modeling_deepseek_v3",
+    "transformers.models.qwen3",
+    "transformers.models.qwen3.configuration_qwen3",
+    "transformers.models.qwen3.modeling_qwen3",
+    # Add all transformers model submodules to prevent future missing imports
+] + collect_submodules('transformers.models') + collect_submodules('sentence_transformers.models')
 
 
 a = Analysis(
