@@ -127,7 +127,8 @@ class SqliteVectorStore(VectorStore):
             self.AsyncSession = async_sessionmaker(bind=self.engine)
 
             # Create tables
-            async with self.engine.begin() as conn:
+            async with self.get_session(auto_commit=False) as session:
+                conn = await session.connection()
                 await conn.run_sync(Base.metadata.create_all)
 
                 # Create virtual table for vector indexing (using raw SQL as it's sqlite-vec specific)

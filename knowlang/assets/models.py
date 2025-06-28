@@ -82,6 +82,7 @@ class GenericAssetData(MetaDataMixin, Generic[MetaDataT]):
 class GenericAssetChunkData(MetaDataMixin, Generic[MetaDataT]):
     """Base class for generic asset chunk data."""
     id: str = Field(..., description="Unique identifier for the asset chunk")
+    name: str = Field(..., description="Name of the asset chunk")
     asset_id: str = Field(..., description="ID of the parent asset")
     asset: Optional[GenericAssetData[MetaDataT]] = Field(
         default=None,

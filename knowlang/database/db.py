@@ -54,6 +54,7 @@ class GenericAssetChunkOrm(Base):
 
     id = Column(String, primary_key=True, index=True)
     asset_id = Column(String, ForeignKey(f'{ASSET_TABLE_NAME}.id'), nullable=False)
+    name= Column(String, index=True)
     meta = Column(String, nullable=True)
     asset = relationship(
         "GenericAssetOrm",

@@ -335,7 +335,9 @@ class DomainRegistry:
             ])
             await db.upsert_assets(session, [asset.to_orm() for asset in dirty_assets])
 
-            # 3. Parse and index 
+        # 3. Parse and index
+        # Restart the session to avoid sqlite3 lock
+        async with db.get_session() as session:
             chunks = await processor.parser_mixin.parse_assets(dirty_assets)
             await processor.indexing_mixin.index_chunks(chunks)
             await db.index_asset_chunks(session, [chunk.to_orm() for chunk in chunks])
