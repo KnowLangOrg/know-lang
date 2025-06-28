@@ -310,7 +310,14 @@ class DomainRegistry:
 
         # 1. Bulk dirty checking
         async with db.get_session() as session:
-            existing_hashes = await db.get_asset_hash(session, [asset.id for asset in assets])
+            existing_hashes = await db.get_asset_hash(session, [GenericAssetData(
+                id=asset.id,
+                name=asset.name,
+                domain_id=asset.domain_id,
+                asset_hash=asset.asset_hash,
+                meta=asset.meta,
+                domain=None  # Avoid implicit asyncIO by sqlalchemy
+            ) for asset in assets])
             dirty_assets = [
                 asset for asset in assets 
                 if asset.id not in existing_hashes or existing_hashes[asset.id] != asset.asset_hash

@@ -157,7 +157,7 @@ class VectorStore(SearchableStore):
         **kwargs
     ) -> List[SearchResult]:
         """Search for similar documents"""
-        self.assert_initialized()
+        await self.ensure_initialized()
 
         return await self.query(
             query_embedding=query_embedding,

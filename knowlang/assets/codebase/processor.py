@@ -1,7 +1,6 @@
 from typing import List, AsyncGenerator, TypeAlias
 import os
 from pathlib import Path
-import uuid
 import aiofiles
 from knowlang.assets.processor import (
     DomainAssetSourceMixin,
@@ -83,8 +82,7 @@ class CodebaseAssetSource(DomainAssetSourceMixin):
                 relative_path = os.path.relpath(file_path, dir_path)
                 asset_data = GenericAssetData(
                     domain_id=domain.id,
-                    # id should be uuid, using relative path for name
-                    id=str(uuid.uuid4()),
+                    id=relative_path,
                     name=relative_path,
                     asset_manager_id=domain.id,
                     asset_hash=str(file_hash),
@@ -174,8 +172,7 @@ class CodebaseAssetParser(DomainAssetParserMixin):
             LOG.debug(f"Parsing file: {file_path} with parser: {parser.__class__.__name__}")
             _chunks_raw = await parser.parse_file(file_path)
             curr_chunks = [CodeAssetChunkData(
-                    id=str(uuid.uuid4()),
-                    name=chunk.location.to_single_line(),
+                    id=chunk.location.to_single_line(),
                     asset_id=asset.id,
                     content=chunk.content,
                     meta=CodeAssetChunkMetaData.from_code_chunk(chunk),
