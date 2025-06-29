@@ -133,7 +133,8 @@ class TestPostgresHybridStore:
         assert store.has_capability(SearchMethodology.KEYWORD)
         assert not store.has_capability("invalid_methodology")
     
-    def test_initialize_with_tsv_column(self):
+    @pytest.mark.asyncio
+    async def test_initialize_with_tsv_column(self):
         """Test initialization when tsv column already exists"""
         # Set up mock to indicate tsv column exists
         self.mock_inspector.get_columns.return_value = [
@@ -146,7 +147,7 @@ class TestPostgresHybridStore:
         store = self._create_store()
         
         with mock.patch.object(PostgresVectorStore, 'initialize') as mock_super_init:
-            store.initialize()
+            await store.initialize()
             mock_super_init.assert_called_once()
             
             # Verify schema is passed to has_table and get_columns
@@ -160,14 +161,15 @@ class TestPostgresHybridStore:
             # Verify no attempt to add TSV column
             self.mock_session_ctx.execute.assert_not_called()
     
-    def test_initialize_add_tsv_column(self):
+    @pytest.mark.asyncio
+    async def test_initialize_add_tsv_column(self):
         """Test initialization when tsv column needs to be added"""
         # Default setup: tsv column doesn't exist
         
         store = self._create_store()
         
         with mock.patch.object(PostgresVectorStore, 'initialize') as mock_super_init:
-            store.initialize()
+            await store.initialize()
             mock_super_init.assert_called_once()
             
             # Verify schema is passed to has_table and get_columns
@@ -184,7 +186,8 @@ class TestPostgresHybridStore:
             execute_args = self.mock_session_ctx.execute.call_args[0][0]
             assert f"ALTER TABLE {store.schema}.{store.table_name}" in str(execute_args)
     
-    def test_table_not_found(self):
+    @pytest.mark.asyncio
+    async def test_table_not_found(self):
         """Test error when table doesn't exist"""
         # Set up mock to indicate table doesn't exist
         self.mock_inspector.has_table.return_value = False
@@ -192,7 +195,7 @@ class TestPostgresHybridStore:
         store = self._create_store()
         
         with pytest.raises(VectorStoreInitError) as excinfo:
-            store.initialize()
+            await store.initialize()
         
         # Verify error message contains schema
         assert store.schema in str(excinfo.value)
@@ -204,7 +207,7 @@ class TestPostgresHybridStore:
         store = self._create_store()
         # Initialize store to setup necessary attributes
         with mock.patch.object(PostgresVectorStore, 'initialize'):
-            store.initialize()
+            await store.initialize()
         
         mock_session = mock.MagicMock()
         self.mock_session_class.return_value.__enter__.return_value = mock_session
@@ -227,8 +230,8 @@ class TestPostgresHybridStore:
         store = self._create_store()
         # Initialize store to setup necessary attributes
         with mock.patch.object(PostgresVectorStore, 'initialize'):
-            store.initialize()
-            
+            await store.initialize()
+
         mock_session = mock.MagicMock()
         self.mock_session_class.return_value.__enter__.return_value = mock_session
         
@@ -241,12 +244,13 @@ class TestPostgresHybridStore:
             assert len(results) == 2  # Only documents with score >= 0.5
             assert all(result.score >= 0.5 for result in results)
     
-    def test_metadata_schema_specification(self):
+    @pytest.mark.asyncio
+    async def test_metadata_schema_specification(self):
         """Test that MetaData is created with schema specified"""
         store = self._create_store()
         
         with mock.patch.object(PostgresVectorStore, 'initialize'):
-            store.initialize()
-            
+            await store.initialize()
+
             # Verify MetaData created with schema
             self.mock_metadata.assert_called_with(schema=store.schema)

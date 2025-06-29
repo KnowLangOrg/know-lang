@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 from typing import List, Any
 
+from knowlang.assets.codebase.models import CodeProcessorConfig
 from knowlang.configs import AppConfig, DBConfig, LanguageConfig, ParserConfig
 from knowlang.parser.languages.csharp.parser import CSharpParser
 from knowlang.core.types import CodeChunk, BaseChunkType, CodeMetadata
@@ -72,24 +73,22 @@ def validate_chunk_against_expectation(
 
 @pytest.fixture
 def csharp_parser() -> CSharpParser:
-    app_config = AppConfig(
-        parser=ParserConfig(
-            languages={
-                "csharp": LanguageConfig(
-                    file_extensions=[".cs"],
-                    tree_sitter_language="csharp",
-                    chunk_types=[
-                        "class_declaration",
-                        "method_declaration",
-                    ],  # Using common tree-sitter type names
-                    max_file_size=1_000_000,
-                )
-            }
-        ),
-        db=DBConfig(codebase_directory=Path(__file__).parent),
+    processor_config = CodeProcessorConfig(
+        directory_path=str(Path(__file__).parent),
+        languages={
+            "csharp": LanguageConfig(
+                file_extensions=[".cs"],
+                tree_sitter_language="csharp",
+                chunk_types=[
+                    "class_declaration",
+                    "method_declaration",
+                ],  # Using common tree-sitter type names
+                max_file_size=1_000_000,
+            )
+        }
     )
-    parser = CSharpParser(app_config)
-    parser.setup()  # This is crucial
+    parser = CSharpParser(processor_config)
+    parser.setup() 
     return parser
 
 

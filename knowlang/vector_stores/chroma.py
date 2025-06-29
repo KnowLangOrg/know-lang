@@ -6,8 +6,12 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from knowlang.configs import AppConfig
 from knowlang.core.types import VectorStoreProvider
-from knowlang.vector_stores.base import (SearchResult, VectorStore,
-                                         VectorStoreInitError)
+from knowlang.vector_stores.base import (
+    SearchResult, 
+    VectorStore,
+    VectorStoreInitError,
+    VectorStoreError
+)
 from knowlang.vector_stores.factory import register_vector_store
 
 
@@ -55,7 +59,7 @@ class ChromaVectorStore(VectorStore):
         self.client = None
         self.collection = None
 
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
         """Initialize ChromaDB client and collection"""
         try:
             import chromadb
@@ -128,18 +132,20 @@ class ChromaVectorStore(VectorStore):
         self.assert_initialized()
         self.collection.delete(ids=ids)
 
-    async def get_document(self, id: str) -> Optional[SearchResult]:
+    async def get_documents(self, ids: List[str]) -> Optional[List[SearchResult]]:
         self.assert_initialized()
         try:
-            result = self.collection.get(ids=[id])
-            if result['documents']:
-                return SearchResult(
+            results = self.collection.get(ids=ids)
+            return [
+                SearchResult(
                     document=result['documents'][0],
                     metadata=result['metadatas'][0],
                     score=1.0  # Perfect match for direct retrieval
                 )
-        except ValueError:
-            return None
+                for result in results if result['documents']
+            ]
+        except Exception as e:
+            raise VectorStoreError(f"Failed to retrieve documents: {str(e)}") from e
 
     async def update_document(
         self,

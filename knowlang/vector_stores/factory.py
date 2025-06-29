@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, Type, TypeVar, Union, cast
 
-from knowlang.configs import DBConfig, EmbeddingConfig
 from knowlang.configs.config import AppConfig
 from knowlang.core.types import VectorStoreProvider
-from knowlang.vector_stores.base import (VectorStore, VectorStoreError,
-                                         VectorStoreInitError)
+from knowlang.vector_stores.base import (
+    VectorStore, 
+    VectorStoreError,
+    VectorStoreInitError
+)
+from knowlang.database.config import VectorStoreConfig
 
 # for type hinting during development
 if TYPE_CHECKING:
@@ -38,6 +41,30 @@ class VectorStoreFactory:
     
     # Dictionary to store singleton instances
     _instances: Dict[str, VectorStore] = {}
+
+    @classmethod
+    def _get(
+        cls,
+        cfg: VectorStoreConfig
+    ):
+        cfg: VectorStoreConfig = cfg
+        instance_key = f"{cfg.provider}_{cfg.connection_string}"
+
+        if instance_key in cls._instances:
+            return cls._instances[instance_key]
+        
+        try:
+            # Get the vector store class based on the provider
+            store_cls: Type[VectorStore] = get_vector_store(cfg.provider)
+            # Create an instance from the configuration
+            vector_store: VectorStore = store_cls.from_cfg(cfg)
+
+            # Save the instance
+            cls._instances[instance_key] = vector_store
+            
+            return vector_store
+        except Exception as e:
+            raise VectorStoreInitError(f"Failed to create vector store: {str(e)}") from e
     
     @classmethod
     def get(
@@ -56,6 +83,10 @@ class VectorStoreFactory:
         Raises:
             VectorStoreInitError: If initialization fails
         """
+        # FIXME: we should deprcated this method and use _get instead after refactoring
+        if isinstance(app_config, VectorStoreConfig):
+            return cls._get(app_config)
+
         db_config = app_config.db
         # Create a unique key based on the configuration
         instance_key = f"{db_config.db_provider}_{db_config.connection_url}"
@@ -66,9 +97,6 @@ class VectorStoreFactory:
                 # Create new instance
                 store_cls: Type[VectorStore] = get_vector_store(db_config.db_provider)
                 vector_store: VectorStore = store_cls.create_from_config(app_config)
-                
-                # Initialize the store
-                vector_store.initialize()
                 
                 # Save the instance
                 cls._instances[instance_key] = vector_store

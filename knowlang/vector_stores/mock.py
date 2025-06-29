@@ -60,7 +60,7 @@ class MockVectorStore(VectorStore):
         return
     
     @classmethod
-    def initialize(self) -> None:
+    async def initialize(cls) -> None:
         """Initialize mock vector store"""
         return
     
@@ -71,7 +71,7 @@ class MockVectorStore(VectorStore):
         self.add_documents_mock = AsyncMock(side_effect=self._add_documents)
         self.search_mock = AsyncMock(side_effect=self._search)
         self.delete_mock = AsyncMock(side_effect=self._delete)
-        self.get_document_mock = AsyncMock(side_effect=self._get_document)
+        self.get_documents_mock = AsyncMock(side_effect=self._get_documents)
         self.update_document_mock = AsyncMock(side_effect=self._update_document)
         self.get_all_mock = AsyncMock(side_effect=self._get_all)
     
@@ -177,11 +177,11 @@ class MockVectorStore(VectorStore):
             self.metadata.pop(doc_id, None)
             self.embeddings.pop(doc_id, None)
 
-    async def get_document(self, id: str) -> Optional[SearchResult]:
+    async def get_documents(self, ids: List[str]) -> Optional[List[SearchResult]]:
         """Mock document retrieval with call tracking"""
-        return await self.get_document_mock(id)
+        return await self.get_documents_mocks(ids)
     
-    async def _get_document(self, id: str) -> Optional[SearchResult]:
+    async def _get_documents(self, id: str) -> Optional[SearchResult]:
         """Actual implementation of get_document"""
         if id not in self.documents:
             return None
@@ -252,6 +252,6 @@ class MockVectorStore(VectorStore):
         self.add_documents_mock.reset_mock()
         self.search_mock.reset_mock()
         self.delete_mock.reset_mock()
-        self.get_document_mock.reset_mock()
+        self.get_documents_mock.reset_mock()
         self.update_document_mock.reset_mock()
         self.get_all_mock.reset_mock()

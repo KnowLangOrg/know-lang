@@ -50,7 +50,7 @@ class UnityAssetParser(LanguageParser):
     def setup(self) -> None:
         """Initialize parser for Unity Assets"""
         self.language_name = LanguageEnum.UNITYASSET
-        self.language_config = self.config.parser.languages["unity-asset"]
+        self.language_config = self.config.languages["unity-asset"]
 
     def _parse_element(self, raw_element: dict) -> Union[Node, Connection, Group]:
         """Parse a raw element dictionary into the appropriate data class"""

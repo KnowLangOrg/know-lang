@@ -4,6 +4,7 @@ from typing import List
 
 import pytest
 
+from knowlang.assets.codebase.models import CodeProcessorConfig
 from knowlang.configs import AppConfig
 from knowlang.core.types import BaseChunkType, CodeChunk
 from knowlang.parser.languages.python.parser import PythonParser
@@ -50,9 +51,9 @@ class TestPythonParser:
         assert python_parser.language is not None
 
     @pytest.mark.asyncio
-    async def test_simple_file_parsing(self, python_parser: PythonParser, test_config: AppConfig):
+    async def test_simple_file_parsing(self, python_parser: PythonParser, test_config: CodeProcessorConfig):
         """Test parsing a simple Python file with function and class"""
-        chunks = await python_parser.parse_file(test_config.db.codebase_directory / "simple.py")
+        chunks = await python_parser.parse_file(Path(test_config.directory_path) / "simple.py")
 
         # Test function
         function_chunk = find_chunk_by_criteria(
@@ -85,9 +86,9 @@ class TestPythonParser:
         )
 
     @pytest.mark.asyncio
-    async def test_complex_file_parsing(self, python_parser: PythonParser, test_config: AppConfig):
+    async def test_complex_file_parsing(self, python_parser: PythonParser, test_config: CodeProcessorConfig):
         """Test parsing a complex Python file"""
-        chunks = await python_parser.parse_file(Path(test_config.db.codebase_directory) / "complex.py")
+        chunks = await python_parser.parse_file(Path(test_config.directory_path) / "complex.py")
         
         # Test complex function
         complex_func = find_chunk_by_criteria(
@@ -120,29 +121,29 @@ class TestPythonParser:
         )
 
     @pytest.mark.asyncio
-    async def test_error_handling(self, python_parser: PythonParser, test_config: AppConfig):
+    async def test_error_handling(self, python_parser: PythonParser, test_config: CodeProcessorConfig):
         """Test error handling for various error cases"""
         # Test invalid syntax
-        invalid_file = Path(test_config.db.codebase_directory) / "invalid.py"
+        invalid_file = Path(test_config.directory_path) / "invalid.py"
         invalid_file.write_text(INVALID_SYNTAX)
         chunks = await python_parser.parse_file(invalid_file)
         assert chunks == []
         
         # Test non-existent file
-        nonexistent = Path(test_config.db.codebase_directory) / "nonexistent.py"
+        nonexistent = Path(test_config.directory_path) / "nonexistent.py"
         chunks = await python_parser.parse_file(nonexistent)
         assert chunks == []
         
         # Test non-Python file
-        non_python = Path(test_config.db.codebase_directory) / "readme.md"
+        non_python = Path(test_config.directory_path) / "readme.md"
         non_python.write_text("# README")
         chunks = await python_parser.parse_file(non_python)
         assert chunks == []
 
     @pytest.mark.asyncio
-    async def test_file_size_limits(self, python_parser: PythonParser, test_config: AppConfig):
+    async def test_file_size_limits(self, python_parser: PythonParser, test_config: CodeProcessorConfig):
         """Test file size limit enforcement"""
-        large_file = Path(test_config.db.codebase_directory) / "large.py"
+        large_file = Path(test_config.directory_path) / "large.py"
         # Create a file larger than the limit
         large_file.write_text("x = 1\n" * 1_000_000)
         
@@ -155,9 +156,9 @@ class TestPythonParser:
         assert any(test_file.endswith(ext) for ext in python_parser.language_config.file_extensions)
 
     @pytest.mark.asyncio
-    async def test_decorated_components(self, python_parser: PythonParser, test_config: AppConfig):
+    async def test_decorated_components(self, python_parser: PythonParser, test_config: CodeProcessorConfig):
         """Test parsing Python files with decorated functions and classes"""
-        chunks = await python_parser.parse_file(test_config.db.codebase_directory / "decorated.py")
+        chunks = await python_parser.parse_file(Path(test_config.directory_path) / "decorated.py")
         
         # Test decorated function
         decorated_func = find_chunk_by_criteria(

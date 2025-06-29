@@ -106,9 +106,9 @@ class PostgresHybridStore(PostgresVectorStore, KeywordSearchableStore):
             except Exception as e:
                 raise VectorStoreInitError(f"Failed to initialize SQLAlchemy: {str(e)}") from e
 
-    def initialize(self):
+    async def initialize(self):
         """Initialize both vector store and text search capabilities."""
-        super().initialize()
+        await super().initialize()
         self._setup_sqlalchemy()
 
         try:

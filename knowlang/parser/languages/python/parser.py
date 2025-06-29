@@ -1,13 +1,18 @@
 from pathlib import Path
 from typing import List, Optional
 import tree_sitter_python
+import os
 import aiofiles
 from tree_sitter import Language, Node, Parser
 
-from knowlang.core.types import (BaseChunkType, CodeChunk, CodeLocation,
-                                 LanguageEnum)
+from knowlang.core.types import (
+    BaseChunkType, 
+    CodeChunk, 
+    CodeLocation,
+    LanguageEnum
+)
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.utils import convert_to_relative_path, FancyLogger
+from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
 
@@ -19,7 +24,7 @@ class PythonParser(LanguageParser):
         self.language = Language(tree_sitter_python.language())
         self.language_name = LanguageEnum.PYTHON
         self.parser = Parser(self.language)
-        self.language_config = self.config.parser.languages["python"]
+        self.language_config = self.config.languages["python"]
     
     def _get_preceding_docstring(self, node: Node, source_code: bytes) -> Optional[str]:
         """Extract docstring from inside function or class body"""
@@ -227,7 +232,7 @@ class PythonParser(LanguageParser):
                 return []
 
             chunks: List[CodeChunk] = []
-            relative_path = convert_to_relative_path(file_path, self.config.db)
+            relative_path = os.path.relpath(file_path, self.config.directory_path)
             
             # Process the syntax tree
             for node in tree.root_node.children:
