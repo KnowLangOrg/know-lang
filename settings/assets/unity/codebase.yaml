@@ -30,6 +30,6 @@ processor_config:
     provider: "sqlite"
     table_name: "vector_store"
     embedding:
-      provider: "knowlang"
+      model_provider: "knowlang"
       model_name: "http://localhost:1234/embedding"
       dimension: 768

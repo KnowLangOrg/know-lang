@@ -9,7 +9,6 @@
       "args": [
         "--v",
         "parse",
-        "."
       ]
     },
     {
@@ -73,15 +72,6 @@
         "--output", "datasets/reranking_dataset",
         "--generate-reranking-data"
       ]
-    },
-      {
-      "name": "WIP",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "knowlang.assets",
-      "args": [
-      ],
-      "justMyCode": false
     }
   ]
 }
