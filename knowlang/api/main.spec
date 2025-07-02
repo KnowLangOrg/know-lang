@@ -40,6 +40,8 @@ def collect_knowlang_binaries():
 hidden_imports = [
     # fix the module not found error
     "knowlang.api.main",
+    # implicity used by sqlalchemy
+    "aiosqlite",
 ]
 
 
