@@ -25,7 +25,7 @@ class CppParser(LanguageParser):
         self.language_name = LanguageEnum.CPP
         self.language = Language(tree_sitter_cpp.language())
         self.parser = Parser(self.language)
-        self.language_config = self.config.languages["cpp"]
+        self.language_config = self.config.languages[LanguageEnum.CPP.value]
     
     def _get_preceding_docstring(self, node: Node, source_code: bytes) -> Optional[str]:
         """Extract docstring from comments"""

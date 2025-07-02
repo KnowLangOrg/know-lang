@@ -13,8 +13,9 @@ from pydantic_settings import (
 )
 from knowlang.assets.models import GenericAssetData, KnownDomainTypes, DomainManagerData, GenericAssetChunkData
 from knowlang.assets.processor import DomainProcessor, DomainContext
-from knowlang.assets.config import BaseDomainConfig, DatabaseConfig
+from knowlang.assets.config import BaseDomainConfig
 from knowlang.database.db import KnowledgeSqlDatabase
+from knowlang.database.config import DatabaseConfig
 from knowlang.utils.fancy_log import FancyLogger
 
 LOG = FancyLogger(__file__)

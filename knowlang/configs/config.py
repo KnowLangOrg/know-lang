@@ -51,7 +51,9 @@ class LanguageConfig(BaseSettings):
     enabled: bool = True
     file_extensions: List[str]
     tree_sitter_language: str
-    chunk_types: List[str]
+    chunk_types: List[str] = Field(
+        default=["class_definition", "function_definition"], description="Types of code chunks to extract"
+    )
     max_file_size: int = Field(
         default=1_000_000, description="Maximum file size to process in bytes"  # 1MB
     )
@@ -87,9 +89,9 @@ class ParserConfig(BaseSettings):
                 ],  # Using common tree-sitter type names
                 max_file_size=1_000_000,
             ),
-            "unity-asset": LanguageConfig(
+            "unity_asset": LanguageConfig(
                 file_extensions=[".asset"],
-                tree_sitter_language="unity-asset",
+                tree_sitter_language="unity_asset",
                 # TODO: revisit these chunk types
                 chunk_types=["function_definition"],
                 max_file_size=1_000_000,

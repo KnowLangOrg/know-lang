@@ -1,0 +1,35 @@
+domain_type: "codebase"
+enabled: true
+
+metadata_types:
+  domain_metadata: "CodebaseMetaData"
+  asset_metadata: "CodebaseAssetMetaData"
+  chunk_metadata: "CodeAssetChunkMetaData"
+
+domain_data:
+  id: "visual_script_unity" 
+  name: "My Unity Visual Script"
+  meta:
+    directory_path: "./"
+
+mixins:
+  source_cls: "CodebaseAssetSource"
+  indexer_cls: "CodebaseAssetIndexing"
+  parser_cls: "CodebaseAssetParser"
+
+processor_config: 
+  directory_path: "./"
+  languages:
+    unity_asset:
+      enabled: true
+      file_extensions: [".asset"]
+      tree_sitter_language: "unity_asset"
+      chunk_types: ["group", "connection", "node"]
+      max_file_size: 10_000_000 # Unity assets can be large
+  vector_store:
+    provider: "sqlite"
+    table_name: "vector_store"
+    embedding:
+      provider: "knowlang"
+      model_name: "http://localhost:1234/embedding"
+      dimension: 768

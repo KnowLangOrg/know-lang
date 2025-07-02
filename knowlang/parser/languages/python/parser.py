@@ -24,7 +24,7 @@ class PythonParser(LanguageParser):
         self.language = Language(tree_sitter_python.language())
         self.language_name = LanguageEnum.PYTHON
         self.parser = Parser(self.language)
-        self.language_config = self.config.languages["python"]
+        self.language_config = self.config.languages[LanguageEnum.PYTHON.value]
     
     def _get_preceding_docstring(self, node: Node, source_code: bytes) -> Optional[str]:
         """Extract docstring from inside function or class body"""

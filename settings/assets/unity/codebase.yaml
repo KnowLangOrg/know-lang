@@ -1,0 +1,35 @@
+domain_type: "codebase"
+enabled: true
+
+metadata_types:
+  domain_metadata: "CodebaseMetaData"
+  asset_metadata: "CodebaseAssetMetaData"
+  chunk_metadata: "CodeAssetChunkMetaData"
+
+domain_data:
+  id: "my_unity_csharp" 
+  name: "My Unity Csharp"
+  meta:
+    directory_path: "./"
+
+mixins:
+  source_cls: "CodebaseAssetSource"
+  indexer_cls: "CodebaseAssetIndexing"
+  parser_cls: "CodebaseAssetParser"
+
+processor_config: 
+  directory_path: "./"
+  languages:
+    csharp:
+      enabled: true
+      file_extensions: [".cs"]
+      tree_sitter_language: "csharp"
+      chunk_types: ["class_definition", "function_definition"]
+      max_file_size: 1_000_000
+  vector_store:
+    provider: "sqlite"
+    table_name: "vector_store"
+    embedding:
+      provider: "knowlang"
+      model_name: "http://localhost:1234/embedding"
+      dimension: 768

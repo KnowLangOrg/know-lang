@@ -1,8 +1,16 @@
 from pydantic import BaseModel, Field
 
-from knowlang.configs.defaults import DEFAULT_VECTOR_COLLECTION_NAME, DEFAULT_SQLITE_DB_CONNECTION_URL_ASYNC
+from knowlang.configs.defaults import (
+    DEFAULT_VECTOR_COLLECTION_NAME, 
+    DEFAULT_SQLITE_DB_CONNECTION_URL_ASYNC
+)
 from knowlang.core.types import VectorStoreProvider
 from knowlang.configs import EmbeddingConfig
+
+class DatabaseConfig(BaseModel):
+    """Configuration for database connections"""
+    provider: str = "sqlite"
+    connection_url: str = DEFAULT_SQLITE_DB_CONNECTION_URL_ASYNC
 
 
 class VectorStoreConfig(BaseModel):

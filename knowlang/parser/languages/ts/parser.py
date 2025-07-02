@@ -33,7 +33,7 @@ class TypeScriptParser(LanguageParser):
         self.parser_ts = Parser(self.language_ts)
         self.parser_tsx = Parser(self.language_tsx)
         
-        self.language_config = self.config.languages["typescript"]
+        self.language_config = self.config.languages[LanguageEnum.TYPESCRIPT.value]
     
     def _get_parser_for_file(self, file_path: Path) -> Parser:
         """Get the appropriate parser based on file extension"""

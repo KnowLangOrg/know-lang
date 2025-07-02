@@ -24,9 +24,3 @@ class BaseDomainConfig(BaseModel, Generic[MetaDataT, ProcessorConfigT]):
     domain_data: DomainManagerData[MetaDataT]
     mixins: DomainMixinConfig
     processor_config: ProcessorConfigT
-
-class DatabaseConfig(BaseModel):
-    """Configuration for database connections"""
-    provider: str = "sqlite"
-    connection_url: str = DEFAULT_SQLITE_DB_CONNECTION_URL_ASYNC
-
