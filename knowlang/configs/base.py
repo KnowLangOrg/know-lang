@@ -2,7 +2,6 @@ from pydantic_settings import SettingsConfigDict
 from pathlib import Path
 from typing import Optional
 from pydantic import ValidationInfo
-from knowlang.core.types import ModelProvider 
 import os
 import sys
 
@@ -30,6 +29,8 @@ def generate_model_config(env_dir : Path = Path('settings'), env_file: Path = '.
 
 def _validate_api_key(v: Optional[str], info: ValidationInfo) -> Optional[str]:
     """Validate API key is present when required"""
+    from knowlang.core.types import ModelProvider 
+
     if info.data['model_provider'] in [
         ModelProvider.OPENAI, 
         ModelProvider.ANTHROPIC,

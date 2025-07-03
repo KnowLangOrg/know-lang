@@ -2,12 +2,7 @@ from pathlib import Path
 from typing import Dict, Optional, Type
 
 from knowlang.parser.base.parser import CodeProcessorConfig, LanguageParser
-from knowlang.core.types import LanguageEnum # Added
-from knowlang.parser.languages.cpp.parser import CppParser
-from knowlang.parser.languages.csharp.parser import CSharpParser  # Added
-from knowlang.parser.languages.python.parser import PythonParser
-from knowlang.parser.languages.ts.parser import TypeScriptParser
-from knowlang.parser.languages.unity_asset.parser import UnityAssetParser
+from knowlang.core.types import LanguageEnum 
 
 
 class CodeParserFactory:
@@ -20,6 +15,12 @@ class CodeParserFactory:
 
     def _register_parsers(self) -> Dict[str, Type[LanguageParser]]:
         """Register available parser implementations"""
+        from knowlang.parser.languages.cpp.parser import CppParser
+        from knowlang.parser.languages.csharp.parser import CSharpParser
+        from knowlang.parser.languages.python.parser import PythonParser
+        from knowlang.parser.languages.ts.parser import TypeScriptParser
+        from knowlang.parser.languages.unity_asset.parser import UnityAssetParser
+
         return {
             LanguageEnum.PYTHON.value: PythonParser,
             LanguageEnum.CPP.value: CppParser,
@@ -35,6 +36,8 @@ class CodeParserFactory:
 
         # Find parser class for this extension
         for lang, parser_class in self._parser_classes.items():
+            if lang not in self.config.languages or not self.config.languages[lang].enabled:
+                continue
             parser = self._parsers.get(lang)
             if parser is None:
                 parser = parser_class(self.config)

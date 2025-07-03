@@ -1,10 +1,10 @@
 from enum import Enum
-from typing import Dict, List, Set, Type, Any 
+from typing import Dict, List, Optional, Set, Type, Any 
 import glob
 import os
 import yaml
 import aiofiles
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
@@ -13,8 +13,10 @@ from pydantic_settings import (
 )
 from knowlang.assets.models import GenericAssetData, KnownDomainTypes, DomainManagerData, GenericAssetChunkData
 from knowlang.assets.processor import DomainProcessor, DomainContext
-from knowlang.assets.config import BaseDomainConfig, DatabaseConfig
+from knowlang.assets.config import BaseDomainConfig
 from knowlang.database.db import KnowledgeSqlDatabase
+from knowlang.database.config import DatabaseConfig
+from knowlang.configs.base import get_resource_path
 from knowlang.utils.fancy_log import FancyLogger
 
 LOG = FancyLogger(__file__)
@@ -30,8 +32,14 @@ class RegistryConfig(BaseSettings):
     """Configuration for the domain registry."""
     discovery_path: str = 'settings/'
     model_config = SettingsConfigDict(
-        yaml_file='settings/registry.yaml',
+        yaml_file=get_resource_path('settings/registry.yaml'),
     )
+
+    @field_validator("discovery_path", mode="after")
+    @classmethod
+    def resolve_discovery_path(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
+        """Resolve the discovery path to an absolute path."""
+        return str(get_resource_path(v))
 
     @classmethod
     def settings_customise_sources(
@@ -340,12 +348,17 @@ class DomainRegistry:
                     asset=None
                 ) for chunk in dirty_chunks
             ])
+
+            chunks = await processor.parser_mixin.parse_assets(dirty_assets)
+            # Filter out assets that have no chunks
+            dirty_assets = [
+                a for a in dirty_assets if a.id in set(c.asset_id for c in chunks)
+            ]
             await db.upsert_assets(session, [asset.to_orm() for asset in dirty_assets])
 
         # 3. Parse and index
         # Restart the session to avoid sqlite3 lock
         async with db.get_session() as session:
-            chunks = await processor.parser_mixin.parse_assets(dirty_assets)
             await processor.indexing_mixin.index_chunks(chunks)
             await db.index_asset_chunks(session, [chunk.to_orm() for chunk in chunks])
 

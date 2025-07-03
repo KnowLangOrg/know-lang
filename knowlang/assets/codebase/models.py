@@ -8,7 +8,7 @@ from knowlang.assets.models import (
     GenericAssetChunkData,
 )
 from knowlang.assets.config import ProcessorConfigBase
-from knowlang.core.types import CodeChunk
+from knowlang.core.types import CodeChunk, LanguageEnum
 
 
 class CodebaseMetaData(BaseModel):
@@ -84,30 +84,36 @@ class CodeProcessorConfig(ProcessorConfigBase):
     )
     languages: Dict[str, LanguageConfig] = Field(
         default={
-            "python": LanguageConfig(
+            LanguageEnum.PYTHON.value: LanguageConfig(
                 file_extensions=[".py"],
                 tree_sitter_language="python",
                 chunk_types=["class_definition", "function_definition"],
                 max_file_size=1_000_000
             ),
-            "typescript": LanguageConfig(
+            LanguageEnum.TYPESCRIPT.value: LanguageConfig(
                 file_extensions=[".ts", ".tsx"],
                 tree_sitter_language="typescript",
                 chunk_types=["class_definition", "function_definition"],
                 max_file_size=1_000_000
             ),
-            "cpp": LanguageConfig(
+            LanguageEnum.CPP.value: LanguageConfig(
                 file_extensions=[".cpp", ".h", ".hpp", ".cc"],
                 tree_sitter_language="cpp",
                 chunk_types=["class_definition", "function_definition"],
                 max_file_size=1_000_000
             ),
-            "csharp": LanguageConfig(
+            LanguageEnum.CSHARP.value: LanguageConfig(
                 file_extensions=[".cs"],
                 tree_sitter_language="csharp",
                 chunk_types=["class_declaration", "method_declaration"], # Using common tree-sitter type names
                 max_file_size=1_000_000
-            )
+            ),
+            LanguageEnum.UNITYASSET.value: LanguageConfig(
+                file_extensions=[".meta"],
+                tree_sitter_language="unity_asset",
+                chunk_types=["group", "connection", "node"],
+                max_file_size=10_000_000 
+            ),
         }
     )
     path_patterns: PathPatterns = Field(default_factory=PathPatterns)

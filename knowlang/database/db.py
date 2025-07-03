@@ -2,12 +2,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, ForeignKey, String, delete, select, tuple_
+from sqlalchemy import Column, ForeignKey, String, select, tuple_
 from typing import Dict, List
 from contextlib import asynccontextmanager
 
-from knowlang.assets.config import DatabaseConfig
 from knowlang.utils.fancy_log import FancyLogger
+from knowlang.database.config import DatabaseConfig
 
 LOG = FancyLogger(__name__)
 

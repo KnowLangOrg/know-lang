@@ -11,7 +11,7 @@ class LanguageEnum(str, Enum):
     CPP = "cpp"
     CSHARP = "csharp"
     TYPESCRIPT = "typescript"
-    UNITYASSET = "unity-asset"
+    UNITYASSET = "unity_asset"
 
 
 class BaseChunkType:
