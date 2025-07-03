@@ -1,10 +1,10 @@
 from enum import Enum
-from typing import Dict, List, Set, Type, Any 
+from typing import Dict, List, Optional, Set, Type, Any 
 import glob
 import os
 import yaml
 import aiofiles
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
@@ -16,6 +16,7 @@ from knowlang.assets.processor import DomainProcessor, DomainContext
 from knowlang.assets.config import BaseDomainConfig
 from knowlang.database.db import KnowledgeSqlDatabase
 from knowlang.database.config import DatabaseConfig
+from knowlang.configs.base import get_resource_path
 from knowlang.utils.fancy_log import FancyLogger
 
 LOG = FancyLogger(__file__)
@@ -31,8 +32,14 @@ class RegistryConfig(BaseSettings):
     """Configuration for the domain registry."""
     discovery_path: str = 'settings/'
     model_config = SettingsConfigDict(
-        yaml_file='settings/registry.yaml',
+        yaml_file=get_resource_path('settings/registry.yaml'),
     )
+
+    @field_validator("discovery_path", mode="after")
+    @classmethod
+    def resolve_discovery_path(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
+        """Resolve the discovery path to an absolute path."""
+        return str(get_resource_path(v))
 
     @classmethod
     def settings_customise_sources(
