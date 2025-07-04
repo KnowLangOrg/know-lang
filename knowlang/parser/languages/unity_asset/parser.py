@@ -1,10 +1,11 @@
 from pathlib import Path
-from typing import List, Optional, Union
+import os
+from typing import List, Union
 from dataclasses import dataclass
 
 from knowlang.core.types import BaseChunkType, CodeChunk, CodeLocation, LanguageEnum
 from knowlang.parser.base.parser import LanguageParser
-from knowlang.utils import convert_to_relative_path, FancyLogger
+from knowlang.utils import FancyLogger
 import aiofiles
 import json
 
@@ -205,7 +206,7 @@ class UnityAssetParser(LanguageParser):
 
         chunks = []
 
-        relative_path = convert_to_relative_path(file_path, self.config.db)
+        relative_path = os.path.relpath(file_path, self.config.directory_path)
 
         for i, graph_elements in enumerate(elements_by_graph.values()):
             raw_json_elements = map(lambda e: e.raw_json, graph_elements)

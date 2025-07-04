@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 from typing import AsyncGenerator, Dict, List
-
 import gradio as gr
 from gradio import ChatMessage
 
-from knowlang.configs import AppConfig
+from knowlang.configs.chat_config import ChatConfig
 from knowlang.utils import FancyLogger, RateLimiter
-from knowlang.vector_stores.factory import VectorStoreFactory
 
 from .chat_graph import ChatStatus, StreamingChatResult, stream_chat_progress
 from .feedback import ChatAnalytics
@@ -33,12 +31,11 @@ class CodeContext:
         )
 
 class CodeQAChatInterface:
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: ChatConfig):
         self.config = config
-        self.vector_store = VectorStoreFactory.get(config)
         self.rate_limiter = RateLimiter()
-        self.chat_analytics = ChatAnalytics(config.chat_analytics)
-    
+        self.chat_analytics = ChatAnalytics(config.analytic_config)
+
     def _format_code_block(self, code : str,  metadata: Dict) -> str:
         """Format a single code block with metadata"""
         context = CodeContext.from_metadata(metadata)
@@ -95,7 +92,7 @@ class CodeQAChatInterface:
         yield history
 
         try:
-            async for result in stream_chat_progress(message, self.vector_store, self.config):
+            async for result in stream_chat_progress(message):
                 chat_message = (_handle_intermetidate_progress(result) 
                                 if result.status != ChatStatus.COMPLETE else
                                 _handle_final_answer(result))
@@ -117,8 +114,8 @@ class CodeQAChatInterface:
     def create_interface(self) -> gr.Blocks:
         """Create the Gradio interface"""
         with gr.Blocks() as interface:
-            gr.Markdown(f"# {self.config.chat.interface_title}")
-            gr.Markdown(self.config.chat.interface_description)
+            gr.Markdown(f"# {self.config.interface_title}")
+            gr.Markdown(self.config.interface_description)
             
             chatbot = gr.Chatbot(
                 type="messages",
@@ -138,7 +135,7 @@ class CodeQAChatInterface:
             
             msg = gr.Textbox(
                 label="Ask about the codebase",
-                placeholder=self.config.chat.interface_placeholder,
+                placeholder=self.config.interface_placeholder,
                 container=False,
                 scale=7
             )
@@ -167,6 +164,6 @@ class CodeQAChatInterface:
 
         return interface
 
-def create_chatbot(config: AppConfig) -> gr.Blocks:
+def create_chatbot(config: ChatConfig) -> gr.Blocks:
     interface = CodeQAChatInterface(config)
     return interface.create_interface()

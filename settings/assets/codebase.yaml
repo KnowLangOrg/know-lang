@@ -24,3 +24,5 @@ processor_config:
     table_name: "vector_store"
     embedding:
       dimension: 768
+  search_config:
+    top_k: 4
