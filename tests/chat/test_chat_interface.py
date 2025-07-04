@@ -23,10 +23,8 @@ def mock_request():
 
 
 @pytest.fixture
-@patch('knowlang.chat_bot.chat_interface.VectorStoreFactory')
-def interface(mock_vector_store_factory, mock_config, mock_vector_store):
+def interface(mock_config, mock_vector_store):
     """Create test interface instance with mocked dependencies"""
-    mock_vector_store_factory.get.return_value = mock_vector_store
     interface = CodeQAChatInterface(mock_config)
     return interface
 

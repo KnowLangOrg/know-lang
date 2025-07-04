@@ -2,21 +2,17 @@
 import pytest
 
 from knowlang.configs import AppConfig, LLMConfig, RerankerConfig
+from knowlang.configs.chat_config import ChatConfig
 from knowlang.core.types import ModelProvider
 from knowlang.vector_stores.mock import MockVectorStore
 
 
 @pytest.fixture
 def mock_config():
-    return AppConfig(
-        llm = LLMConfig(
-            model_provider=ModelProvider.TESTING
-        ),
-        reranker=RerankerConfig(
-            enabled=True,
-            model_provider=ModelProvider.VOYAGE,
-            relevance_threshold=0.7,
-            api_key="test_key"
+    return ChatConfig(
+        llm=LLMConfig(
+            model_provider=ModelProvider.TESTING,
+            model_name="testing"
         )
     )
 

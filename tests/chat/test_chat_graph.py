@@ -27,7 +27,7 @@ async def test_answer_question_node(mock_agent_class, mock_config, populated_moc
                        score=0.9)
         ]
     )
-    deps = ChatGraphDeps(vector_store=populated_mock_store, config=mock_config)
+    deps = ChatGraphDeps(chat_config=mock_config)
     ctx = GraphRunContext(state=state, deps=deps)
 
     mock_answer = Mock()
@@ -49,7 +49,7 @@ async def test_answer_question_node_no_context(mock_config, mock_vector_store):
         original_question="test question",
         retrieved_context=[]  # Empty list instead of RetrievedContext
     )
-    deps = ChatGraphDeps(vector_store=mock_vector_store, config=mock_config)
+    deps = ChatGraphDeps(chat_config=mock_config)
     ctx = GraphRunContext(state=state, deps=deps)
 
     result = await node.run(ctx)
@@ -115,8 +115,6 @@ async def test_stream_chat_progress_success(
     results = []
     async for result in stream_chat_progress(
         question="test question",
-        vector_store=populated_mock_store,
-        config=mock_config
     ):
         results.append(result)
 
@@ -165,8 +163,6 @@ async def test_stream_chat_progress_node_error(
     results = []
     async for result in stream_chat_progress(
         question="test question",
-        vector_store=mock_vector_store,
-        config=mock_config
     ):
         results.append(result)
 
@@ -209,8 +205,6 @@ async def test_stream_chat_progress_invalid_node(
     results = []
     async for result in stream_chat_progress(
         question="test question",
-        vector_store=mock_vector_store,
-        config=mock_config
     ):
         results.append(result)
 
@@ -235,8 +229,6 @@ async def test_stream_chat_progress_general_error(mock_chat_graph, mock_vector_s
     results = []
     async for result in stream_chat_progress(
         question="test question",
-        vector_store=mock_vector_store,
-        config=mock_config
     ):
         results.append(result)
 
