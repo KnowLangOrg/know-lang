@@ -20,7 +20,7 @@ class SearchConfig(BaseModel):
         description="Enable query refinement"
     )
     max_retries: int = Field(
-        default=5, 
+        default=2, 
         description="Maximum number of retries for retrieval"
     )
     filter: dict = Field(

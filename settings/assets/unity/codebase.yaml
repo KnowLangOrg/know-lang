@@ -33,3 +33,5 @@ processor_config:
       model_provider: "knowlang"
       model_name: "http://localhost:1234/embedding"
       dimension: 768
+search_config:
+  top_k: 4

@@ -39,10 +39,9 @@ async def main(args: Optional[Sequence[str]] = None) -> int:
         await parsed_args.command_func(parsed_args)
         return 0
     except Exception as e:
+        import traceback
+        LOG.error(traceback.format_exc())
         LOG.error(f"Error: {str(e)}")
-        if parsed_args.verbose:
-            import traceback
-            traceback.print_exc()
         return 1
 
 def cli_main() -> None:

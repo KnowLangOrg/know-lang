@@ -50,7 +50,11 @@ class RegistryConfig(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        return (YamlConfigSettingsSource(settings_cls),)
+        return (
+            # init inputs has highest priority
+            init_settings,
+            YamlConfigSettingsSource(settings_cls),
+        )
 
 class TypeRegistry:
     """Registry for mapping domain types to their metadata classes."""
@@ -114,7 +118,7 @@ class DomainRegistry:
         self.registry_config = config
 
         self._processors: Dict[str, DomainProcessor] = {}
-        self._configs: Dict[str, BaseDomainConfig] = {}
+        self.domain_configs: Dict[str, BaseDomainConfig] = {}
 
         # Initialize with built-in types
         self._register_builtin_types()
@@ -221,15 +225,19 @@ class DomainRegistry:
 
             domain_config = self._resolve_cfg_type(config_dict)
 
-            # Create and register processor
-            processor = self.create_processor(domain_config)
-
-            self._processors[domain_config.domain_data.id] = processor
-            self._configs[domain_config.domain_data.id] = domain_config
+            self.domain_configs[domain_config.domain_data.id] = domain_config
+    
+    def _create_processors(self) -> None:
+        for domain_id, config in self.domain_configs.items():
+            if domain_id in self._processors:
+                continue
+            processor = self.create_processor(config)
+            self._processors[domain_id] = processor
 
 
     async def process_all_domains(self, batch_size: int = 200) -> None:
         """Process all registered domains with efficient batching."""
+        self._create_processors()
         
         db = KnowledgeSqlDatabase(config=DatabaseConfig())
         await db.create_schema()

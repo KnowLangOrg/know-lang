@@ -1,10 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 from pydantic import BaseModel
-from knowlang.vector_stores.base import VectorStore
 from knowlang.search import SearchResult
-from knowlang.configs import AppConfig
-from knowlang.api.base import ApiModelRegistry
+from knowlang.assets.config import BaseDomainConfig
+from knowlang.configs.chat_config import ChatConfig
 
 class ChatResult(BaseModel):
     """Final result from the chat graph"""
@@ -16,11 +15,11 @@ class ChatGraphState:
     """State maintained throughout the graph execution"""
     original_question: str
     polished_question: Optional[str] = None
-    retrieved_context: Optional[List[SearchResult]] = None
+    retrieved_context: Optional[List[SearchResult]] = field(default_factory=list)
+
 
 @dataclass
 class ChatGraphDeps:
     """Dependencies required by the graph"""
-    vector_store: VectorStore
-    config: AppConfig
-
+    domain_configs: List[BaseDomainConfig] = None
+    chat_config: ChatConfig = None

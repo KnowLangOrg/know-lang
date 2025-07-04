@@ -1,8 +1,7 @@
-# __future__ annotations is necessary for the type hints to work in this file
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncGenerator, List, Optional, Union
+from typing import AsyncGenerator, List, Optional, Union
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_graph import (
@@ -12,13 +11,12 @@ from pydantic_graph import (
     GraphRunContext,
 )
 from rich.console import Console
-from knowlang.configs import AppConfig
+from knowlang.configs.chat_config import ChatConfig
 from knowlang.utils import create_pydantic_model, truncate_chunk, FancyLogger
-from knowlang.vector_stores import VectorStore
 from knowlang.search import SearchResult
 from knowlang.api import ApiModelRegistry
 from knowlang.chat_bot.nodes.base import ChatGraphState, ChatGraphDeps, ChatResult
-from knowlang.search.search_graph.graph import search_graph
+from knowlang.assets.config import BaseDomainConfig
 
 LOG = FancyLogger(__name__)
 console = Console()
@@ -88,16 +86,33 @@ class StreamingChatResult(BaseModel):
 class RetrievalNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
     """Base node for search operations"""
     async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> Union['AnswerQuestionNode']:
-        from knowlang.search.search_graph.base import SearchDeps, SearchState
-        from knowlang.search.search_graph.graph import FirstStageNode
-        search_graph_result = await search_graph.run(
-            start_node=FirstStageNode(),
-            state=SearchState(query=ctx.state.original_question),
-            deps=SearchDeps(
-                store=ctx.deps.vector_store,
-                config=ctx.deps.config
-        ))
-        ctx.state.retrieved_context = search_graph_result.output.search_results
+        # NOTE: we don't need complex multi-stage retrieval yet.
+        # from knowlang.search.search_graph.base import SearchDeps, SearchState
+        # from knowlang.search.search_graph.graph import FirstStageNode, search_graph
+        # search_graph_result = await search_graph.run(
+        #     start_node=FirstStageNode(),
+        #     state=SearchState(query=ctx.state.original_question),
+        #     deps=SearchDeps(
+        #         store=ctx.deps.vector_store,
+        #         config=ctx.deps.config
+        # ))
+        # ctx.state.retrieved_context = search_graph_result.output.search_results
+        from knowlang.vector_stores.factory import VectorStoreFactory
+        from knowlang.models.embeddings import generate_embedding
+        from knowlang.search.query import VectorQuery
+        for domain in ctx.deps.domain_configs:
+            vector_store_config = domain.processor_config.vector_store
+            search_config = domain.search_config
+            vector_store = VectorStoreFactory.get(vector_store_config)
+            embedding_vec = await generate_embedding(ctx.state.original_question, vector_store_config.embedding)
+            vector_query = VectorQuery(
+                embedding=embedding_vec,
+                top_k=search_config.top_k,
+            )
+            ctx.state.retrieved_context += await vector_store.search(
+                query=vector_query
+            )
+
         return AnswerQuestionNode()
 
 
@@ -126,7 +141,7 @@ You are an expert code assistant helping developers understand complex codebases
 Remember: Your primary goal is answering the user's specific question, not explaining the entire codebase."""
 
     async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> End[ChatResult]:
-        chat_config = ctx.deps.config.chat
+        chat_config = ctx.deps.chat_config
         answer_agent = Agent(
             create_pydantic_model(
                 model_provider=chat_config.llm.model_provider,
@@ -175,46 +190,26 @@ chat_graph = Graph(
     nodes=[RetrievalNode, AnswerQuestionNode]
 )
 
-async def process_chat(
-    question: str,
-    vector_store: VectorStore,
-    config: AppConfig
-) -> ChatResult:
-    """
-    Process a chat question through the graph.
-    This is the main entry point for chat processing.
-    """
-    state = ChatGraphState(original_question=question)
-    deps = ChatGraphDeps(vector_store=vector_store, config=config)
-    
-    try:
-        result = await chat_graph.run(
-            RetrievalNode(),
-            state=state,
-            deps=deps
-        )
-    except Exception as e:
-        LOG.error(f"Error processing chat in graph: {e}")
-        console.print_exception()
-        
-        result = ChatResult(
-            answer="I encountered an error processing your question. Please try again."
-        )
-    finally:
-        return result
-    
 async def stream_chat_progress(
     question: str,
-    vector_store: VectorStore,
-    config: AppConfig
+    domain_configs: Optional[List[BaseDomainConfig]] = None,
 ) -> AsyncGenerator[StreamingChatResult, None]:
     """
     Stream chat progress through the graph.
     This is the main entry point for chat processing.
     """
     state = ChatGraphState(original_question=question)
-    deps = ChatGraphDeps(vector_store=vector_store, config=config)
-    
+    if domain_configs is None:
+        from knowlang.assets.registry import DomainRegistry, RegistryConfig
+        config = RegistryConfig()
+        registry = DomainRegistry(config)
+        await registry.discover_and_register()
+        domain_configs = registry.domain_configs.values()
+    deps = ChatGraphDeps(
+        domain_configs=domain_configs,
+        chat_config=ChatConfig()
+    )
+
     start_node = RetrievalNode()
 
     try:
