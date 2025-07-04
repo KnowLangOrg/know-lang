@@ -28,7 +28,7 @@ processor_config:
       max_file_size: 10_000_000 # Unity assets can be large
   vector_store:
     provider: "sqlite"
-    table_name: "vector_store"
+    table_name: "visual_script"
     embedding:
       model_provider: "knowlang"
       model_name: "http://localhost:1234/embedding"

@@ -28,7 +28,7 @@ processor_config:
       max_file_size: 1_000_000
   vector_store:
     provider: "sqlite"
-    table_name: "vector_store"
+    table_name: "unity_csharp"
     embedding:
       model_provider: "knowlang"
       model_name: "http://localhost:1234/embedding"

@@ -78,6 +78,8 @@ Configurable vector storage for chunk embeddings:
 - ChromaDB
 - Other providers via `VectorStoreProvider`
 
+>⚠️ Note that the `VectorStoreConfig.table_name` should be set differently for each domain in corresponding yaml file so that vector store for each domain is properly separated.
+
 ## Usage
 
 ### Processing All Domains

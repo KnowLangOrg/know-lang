@@ -48,7 +48,7 @@ class VectorStoreFactory:
         cfg: VectorStoreConfig
     ):
         cfg: VectorStoreConfig = cfg
-        instance_key = f"{cfg.provider}_{cfg.connection_string}"
+        instance_key = f"{cfg.provider}_{cfg.connection_string}_{cfg.table_name}"
 
         if instance_key in cls._instances:
             return cls._instances[instance_key]
