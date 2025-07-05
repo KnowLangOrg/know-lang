@@ -30,9 +30,19 @@ class TestPostgresVectorStore:
         self.app_config.db = self.db_config
         self.app_config.embedding = self.embedding_config
         
-        # Patch vecs module
-        self.vecs_patcher = mock.patch("knowlang.vector_stores.postgres.vecs")
-        self.mock_vecs = self.vecs_patcher.start()
+        # Store the original __import__ function before patching
+        self.original_import = __import__
+        
+        # Mock the vecs module import in PostgresVectorStore
+        self.vecs_import_patcher = mock.patch("builtins.__import__")
+        self.mock_import = self.vecs_import_patcher.start()
+        
+        # Create mock vecs module
+        self.mock_vecs = mock.MagicMock()
+        self.mock_vecs.IndexMeasure.cosine_distance = "cosine_distance"
+        self.mock_vecs.IndexMeasure.l1_distance = "l1_distance"
+        self.mock_vecs.IndexMeasure.l2_distance = "l2_distance"
+        self.mock_vecs.IndexMeasure.max_inner_product = "max_inner_product"
         
         # Create mock vecs client and collection
         self.mock_client = mock.MagicMock()
@@ -40,9 +50,18 @@ class TestPostgresVectorStore:
         self.mock_vecs.create_client.return_value = self.mock_client
         self.mock_client.get_or_create_collection.return_value = self.mock_collection
         
+        # Configure the import mock to return our mock vecs module
+        def mock_import_side_effect(name, *args, **kwargs):
+            if name == "vecs":
+                return self.mock_vecs
+            # For other imports, use the original import function
+            return self.original_import(name, *args, **kwargs)
+        
+        self.mock_import.side_effect = mock_import_side_effect
+        
     def teardown_method(self):
         """Tear down test fixtures"""
-        self.vecs_patcher.stop()
+        self.vecs_import_patcher.stop()
     
     def test_create_from_config(self):
         """Test creating a vector store from config"""
