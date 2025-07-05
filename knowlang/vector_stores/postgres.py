@@ -1,19 +1,23 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Literal, Optional
-from vecs.collection import Record
+from typing import Any, Dict, List, Literal, Optional, TYPE_CHECKING
 
 from knowlang.configs import AppConfig
+from knowlang.core.types import VectorStoreProvider
 from knowlang.utils import FancyLogger
 from knowlang.vector_stores.base import (SearchResult, VectorStore,
                                          VectorStoreError,
                                          VectorStoreInitError)
-                                        
-try:
-    import vecs
-except ImportError as e:
-    raise ImportError(
-        'Postgres vector store is not installed. Please install it using `pip install "knowlang[vecs]"`.'
-    ) from e
+from knowlang.vector_stores.factory import register_vector_store
+
+# Type checking imports - only available during static analysis
+if TYPE_CHECKING:
+    try:
+        import vecs
+        from vecs.collection import Record
+    except ImportError:
+        # Define dummy types for type checking when vecs is not available
+        Record = Any
+        vecs = Any
 
 LOG = FancyLogger(__name__)
 
@@ -53,6 +57,9 @@ class PostgresVectorStore(VectorStore):
         self.similarity_metric = similarity_metric
         self.content_field = content_field
         self.collection = None
+        
+        # Store vecs module reference for later use
+        self._vecs = None
 
     def assert_initialized(self) -> None:
         """Assert that the vector store is initialized"""
@@ -61,9 +68,18 @@ class PostgresVectorStore(VectorStore):
 
     async def initialize(self) -> None:
         """Initialize the Postgres vector store client and create a collection of vectors."""
+        # Dynamic import of vecs
+        try:
+            import vecs
+            self._vecs = vecs
+        except ImportError as e:
+            raise ImportError(
+                'Postgres vector store is not installed. Please install it using `pip install "knowlang[vecs]"`.'
+            ) from e
+            
         try:
             self.measure() # Validate similarity metric
-            vx = vecs.create_client(self.connection_string)
+            vx = self._vecs.create_client(self.connection_string)
             self.collection = vx.get_or_create_collection(name=self.table_name, dimension=self.embedding_dim)
         except Exception as e:
             raise VectorStoreInitError(f"Failed to initialize PostgresVectorStore: {str(e)}") from e
@@ -75,15 +91,19 @@ class PostgresVectorStore(VectorStore):
             LOG.info(f"Index already exists for collection {self.table_name}")
             return
 
-    def measure(self) -> vecs.IndexMeasure:
+    def measure(self):
+        """Get the appropriate measure for the similarity metric"""
+        if self._vecs is None:
+            raise ValueError("vecs module not initialized. Call initialize() first.")
+            
         if "cosine" in self.similarity_metric:
-            return vecs.IndexMeasure.cosine_distance
+            return self._vecs.IndexMeasure.cosine_distance
         if "l1" in self.similarity_metric:
-            return vecs.IndexMeasure.l1_distance
+            return self._vecs.IndexMeasure.l1_distance
         if "l2" in self.similarity_metric:
-            return vecs.IndexMeasure.l2_distance
+            return self._vecs.IndexMeasure.l2_distance
         if "product" in self.similarity_metric:
-            return vecs.IndexMeasure.max_inner_product
+            return self._vecs.IndexMeasure.max_inner_product
         raise VectorStoreError(f"Unsupported similarity metric: {self.similarity_metric}")
 
     async def add_documents(
@@ -112,7 +132,7 @@ class PostgresVectorStore(VectorStore):
     def accumulate_result(
         self,
         acc: List[SearchResult], 
-        record: Record, 
+        record: Any,  # Changed from Record to Any to avoid import issues
         score_threshold: Optional[float] = None
     ) -> List[SearchResult]:
         id, dist, meta = record

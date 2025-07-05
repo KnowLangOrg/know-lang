@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import List, Optional
-import tree_sitter_typescript
 from tree_sitter import Language, Node, Parser
 import aiofiles
 import os
@@ -24,6 +23,13 @@ class TypeScriptParser(LanguageParser):
     
     def setup(self) -> None:
         """Initialize tree-sitter with TypeScript language support for both TS and TSX"""
+        try:
+            import tree_sitter_typescript
+            LOG.info("Successfully loaded tree-sitter TypeScript grammar from 'tree_sitter_typescript' package.")
+        except ImportError as e:
+            raise ImportError(
+                "Failed to import 'tree_sitter_typescript'. Please install using pip install 'knowlang[typescript]'"
+            ) from e
         self.language_name = LanguageEnum.TYPESCRIPT
         # Initialize two different parsers for TS and TSX
         self.language_ts = Language(tree_sitter_typescript.language_typescript())
