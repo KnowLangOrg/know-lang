@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import List, Optional
-import tree_sitter_python
 import os
 import aiofiles
 from tree_sitter import Language, Node, Parser
@@ -21,6 +20,13 @@ class PythonParser(LanguageParser):
     
     def setup(self) -> None:
         """Initialize tree-sitter with Python language support"""
+        try:
+            import tree_sitter_python
+            LOG.info("Successfully loaded tree-sitter Python grammar from 'tree_sitter_python' package.")
+        except ImportError as e:
+            raise ImportError(
+                "Failed to import 'tree_sitter_python'. Please install using pip install 'knowlang[python]'"
+            ) from e
         self.language = Language(tree_sitter_python.language())
         self.language_name = LanguageEnum.PYTHON
         self.parser = Parser(self.language)

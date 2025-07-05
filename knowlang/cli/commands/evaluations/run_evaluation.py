@@ -1,38 +1,11 @@
-from pathlib import Path
-
 from knowlang.cli.types import RunEvaluationCommandArgs
 from knowlang.cli.utils import create_config
 from knowlang.configs import AppConfig
-from knowlang.evaluations.config_manager import SearchConfigurationManager
-from knowlang.evaluations.evaluation_runner import CodeSearchEvaluator
-from knowlang.evaluations.grid_search import EvaluationGridSearch
 from knowlang.utils import FancyLogger
 from knowlang.vector_stores import VectorStoreError
 from knowlang.vector_stores.factory import VectorStoreFactory
 
 LOG = FancyLogger(__name__)
-
-
-def list_configurations(config_dir: Path):
-    """
-    List available search configurations.
-    
-    Args:
-        config_dir: Directory containing search configurations
-    """
-    config_manager = SearchConfigurationManager(config_dir)
-    configs = config_manager.list_configurations()
-    
-    if not configs:
-        LOG.info("No configurations found. Creating defaults...")
-        config_manager.create_default_configurations()
-        configs = config_manager.list_configurations()
-    
-    LOG.info("Available search configurations:")
-    for i, name in enumerate(configs):
-        config = config_manager.load_configuration(name)
-        if config:
-            LOG.info(f"{i+1}. {name}: {config.description}")
 
 
 async def run_evaluation(
@@ -46,6 +19,9 @@ async def run_evaluation(
         config: Application configuration
         args: Command-line arguments
     """
+    from knowlang.evaluations.evaluation_runner import CodeSearchEvaluator
+    from knowlang.evaluations.grid_search import EvaluationGridSearch
+    from knowlang.evaluations.config_manager import SearchConfigurationManager
     # Create evaluator and configuration manager
     evaluator = CodeSearchEvaluator(config, args.data_dir, args.output_dir)
     config_manager = SearchConfigurationManager(args.config_dir)
@@ -89,10 +65,6 @@ async def run_evaluation_command(args: RunEvaluationCommandArgs) -> None:
     Args:
         args: Typed command line arguments
     """
-    # If we just want to list configurations, do that and exit
-    if args.list_configurations:
-        list_configurations(args.config_dir)
-        return
     
     # Load configuration
     config = create_config(args.config)

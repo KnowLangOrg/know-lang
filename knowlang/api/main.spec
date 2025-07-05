@@ -24,9 +24,6 @@ def collect_knowlang_data():
     data_files += collect_data_files("pydantic_ai")
     data_files += copy_metadata("pydantic_ai_slim")
 
-    # vecs
-    data_files += copy_metadata("flupy")
-
     return data_files
 
 def collect_knowlang_binaries():
