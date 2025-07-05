@@ -34,6 +34,7 @@ dependencies = [
     "pydantic-settings>=2.7.1,<3.0.0",
     "sqlalchemy[asyncio]>=2.0.38,<3.0.0",
     "aiofiles>=24.1.0",
+    "aiohttp>=3.11.18",
 ]
 
 [project.urls]
@@ -73,28 +74,6 @@ server = [
     "fastapi>=0.115.12",
     "sse-starlette>=2.3.5",
 ]
-# All
-all = [
-    "fastapi>=0.115.12",
-    "sse-starlette>=2.3.5",
-    "gradio>=5.13.1,<6.0.0",
-    "chromadb>=0.6.3,<0.7.0",
-    "vecs>=0.4.5,<0.5.0",
-    "aiosqlite>=0.21.0",
-    "sqlite-vec>=0.1.6",
-    "voyageai>=0.3.2,<0.4.0",
-    "mixpanel>=4.10.1,<5.0.0",
-    "tree-sitter-python>=0.23.6,<0.24.0",
-    "tree-sitter-cpp>=0.23.4,<0.24.0",
-    "tree-sitter-typescript>=0.23.2,<0.24.0",
-    "tree-sitter-c-sharp>=0.23.1",
-    "ollama>=0.4.7,<0.5.0",
-    "torch>=2.6.0,<3.0.0",
-    "transformers>=4.49.0,<5.0.0",
-    "einops>=0.8.1,<0.9.0", 
-    "sentence-transformers>=4.0.1,<5.0.0",
-    "mcp[cli]>=1.6.0,<2.0.0",
-]
 # Dev dependencies
 dev = [
     "pytest>=8.3.4",
@@ -102,6 +81,33 @@ dev = [
 ]
 packaging = [
     "pyinstaller>=6.14.0",
+]
+# All
+all = [
+    { include-group = "gradio" },
+    { include-group = "vecs" },
+    { include-group = "chromadb" },
+    { include-group = "ollama" },
+    { include-group = "voyage" },
+    { include-group = "pytorch" },
+    { include-group = "nomic-ai" },
+    { include-group = "mixpanel" },
+    { include-group = "python" },
+    { include-group = "cpp" },
+    { include-group = "typescript" },
+    { include-group = "csharp" },
+    { include-group = "mcp" },
+    { include-group = "sqlite" },
+    { include-group = "server" },
+    { include-group = "dev" },
+    { include-group = "packaging" },
+]
+# Unity Plugin
+unity = [
+    { include-group = "csharp" },
+    { include-group = "sqlite" },
+    { include-group = "server" },
+    { include-group = "packaging" },
 ]
 
 [tool.hatch.build.targets.wheel]
