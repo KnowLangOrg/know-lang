@@ -225,6 +225,10 @@ class DomainRegistry:
 
             domain_config = self._resolve_cfg_type(config_dict)
 
+            if domain_config.enabled is False:
+                LOG.info(f"Skipping disabled domain: {domain_config.domain_data.id}")
+                return
+
             self.domain_configs[domain_config.domain_data.id] = domain_config
     
     def _create_processors(self) -> None:
