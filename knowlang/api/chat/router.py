@@ -48,6 +48,8 @@ async def websocket_chat_stream(
             LOG.info(f"Received query via WebSocket: {query}")
             async for result in stream_chat_progress(query):
                 await websocket.send_text(result.model_dump_json())
+            
+            await websocket.close(reason="Chat completed")
     except WebSocketDisconnect:
         LOG.info("Client disconnected from WebSocket chat stream.")
     except Exception as e:
@@ -63,9 +65,3 @@ async def websocket_chat_stream(
             LOG.error(
                 f"Failed to send error message to client: {send_error}", exc_info=True
             )
-    finally:
-        try:
-            await websocket.close()
-            LOG.info("WebSocket connection closed.")
-        except Exception as close_error:
-            LOG.error(f"Error closing WebSocket: {close_error}", exc_info=True)
