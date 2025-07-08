@@ -26,6 +26,15 @@ processor_config:
       tree_sitter_language: "unity_asset"
       chunk_types: ["group", "connection", "node"]
       max_file_size: 10_000_000 # Unity assets can be large
+  path_patterns:
+    exclude: [
+      "**/Library/**",
+      "**/Temp/**",
+      "**/temp/**",
+      "**/Logs/**",
+      "**/build/**",
+      "**/Build/**",
+    ]
   vector_store:
     provider: "sqlite"
     table_name: "visual_script"

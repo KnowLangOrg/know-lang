@@ -26,6 +26,15 @@ processor_config:
       tree_sitter_language: "csharp"
       chunk_types: ["class_definition", "function_definition"]
       max_file_size: 1_000_000
+  path_patterns:
+    exclude: [
+      "**/Library/**",
+      "**/Temp/**",
+      "**/temp/**",
+      "**/Logs/**",
+      "**/build/**",
+      "**/Build/**",
+    ]
   vector_store:
     provider: "sqlite"
     table_name: "unity_csharp"
