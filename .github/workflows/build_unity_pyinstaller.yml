@@ -1,11 +1,6 @@
 name: Build Unity pyinstaller exe
 on:
   workflow_dispatch:
-    inputs:
-      commit_hash:
-        description: 'The commit hash to build from'
-        required: true
-        type: string
 
 jobs:
   build:
@@ -16,9 +11,7 @@ jobs:
     name: Build for ${{ matrix.os }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.commit_hash }}
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
