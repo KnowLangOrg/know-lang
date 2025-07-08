@@ -1,4 +1,4 @@
-name: Build Unity pyinstaller exe for Windows
+name: Build Unity pyinstaller exe
 on:
   workflow_dispatch:
     inputs:
@@ -9,8 +9,11 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-    name: Build Unity pyinstaller exe for Windows
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Build for ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -38,13 +41,13 @@ jobs:
         run: uv run pyinstaller --clean --noconfirm knowlang/api/main.spec
 
       - name: Compress build artifacts
-        run: tar -czf knowlang-unity-windows.tar.gz -C dist/main .
+        run: tar -czf knowlang-unity-${{ matrix.os }}.tar.gz -C dist/main .
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: knowlang-unity-windows
-          path: knowlang-unity-windows.tar.gz
+          name: knowlang-unity-${{ matrix.os }}
+          path: knowlang-unity-${{ matrix.os }}.tar.gz
 
       - name: Minimize uv cache
         run: uv cache prune --ci
