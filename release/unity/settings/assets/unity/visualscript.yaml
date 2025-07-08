@@ -7,8 +7,8 @@ metadata_types:
   chunk_metadata: "CodeAssetChunkMetaData"
 
 domain_data:
-  id: "my_unity_csharp" 
-  name: "My Unity Csharp"
+  id: "visual_script_unity" 
+  name: "My Unity Visual Script"
   meta:
     directory_path: "./"
 
@@ -18,14 +18,14 @@ mixins:
   parser_cls: "CodebaseAssetParser"
 
 processor_config: 
-  directory_path: "./"
+  directory_path: "%UNITY_ASSETS_PATH%"
   languages:
-    csharp:
+    unity_asset:
       enabled: true
-      file_extensions: [".cs"]
-      tree_sitter_language: "csharp"
-      chunk_types: ["class_definition", "function_definition"]
-      max_file_size: 1_000_000
+      file_extensions: [".asset"]
+      tree_sitter_language: "unity_asset"
+      chunk_types: ["group", "connection", "node"]
+      max_file_size: 10_000_000 # Unity assets can be large
   path_patterns:
     exclude: [
       "**/Library/**",
@@ -37,7 +37,7 @@ processor_config:
     ]
   vector_store:
     provider: "sqlite"
-    table_name: "unity_csharp"
+    table_name: "visual_script"
     embedding:
       model_provider: "knowlang"
       model_name: "http://localhost:1234/embedding"
