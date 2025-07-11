@@ -20,6 +20,7 @@ KnowLang is an advanced codebase exploration tool that helps software engineers 
 ### LLM Provider
 
 > Note: While Ollama is the default choice for easy setup, KnowLang supports other LLM providers through configuration. See our [Configuration Guide](configuration.md) for using alternative providers like OpenAI or Anthropic.
+
 KnowLang uses [Ollama](https://ollama.com) as its default LLM and embedding provider. Before installing KnowLang:
 
 1. Install Ollama:
@@ -44,7 +45,6 @@ ollama list
 
 You should see `llama3.2` in the list of available models.
 
-
 ## Quick Start
 
 ### Installation
@@ -65,6 +65,7 @@ pip install "knowlang[gradio,pytorch,cpp]"
 Alternatively, you can clone the repository and install it in editable mode:
 
 > ⚠️ knowlang use uv for package management, please install by reading [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/)
+
 ```bash
 git clone https://github.com/KnowLangOrg/know-lang.git
 cd know-lang
@@ -82,7 +83,7 @@ KnowLang uses a modular architecture with optional dependencies to keep the core
 
 - **gradio**: Web-based UI for the chat interface
 - **vecs**: PostgreSQL pgvector integration for vector storage
-- **voyage**: VoyageAI embedding models 
+- **voyage**: VoyageAI embedding models
 - **mixpanel**: Analytics and usage tracking
 - **cpp**: C++ language support
 - **typescript**: TypeScript language support
@@ -93,7 +94,7 @@ KnowLang uses a modular architecture with optional dependencies to keep the core
 
 ### Basic Usage
 
-1. Make sure the database is properly configured (see [Database Setup](database_setup.md) for more information).
+1. KnowLang uses SQLite as the default database (no setup required). For advanced database configurations like PostgreSQL, see [Database Setup](database_setup.md).
 
 2. Parse and index your codebase:
 
@@ -105,7 +106,9 @@ knowlang parse ./my-project
 knowlang -v parse ./my-project
 ```
 
-> ⚠️ Warning: Make sure to setup the correct paths to include and exclude for parsing. Please refer to "Parser Settings" section in [Configuration Guide](configuration.md) for more information
+> ⚠️ **Warning**: Make sure to setup the correct paths to include and exclude for parsing. Please refer to "Parser Settings" section in [Configuration Guide](configuration.md) for more information.
+
+> 💡 **Tip**: If parsing fails with database connection errors, ensure your database is properly set up and running. See [Database Setup](database_setup.md) for troubleshooting steps.
 
 3. Launch the chat interface:
 
@@ -200,11 +203,13 @@ KnowLang supports efficient incremental updates to your code index:
 The RAG system uses a sophisticated multi-stage retrieval process:
 
 1. **First Stage**: Recall relevant code chunks using:
+
    - Keyword-based search for exact matches
    - Vector embedding search for semantic similarity
    - Combined results from both approaches
 
 2. **Second Stage**: Rerank results using:
+
    - GraphCodeBERT cross-encoder for more accurate relevance scoring
    - Filtering based on relevance threshold
    - Limited to top-K most relevant chunks
@@ -228,11 +233,13 @@ MCP (Model Context Protocol) is an open protocol that standardizes how applicati
 With MCP integration, you can connect KnowLang's search capabilities directly to Claude Desktop or other MCP-compatible applications.
 
 For detailed instructions on setting up and using MCP with KnowLang, refer to the MCP README file in the source directory:
+
 ```
 src/knowlang/mcp/README.md
 ```
 
 ## Roadmap
+
 - [x] MCP support for LLM contexts
 - [ ] Additional language support (Java, Ruby, Go, etc.)
 - [ ] Inter-repository semantic search
