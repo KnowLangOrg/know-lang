@@ -1,7 +1,7 @@
 # Domain Registry
 
 Each domain can have assets, and each asset can have several chunks.
-Domains can be registered by adding YAML files in settings/assets/\*.yml. An example can be found in (codebase.yml).
+Domains can be registered by adding YAML files in settings/assets/\*.yml. An example can be found in (codebase_example.yml).
 
 ## Domain, Asset, Chunks
 
@@ -134,9 +134,7 @@ knowlang parse
 
 # TODOs
 
-- Domain registry YMLs in settings/assets should also be properly git ignored
 - Deprecate the following:
   - AppConfig
   - All logic under knowlang/indexing folder (e.g., StateStore, which is replaced by `KnowledgeSqlDatabase`)
 - Testing for the Domain Registry Parsing
-- `knowlang chat` is still configured in the old way to use the database specified in settings/.env.app. I think we need to extract the ChatConfig from the AppConfig and use YML for chat interface setting management.

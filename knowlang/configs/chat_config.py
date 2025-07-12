@@ -1,11 +1,12 @@
-from typing import Optional
-from pydantic import Field
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, SettingsConfigDict
 from enum import Enum
+from typing import Optional
+
+from pydantic import Field
+from pydantic_settings import (BaseSettings, PydanticBaseSettingsSource,
+                               SettingsConfigDict, YamlConfigSettingsSource)
 
 from knowlang.configs.base import get_resource_path
 from knowlang.configs.llm_config import LLMConfig
-
 
 
 class AnalyticsProvider(str, Enum):
@@ -47,7 +48,7 @@ class ChatConfig(BaseSettings):
         description="Configuration for chatbot analytics tracking"
     )
     model_config = SettingsConfigDict(
-        yaml_file=get_resource_path('settings/chat.yaml'),
+        yaml_file=get_resource_path('settings/chat.yaml', default_path='settings/chat_example.yaml'),
     )
 
     @classmethod
