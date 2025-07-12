@@ -34,7 +34,7 @@ class ChatConfig(BaseSettings):
         default_factory=LLMConfig,
     )
     interface_title: str = Field(
-        default="KonwLang Codebase Assistant",
+        default="KnowLang Codebase Assistant",
         description="Title shown in the chat interface",
     )
     interface_description: str = Field(
