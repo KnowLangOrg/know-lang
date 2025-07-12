@@ -1,10 +1,8 @@
 """Type definitions for CLI arguments."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Literal, Optional, Union
-
-from knowlang.evaluations.types import DatasetType
+from typing import Literal, Optional
 
 
 @dataclass(kw_only=True)
@@ -32,38 +30,6 @@ class ChatCommandArgs(BaseCommandArgs):
     share: bool = False
     server_port: Optional[int] = None
     server_name: Optional[str] = None
-
-
-@dataclass
-class PrepareDatasetCommandArgs(BaseCommandArgs):
-    """Arguments for the prepare-dataset command."""
-
-    command: Literal["evaluate"]
-    subcommand: Literal["prepare"] = "prepare"
-    data_dir: Path = Path("datasets/code_search_net/data")
-    output_dir: Path = Path("datasets/output")
-    dataset: Literal["codesearchnet", "cosqa", "all"] = "all"
-    languages: Optional[List[str]] = field(default_factory=lambda: ["python"])
-    splits: Optional[str] = field(default_factory=lambda: ["test", "train", "valid"])
-    skip_indexing: bool = False
-
-
-@dataclass
-class RunEvaluationCommandArgs(BaseCommandArgs):
-    """Arguments for the run-evaluation command."""
-
-    command: Literal["evaluate"]
-    subcommand: Literal["run"] = "run"
-    data_dir: Path = Path("datasets/output")
-    output_dir: Path = Path("evaluation/results")
-    config_dir: Path = Path("evaluation/settings")
-    dataset: str = DatasetType.CODESEARCHNET
-    language: str = "python"
-    configuration: str = "baseline"
-    limit: Optional[int] = None
-    grid_search: bool = False
-    generate_reranking_data: bool = False
-    list_configurations: bool = False
 
 
 @dataclass
