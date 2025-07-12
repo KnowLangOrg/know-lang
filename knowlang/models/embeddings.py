@@ -1,5 +1,5 @@
-from typing import List, Optional, Union, overload
 import inspect
+from typing import List, Optional, Union, overload
 
 from knowlang.configs import EmbeddingConfig
 
@@ -10,27 +10,34 @@ from .types import EmbeddingInputType, EmbeddingVector
 def to_batch(input: Union[str, List[str]]) -> List[str]:
     return [input] if isinstance(input, str) else input
 
-@overload
-async def generate_embedding(input: str, config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]) -> EmbeddingVector: ...
 
 @overload
-async def generate_embedding(input: List[str], config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]) -> List[EmbeddingVector]: ...
+async def generate_embedding(
+    input: str, config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]
+) -> EmbeddingVector: ...
+
+
+@overload
+async def generate_embedding(
+    input: List[str], config: EmbeddingConfig, input_type: Optional[EmbeddingInputType]
+) -> List[EmbeddingVector]: ...
+
 
 async def generate_embedding(
-    input: Union[str, List[str]], 
+    input: Union[str, List[str]],
     config: EmbeddingConfig,
-    input_type: Optional[EmbeddingInputType] = EmbeddingInputType.DOCUMENT
+    input_type: Optional[EmbeddingInputType] = EmbeddingInputType.DOCUMENT,
 ) -> Union[EmbeddingVector, List[EmbeddingVector]]:
     """
     Generate embeddings for single text input or batch of texts.
-    
+
     Args:
         input: Single string or list of strings to embed
         config: Configuration object containing provider and model information
-    
+
     Returns:
         Single embedding vector for single input, or list of embedding vectors for batch input
-    
+
     Raises:
         ValueError: If input type is invalid or provider is not supported
         RuntimeError: If embedding generation fails

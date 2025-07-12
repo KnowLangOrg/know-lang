@@ -1,4 +1,5 @@
 from typing import Awaitable, Callable, Dict, List, Optional, Union
+
 from knowlang.core.types import ModelProvider
 
 from .types import EmbeddingInputType, EmbeddingVector
@@ -10,7 +11,10 @@ EMBEDDING_PROVIDER_REGISTRY: Dict[
         # Synchronous function type
         Callable[[List[str], str, Optional[EmbeddingInputType]], List[EmbeddingVector]],
         # Asynchronous function type
-        Callable[[List[str], str, Optional[EmbeddingInputType]], Awaitable[List[EmbeddingVector]]]
+        Callable[
+            [List[str], str, Optional[EmbeddingInputType]],
+            Awaitable[List[EmbeddingVector]],
+        ],
     ],
 ] = {}
 
@@ -46,12 +50,10 @@ def _process_graph_code_bert_batch(
 ) -> List[EmbeddingVector]:
     """
     Generate embeddings using GraphCodeBERT.
-
     Args:
         inputs: List of text inputs to embed
         model_name: Model identifier
         input_type: Type of input (document/query/code)
-
     Returns:
         List of embedding vectors
     """
@@ -108,16 +110,15 @@ async def _process_knowlang_batch(
 ) -> List[EmbeddingVector]:
     """
     Generate embeddings using the KnowLang embedding model.
-
     Args:
         inputs: List of text inputs to embed
         model_name: Model identifier (not used in this case)
         input_type: Type of input (document/query/code)
-
     Returns:
         List of embedding vectors
     """
     import aiohttp
+
     embeddings = []
 
     async with aiohttp.ClientSession() as session:
