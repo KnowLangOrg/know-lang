@@ -42,7 +42,7 @@ class RegistryConfig(BaseSettings):
     discovery_path: str = "settings/"
     model_config = SettingsConfigDict(
         yaml_file=get_resource_path(
-            "settings/registry.yaml", default_path="settings/registry_example.yaml"
+            "settings/registry.yaml", default_path="settings/registry.example.yaml"
         ),
     )
 

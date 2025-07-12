@@ -1,7 +1,7 @@
 # Domain Registry
 
 Each domain can have assets, and each asset can have several chunks.
-Domains can be registered by adding YAML files in settings/assets/\*.yml. An example can be found in (codebase_example.yml).
+Domains can be registered by adding YAML files in settings/assets/\*.yml. An example can be found in (codebase.example.yml).
 
 ## Domain, Asset, Chunks
 
@@ -52,11 +52,11 @@ Each domain contains multiple assets, and each asset can be parsed into multiple
 
 ### Domain Configuration (YAML)
 
-See example in [codebase.yml](../../settings/assets/codebase_example.yaml)
+See example in [codebase.yml](../../settings/assets/codebase.example.yaml)
 
 ### Registry Configuration (YAML)
 
-See example in [registry.yaml](../../settings/registry_example.yaml)
+See example in [registry.yaml](../../settings/registry.example.yaml)
 
 ## Domain Implementation
 

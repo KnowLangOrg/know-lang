@@ -44,10 +44,16 @@ def get_resource_path(relative_path: str, default_path: Optional[str] = None) ->
 
 
 def generate_model_config(
-    env_dir: Path = Path("settings"), env_file: Path = ".env", env_prefix: str = ""
+    env_dir: Path = Path("settings"), 
+    env_file: Path = ".env", 
+    env_prefix: str = "",
+    default_env_file: Optional[Path] = None
 ) -> SettingsConfigDict:
-    # Use PyInstaller-aware path resolution
-    env_file_path = get_resource_path(str(env_dir / env_file))
+    # Use PyInstaller-aware path resolution with optional default path
+    env_file_path = get_resource_path(
+        str(env_dir / env_file), 
+        default_path=str(env_dir / default_env_file) if default_env_file else None
+    )
 
     return SettingsConfigDict(
         env_file=str(env_file_path),

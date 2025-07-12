@@ -12,8 +12,8 @@ from knowlang.core.types import ModelProvider, VectorStoreProvider
 from .base import _validate_api_key, generate_model_config
 from .chat_config import ChatbotAnalyticsConfig, ChatConfig
 from .retrieval_config import MultiStageRetrievalConfig
-from .state_store_config import StateStoreConfig
 from .server_config import ServerConfig
+from .state_store_config import StateStoreConfig
 
 
 class PathPatterns(BaseSettings):
@@ -202,6 +202,7 @@ class EvaluatorConfig(LLMConfig):
 class AppConfig(BaseSettings):
     model_config = generate_model_config(
         env_file=".env.app",
+        default_env_file=".env.example.app",
     )
     llm: LLMConfig = Field(default_factory=LLMConfig)
     evaluator: EvaluatorConfig = Field(default_factory=EvaluatorConfig)

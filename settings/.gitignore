@@ -6,5 +6,5 @@ eval_config.json
 # Ignore all YAML configs in settings/ except examples
 **/*.yml
 **/*.yaml
-!**/*_example.yml
-!**/*_example.yaml
+!**/*.example.yml
+!**/*.example.yaml

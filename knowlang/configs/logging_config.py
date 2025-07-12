@@ -1,6 +1,8 @@
 from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
 from .base import generate_model_config
 
 
@@ -8,6 +10,7 @@ class LoggingConfig(BaseSettings):
     """Logging configuration settings"""
     model_config = generate_model_config(
         env_file=".env.logging",
+        default_env_file=".env.example.logging",
     )
     level: str = Field(
         default="INFO",
