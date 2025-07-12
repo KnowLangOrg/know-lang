@@ -235,7 +235,7 @@ With MCP integration, you can connect KnowLang's search capabilities directly to
 For detailed instructions on setting up and using MCP with KnowLang, refer to the MCP README file in the source directory:
 
 ```
-src/knowlang/mcp/README.md
+knowlang/mcp/README.md
 ```
 
 ## Roadmap
