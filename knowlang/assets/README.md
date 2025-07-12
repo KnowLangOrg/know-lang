@@ -136,5 +136,4 @@ knowlang parse
 
 - Deprecate the following:
   - AppConfig
-  - All logic under knowlang/indexing folder (e.g., StateStore, which is replaced by `KnowledgeSqlDatabase`)
 - Testing for the Domain Registry Parsing

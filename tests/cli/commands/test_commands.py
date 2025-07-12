@@ -1,4 +1,5 @@
 """Unit tests for CLI command implementations."""
+
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -7,13 +8,12 @@ import pytest
 from knowlang.cli.commands.parse import parse_command
 from knowlang.cli.types import ParseCommandArgs
 from knowlang.core.types import CodeChunk
-from knowlang.indexing.state_store.base import FileChange, StateChangeType
 from knowlang.vector_stores.mock import MockVectorStore
 
 
 @pytest.fixture
 def mock_parser_factory():
-    with patch('knowlang.cli.commands.parse.CodeParserFactory') as factory:
+    with patch("knowlang.cli.commands.parse.CodeParserFactory") as factory:
         # Set up the mock parser behavior
         mock_parser = Mock()
         # Mock parse_file as an async method that returns a list of CodeChunk
@@ -21,42 +21,33 @@ def mock_parser_factory():
         factory.return_value.get_parser.return_value = mock_parser
         yield factory
 
+
 @pytest.fixture
 def mock_codebase_manager():
-    with patch('knowlang.cli.commands.parse.CodebaseManager') as manager:
+    with patch("knowlang.cli.commands.parse.CodebaseManager") as manager:
         mock_instance = AsyncMock()
         mock_instance.get_current_files = AsyncMock(return_value={Path("test.py")})
         manager.return_value = mock_instance
         yield manager
 
-@pytest.fixture
-def mock_state_manager():
-    with patch('knowlang.cli.commands.parse.StateManager') as manager:
-        mock_instance = AsyncMock()
-        # Mock the state_store attribute
-        mock_instance.state_store = AsyncMock()
-        mock_instance.state_store.detect_changes = AsyncMock()
-        # Set up default behavior to return a list with one FileChange
-        file_change = FileChange(path=Path("test.py"), change_type=StateChangeType.ADDED)
-        mock_instance.state_store.detect_changes.return_value = [file_change]
-        manager.return_value = mock_instance
-        yield manager
 
 @pytest.fixture
 def mock_incremental_updater():
-    with patch('knowlang.cli.commands.parse.IncrementalUpdater') as updater:
+    with patch("knowlang.cli.commands.parse.IncrementalUpdater") as updater:
         mock_instance = AsyncMock()
         mock_instance.update_codebase = AsyncMock()
         updater.return_value = mock_instance
         yield updater
 
+
 @pytest.fixture
 def mock_formatter():
-    with patch('knowlang.cli.commands.parse.get_formatter') as formatter_func:
+    with patch("knowlang.cli.commands.parse.get_formatter") as formatter_func:
         mock_formatter = Mock()
         mock_formatter.display_chunks = Mock()
         formatter_func.return_value = mock_formatter
         yield formatter_func
+
 
 @pytest.fixture
 def mock_vector_store():
@@ -67,16 +58,16 @@ def mock_vector_store():
 
 @pytest.fixture
 def mock_chatbot():
-    with patch('knowlang.chat_bot.chat_interface.create_chatbot') as chatbot:
+    with patch("knowlang.chat_bot.chat_interface.create_chatbot") as chatbot:
         mock_demo = Mock()
         mock_demo.launch = Mock()
         chatbot.return_value = mock_demo
         yield chatbot
 
+
 class TestParseCommand:
     # TODO: parse command should be tested with end-to-end integration tests
     pass
-   
 
 
 class TestChatCommand:
