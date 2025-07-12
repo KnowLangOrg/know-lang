@@ -7,7 +7,7 @@ metadata_types:
   chunk_metadata: "CodeAssetChunkMetaData"
 
 domain_data:
-  id: "my_project_codebase"
+  id: "my_project_codebase" 
   name: "My Project Codebase"
   meta:
     directory_path: "./"
@@ -17,7 +17,7 @@ mixins:
   indexer_cls: "CodebaseAssetIndexing"
   parser_cls: "CodebaseAssetParser"
 
-processor_config:
+processor_config: 
   directory_path: "./"
   vector_store:
     provider: "sqlite"

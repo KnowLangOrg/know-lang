@@ -23,3 +23,9 @@ statedb/
 # ML evaluation files
 datasets
 evaluation
+
+# Ignore all YAML configs in settings/ except examples
+settings/**/*.yml
+settings/**/*.yaml
+!settings/**/*_example.yml
+!settings/**/*_example.yaml
