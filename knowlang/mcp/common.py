@@ -1,6 +1,5 @@
 from abc import abstractmethod
 
-from knowlang.database.config import VectorStoreConfig
 from knowlang.utils import FancyLogger
 
 LOG = FancyLogger(__name__)
@@ -18,5 +17,5 @@ class Singleton(type):
 class KnowLangTool:
     @classmethod
     @abstractmethod
-    def initialize(config: VectorStoreConfig) -> "KnowLangTool":
+    def initialize(*args, **kwargs) -> "KnowLangTool":
         pass
