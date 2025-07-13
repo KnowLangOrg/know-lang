@@ -48,13 +48,12 @@ class KnowlangMCPServer:
         """Register all MCP tools with the server."""
 
         # Vector search tool
-        for domain_id, config in self.registry.domain_configs.items():
-            VectorSearchTool.initialize(config.processor_config.vector_store)
-            self.mcp_server.add_tool(
-                VectorSearchTool.run,
-                name=VectorSearchTool.name,
-                description=VectorSearchTool.description,
-            )
+        VectorSearchTool.initialize(self.registry.domain_configs)
+        self.mcp_server.add_tool(
+            VectorSearchTool.run,
+            name=VectorSearchTool.name,
+            description=VectorSearchTool.description,
+        )
 
         LOG.info("Registered all MCP tools")
 
