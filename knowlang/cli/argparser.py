@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Optional, Sequence, Union
 
 from knowlang.cli.commands.chat import chat_command
-from knowlang.cli.commands.evaluations.prepare_dataset import prepare_dataset_command
-from knowlang.cli.commands.evaluations.run_evaluation import run_evaluation_command
 from knowlang.cli.commands.mcp.serve import mcp_serve_command
 from knowlang.cli.commands.parse import parse_command
 from knowlang.cli.types import (
@@ -15,8 +13,6 @@ from knowlang.cli.types import (
     ChatCommandArgs,
     MCPServeCommandArgs,
     ParseCommandArgs,
-    PrepareDatasetCommandArgs,
-    RunEvaluationCommandArgs,
 )
 
 
@@ -26,8 +22,6 @@ def _convert_to_args(
     ParseCommandArgs,
     ChatCommandArgs,
     MCPServeCommandArgs,
-    PrepareDatasetCommandArgs,
-    RunEvaluationCommandArgs,
 ]:
     """Convert parsed namespace to typed arguments."""
     base_args = {
@@ -56,39 +50,6 @@ def _convert_to_args(
             server_port=parsed_namespace.server_port,
             server_name=parsed_namespace.server_name,
         )
-    elif parsed_namespace.command == "evaluate":
-        if parsed_namespace.subcommand == "prepare":
-            command_func = prepare_dataset_command
-            args = PrepareDatasetCommandArgs(
-                **base_args,
-                subcommand=parsed_namespace.subcommand,
-                data_dir=parsed_namespace.data_dir,
-                output_dir=parsed_namespace.output_dir,
-                dataset=parsed_namespace.dataset,
-                languages=parsed_namespace.languages,
-                splits=parsed_namespace.splits,
-                skip_indexing=parsed_namespace.skip_indexing,
-            )
-        elif parsed_namespace.subcommand == "run":
-            command_func = run_evaluation_command
-            args = RunEvaluationCommandArgs(
-                **base_args,
-                subcommand=parsed_namespace.subcommand,
-                data_dir=parsed_namespace.data_dir,
-                output_dir=parsed_namespace.output_dir,
-                config_dir=parsed_namespace.config_dir,
-                dataset=parsed_namespace.dataset,
-                language=parsed_namespace.language,
-                configuration=parsed_namespace.configuration,
-                limit=parsed_namespace.limit,
-                grid_search=parsed_namespace.grid_search,
-                list_configurations=parsed_namespace.list_configurations,
-                generate_reranking_data=parsed_namespace.generate_reranking_data,
-            )
-        else:
-            raise ValueError(
-                f"Unknown subcommand for evaluate: {parsed_namespace.subcommand}"
-            )
     elif parsed_namespace.command == "mcp":
         if parsed_namespace.subcommand == "serve":
             command_func = mcp_serve_command
@@ -161,139 +122,6 @@ def _create_chat_parser(subparsers):
     return chat_parser
 
 
-def _create_prepare_dataset_parser(evaluate_subparsers):
-    """Create the parser for the 'evaluate prepare' command."""
-    prepare_parser = evaluate_subparsers.add_parser(
-        "prepare", help="Prepare benchmark datasets for evaluation"
-    )
-    prepare_parser.add_argument(
-        "--data-dir",
-        type=Path,
-        default=PrepareDatasetCommandArgs.data_dir,
-        help="Directory containing benchmark datasets",
-    )
-    prepare_parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=PrepareDatasetCommandArgs.output_dir,
-        help="Output directory for query mappings",
-    )
-    prepare_parser.add_argument(
-        "--dataset",
-        type=str,
-        choices=["codesearchnet", "cosqa", "all"],
-        default=PrepareDatasetCommandArgs.dataset,
-        help="Dataset to prepare",
-    )
-    prepare_parser.add_argument(
-        "--languages",
-        default=["python"],
-        type=str,
-        nargs="+",
-        help="Languages to include (e.g., python java)",
-    )
-    prepare_parser.add_argument(
-        "--splits",
-        default=["test", "train", "valid"],
-        type=str,
-        nargs="+",
-        help="Dataset split to use (train, valid, test)",
-    )
-    prepare_parser.add_argument(
-        "--skip-indexing",
-        type=bool,
-        default=PrepareDatasetCommandArgs.skip_indexing,
-        help="Skip indexing, only generate query mappings",
-    )
-    return prepare_parser
-
-
-def _create_run_evaluation_parser(evaluate_subparsers):
-    """Create the parser for the 'evaluate run' command."""
-    run_parser = evaluate_subparsers.add_parser(
-        "run", help="Run code search evaluations"
-    )
-    run_parser.add_argument(
-        "--data-dir",
-        type=Path,
-        default=RunEvaluationCommandArgs.data_dir,
-        help="Directory containing dataset query mappings",
-    )
-    run_parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=RunEvaluationCommandArgs.output_dir,
-        help="Output directory for results",
-    )
-    run_parser.add_argument(
-        "--config-dir",
-        type=Path,
-        default=RunEvaluationCommandArgs.config_dir,
-        help="Directory for search configurations",
-    )
-    run_parser.add_argument(
-        "--dataset",
-        type=str,
-        default=RunEvaluationCommandArgs.dataset,
-        help="Dataset to evaluate",
-    )
-    run_parser.add_argument(
-        "--language",
-        type=str,
-        default=RunEvaluationCommandArgs.language,
-        help="Language to evaluate",
-    )
-    run_parser.add_argument(
-        "--configuration",
-        type=str,
-        default=RunEvaluationCommandArgs.configuration,
-        help="Search configuration to use",
-    )
-    run_parser.add_argument(
-        "--limit",
-        type=int,
-        default=RunEvaluationCommandArgs.limit,
-        help="Limit number of queries to evaluate",
-    )
-    run_parser.add_argument(
-        "--grid-search",
-        action="store_true",
-        default=RunEvaluationCommandArgs.grid_search,
-        help="Run grid search over configurations",
-    )
-    run_parser.add_argument(
-        "--list-configurations",
-        action="store_true",
-        default=RunEvaluationCommandArgs.list_configurations,
-        help="List available search configurations",
-    )
-    run_parser.add_argument(
-        "--generate-reranking-data",
-        action="store_true",
-        help="Generate data for reranking evaluation",
-    )
-    return run_parser
-
-
-def _create_evaluate_parser(subparsers):
-    """Create the parser for the 'evaluate' command and its subcommands."""
-    evaluate_parser = subparsers.add_parser(
-        "evaluate", help="Evaluation tools for code search"
-    )
-    evaluate_subparsers = evaluate_parser.add_subparsers(
-        title="subcommands",
-        description="Evaluation subcommands",
-        dest="subcommand",
-        required=True,
-    )
-
-    # Create subcommand parsers
-    _create_prepare_dataset_parser(evaluate_subparsers)
-    _create_run_evaluation_parser(evaluate_subparsers)
-
-    return evaluate_parser
-
-
 def _create_mcp_parser(subparsers):
     """Create the parser for the 'mcp' command and its subcommands."""
     mcp_parser = subparsers.add_parser("mcp", help="Model Context Protocol (MCP) tools")
@@ -355,7 +183,6 @@ def create_parser() -> argparse.ArgumentParser:
     # Create command parsers
     _create_parse_parser(subparsers)
     _create_chat_parser(subparsers)
-    _create_evaluate_parser(subparsers)
     _create_mcp_parser(subparsers)
 
     return parser
@@ -366,8 +193,6 @@ def parse_args(
 ) -> Union[
     ParseCommandArgs,
     BaseCommandArgs,
-    PrepareDatasetCommandArgs,
-    RunEvaluationCommandArgs,
     MCPServeCommandArgs,
 ]:
     """Parse command line arguments into typed objects."""
