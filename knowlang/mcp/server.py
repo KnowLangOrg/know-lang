@@ -1,4 +1,4 @@
-from knowlang.configs.config import AppConfig
+from knowlang.assets.registry import DomainRegistry
 from knowlang.mcp.tools.vector_search import VectorSearchTool
 from knowlang.utils import FancyLogger
 
@@ -21,7 +21,7 @@ class KnowlangMCPServer:
 
     def __init__(
         self,
-        config: AppConfig,
+        registry: DomainRegistry,
         host: str = "localhost",
         port: int = 7773,
         server_name: str = "knowlang-search",
@@ -37,7 +37,7 @@ class KnowlangMCPServer:
         self.port = port
         self.server_name = server_name
         self.mcp_server = FastMCP(server_name, host=host, port=port)
-        self.config = config
+        self.registry = registry
 
         # Register tools
         self._register_tools()
@@ -48,7 +48,7 @@ class KnowlangMCPServer:
         """Register all MCP tools with the server."""
 
         # Vector search tool
-        VectorSearchTool.initialize(self.config)
+        VectorSearchTool.initialize(self.registry.domain_configs)
         self.mcp_server.add_tool(
             VectorSearchTool.run,
             name=VectorSearchTool.name,
