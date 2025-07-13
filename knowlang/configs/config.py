@@ -11,7 +11,6 @@ from knowlang.core.types import ModelProvider, VectorStoreProvider
 
 from .base import _validate_api_key, generate_model_config
 from .chat_config import ChatbotAnalyticsConfig, ChatConfig
-from .retrieval_config import MultiStageRetrievalConfig
 from .server_config import ServerConfig
 from .state_store_config import StateStoreConfig
 
@@ -52,7 +51,8 @@ class LanguageConfig(BaseSettings):
     file_extensions: List[str]
     tree_sitter_language: str
     chunk_types: List[str] = Field(
-        default=["class_definition", "function_definition"], description="Types of code chunks to extract"
+        default=["class_definition", "function_definition"],
+        description="Types of code chunks to extract",
     )
     max_file_size: int = Field(
         default=1_000_000, description="Maximum file size to process in bytes"  # 1MB
@@ -141,7 +141,7 @@ class DBConfig(BaseSettings):
     )
     collection_name: str = Field(
         default=DEFAULT_VECTOR_COLLECTION_NAME,
-        description="Name of the vector store collection"
+        description="Name of the vector store collection",
     )
     codebase_directory: Path = Field(
         default=Path("./"), description="Root directory of the codebase to analyze"
@@ -213,8 +213,5 @@ class AppConfig(BaseSettings):
     embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
     chat_analytics: ChatbotAnalyticsConfig = Field(
         default_factory=ChatbotAnalyticsConfig
-    )
-    retrieval: MultiStageRetrievalConfig = Field(
-        default_factory=MultiStageRetrievalConfig
     )
     server: ServerConfig = Field(default_factory=ServerConfig)

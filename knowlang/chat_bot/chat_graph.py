@@ -1,29 +1,29 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import AsyncGenerator, List, Optional, Union
+
 from pydantic import BaseModel
 from pydantic_ai import Agent
-from pydantic_graph import (
-    BaseNode, 
-    End, 
-    Graph, 
-    GraphRunContext,
-)
+from pydantic_graph import BaseNode, End, Graph, GraphRunContext
 from rich.console import Console
-from knowlang.configs.chat_config import ChatConfig
-from knowlang.utils import create_pydantic_model, truncate_chunk, FancyLogger
-from knowlang.search import SearchResult
+
 from knowlang.api import ApiModelRegistry
-from knowlang.chat_bot.nodes.base import ChatGraphState, ChatGraphDeps, ChatResult
 from knowlang.assets.config import BaseDomainConfig
+from knowlang.chat_bot.nodes.base import ChatGraphDeps, ChatGraphState, ChatResult
+from knowlang.configs.chat_config import ChatConfig
+from knowlang.search import SearchResult
+from knowlang.utils import FancyLogger, create_pydantic_model, truncate_chunk
 
 LOG = FancyLogger(__name__)
 console = Console()
 
+
 @ApiModelRegistry.register
 class ChatStatus(str, Enum):
     """Enum for tracking chat progress status"""
+
     STARTING = "starting"
     POLISHING = "polishing"
     RETRIEVING = "retrieving"
@@ -31,14 +31,16 @@ class ChatStatus(str, Enum):
     COMPLETE = "complete"
     ERROR = "error"
 
+
 @ApiModelRegistry.register
 class StreamingChatResult(BaseModel):
     """Extended chat result with streaming information"""
+
     answer: str
     retrieved_context: Optional[List[SearchResult]] = None
     status: ChatStatus
     progress_message: str
-    
+
     @classmethod
     def from_node(cls, node: BaseNode, state: ChatGraphState) -> StreamingChatResult:
         """Create a StreamingChatResult from a node's current state"""
@@ -46,23 +48,27 @@ class StreamingChatResult(BaseModel):
             return cls(
                 answer="",
                 status=ChatStatus.RETRIEVING,
-                progress_message=f"Searching codebase with: '{state.original_question}'"
+                progress_message=f"Searching codebase with: '{state.original_question}'",
             )
         elif isinstance(node, AnswerQuestionNode):
-            context_msg = f"Found {len(state.retrieved_context)} relevant segments" if state.retrieved_context else "No context found"
+            context_msg = (
+                f"Found {len(state.retrieved_context)} relevant segments"
+                if state.retrieved_context
+                else "No context found"
+            )
             return cls(
                 answer="",
                 retrieved_context=state.retrieved_context,
                 status=ChatStatus.ANSWERING,
-                progress_message=f"Generating answer... {context_msg}"
+                progress_message=f"Generating answer... {context_msg}",
             )
         else:
             return cls(
                 answer="",
                 status=ChatStatus.ERROR,
-                progress_message=f"Unknown node type: {type(node).__name__}"
+                progress_message=f"Unknown node type: {type(node).__name__}",
             )
-    
+
     @classmethod
     def complete(cls, result: ChatResult) -> StreamingChatResult:
         """Create a completed StreamingChatResult"""
@@ -70,56 +76,50 @@ class StreamingChatResult(BaseModel):
             answer=result.answer,
             retrieved_context=result.retrieved_context,
             status=ChatStatus.COMPLETE,
-            progress_message="Response complete"
+            progress_message="Response complete",
         )
-    
+
     @classmethod
     def error(cls, error_msg: str) -> StreamingChatResult:
         """Create an error StreamingChatResult"""
         return cls(
             answer=f"Error: {error_msg}",
             status=ChatStatus.ERROR,
-            progress_message=f"An error occurred: {error_msg}"
+            progress_message=f"An error occurred: {error_msg}",
         )
+
 
 @dataclass
 class RetrievalNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
     """Base node for search operations"""
-    async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> Union['AnswerQuestionNode']:
-        # NOTE: we don't need complex multi-stage retrieval yet.
-        # from knowlang.search.search_graph.base import SearchDeps, SearchState
-        # from knowlang.search.search_graph.graph import FirstStageNode, search_graph
-        # search_graph_result = await search_graph.run(
-        #     start_node=FirstStageNode(),
-        #     state=SearchState(query=ctx.state.original_question),
-        #     deps=SearchDeps(
-        #         store=ctx.deps.vector_store,
-        #         config=ctx.deps.config
-        # ))
-        # ctx.state.retrieved_context = search_graph_result.output.search_results
-        from knowlang.vector_stores.factory import VectorStoreFactory
+
+    async def run(
+        self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]
+    ) -> Union["AnswerQuestionNode"]:
         from knowlang.models.embeddings import generate_embedding
         from knowlang.search.query import VectorQuery
+        from knowlang.vector_stores.factory import VectorStoreFactory
+
         for domain in ctx.deps.domain_configs:
             vector_store_config = domain.processor_config.vector_store
             search_config = domain.search_config
             vector_store = VectorStoreFactory.get(vector_store_config)
-            embedding_vec = await generate_embedding(ctx.state.original_question, vector_store_config.embedding)
+            embedding_vec = await generate_embedding(
+                ctx.state.original_question, vector_store_config.embedding
+            )
             vector_query = VectorQuery(
                 embedding=embedding_vec,
                 top_k=search_config.top_k,
             )
-            ctx.state.retrieved_context += await vector_store.search(
-                query=vector_query
-            )
+            ctx.state.retrieved_context += await vector_store.search(query=vector_query)
 
         return AnswerQuestionNode()
-
 
 
 @dataclass
 class AnswerQuestionNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
     """Node that generates the final answer"""
+
     default_system_prompt = """
 You are an expert code assistant helping developers understand complex codebases. Follow these rules strictly:
 
@@ -140,22 +140,30 @@ You are an expert code assistant helping developers understand complex codebases
 
 Remember: Your primary goal is answering the user's specific question, not explaining the entire codebase."""
 
-    async def run(self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]) -> End[ChatResult]:
+    async def run(
+        self, ctx: GraphRunContext[ChatGraphState, ChatGraphDeps]
+    ) -> End[ChatResult]:
         chat_config = ctx.deps.chat_config
         answer_agent = Agent(
             create_pydantic_model(
                 model_provider=chat_config.llm.model_provider,
                 model_name=chat_config.llm.model_name,
             ),
-            system_prompt=self.default_system_prompt if chat_config.llm.system_prompt is None else chat_config.llm.system_prompt,
+            system_prompt=(
+                self.default_system_prompt
+                if chat_config.llm.system_prompt is None
+                else chat_config.llm.system_prompt
+            ),
         )
-        
+
         if not ctx.state.retrieved_context:
-            return End(ChatResult(
-                answer="I couldn't find any relevant code context for your question. "
-                      "Could you please rephrase or be more specific?",
-                retrieved_context=None,
-            ))
+            return End(
+                ChatResult(
+                    answer="I couldn't find any relevant code context for your question. "
+                    "Could you please rephrase or be more specific?",
+                    retrieved_context=None,
+                )
+            )
 
         context = ctx.state.retrieved_context
         for single_context in context:
@@ -171,24 +179,28 @@ Provide a focused answer to the question based on the provided context.
 
 Important: Stay focused on answering the specific question asked.
         """
-        
+
         try:
             result = await answer_agent.run(prompt)
-            return End(ChatResult(
-                answer=result.output,
-                retrieved_context=context,
-            ))
+            return End(
+                ChatResult(
+                    answer=result.output,
+                    retrieved_context=context,
+                )
+            )
         except Exception as e:
             LOG.error(f"Error generating answer: {e}")
-            return End(ChatResult(
-                answer="I encountered an error processing your question. Please try again.",
-                retrieved_context=context,
-            ))
+            return End(
+                ChatResult(
+                    answer="I encountered an error processing your question. Please try again.",
+                    retrieved_context=context,
+                )
+            )
+
 
 # Create the graph
-chat_graph = Graph(
-    nodes=[RetrievalNode, AnswerQuestionNode]
-)
+chat_graph = Graph(nodes=[RetrievalNode, AnswerQuestionNode])
+
 
 async def stream_chat_progress(
     question: str,
@@ -201,14 +213,12 @@ async def stream_chat_progress(
     state = ChatGraphState(original_question=question)
     if domain_configs is None:
         from knowlang.assets.registry import DomainRegistry, RegistryConfig
+
         config = RegistryConfig()
         registry = DomainRegistry(config)
         await registry.discover_and_register()
         domain_configs = registry.domain_configs.values()
-    deps = ChatGraphDeps(
-        domain_configs=domain_configs,
-        chat_config=ChatConfig()
-    )
+    deps = ChatGraphDeps(domain_configs=domain_configs, chat_config=ChatConfig())
 
     start_node = RetrievalNode()
 
@@ -217,10 +227,12 @@ async def stream_chat_progress(
         yield StreamingChatResult(
             answer="",
             status=ChatStatus.STARTING,
-            progress_message=f"Processing question: {question}"
+            progress_message=f"Processing question: {question}",
         )
 
-        graph_run_cm =  chat_graph.iter(start_node, state=state, deps=deps, infer_name=False) 
+        graph_run_cm = chat_graph.iter(
+            start_node, state=state, deps=deps, infer_name=False
+        )
 
         # we have to manually enter the context manager since this function itself is a AsyncGenerator
         graph_run = await graph_run_cm.__aenter__()
@@ -229,10 +241,10 @@ async def stream_chat_progress(
         while True:
             # Yield current node's status before processing
             yield StreamingChatResult.from_node(next_node, state)
-            
+
             # Process the current node
             next_node = await graph_run.next(next_node)
-            
+
             if isinstance(next_node, End):
                 result: ChatResult = next_node.data
                 # Yield final result and break
@@ -241,7 +253,7 @@ async def stream_chat_progress(
             elif not isinstance(next_node, BaseNode):
                 # If the next node is not a valid BaseNode, raise an error
                 raise TypeError(f"Invalid node type: {type(next_node)}")
-                    
+
     except Exception as e:
         LOG.error(f"Error in stream_chat_progress: {e}")
         yield StreamingChatResult.error(str(e))
