@@ -2,14 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, Type, TypeVar, Union, cast
 
-from knowlang.configs.config import AppConfig
 from knowlang.core.types import VectorStoreProvider
 from knowlang.database.config import VectorStoreConfig
-from knowlang.vector_stores.base import (
-    VectorStore,
-    VectorStoreError,
-    VectorStoreInitError,
-)
+from knowlang.vector_stores.base import VectorStore, VectorStoreInitError
 
 # for type hinting during development
 if TYPE_CHECKING:
@@ -51,7 +46,7 @@ class VectorStoreFactory:
     _instances: Dict[str, VectorStore] = {}
 
     @classmethod
-    def _get(cls, cfg: VectorStoreConfig):
+    def get(cls, cfg: VectorStoreConfig):
         cfg: VectorStoreConfig = cfg
         instance_key = f"{cfg.provider}_{cfg.connection_string}_{cfg.table_name}"
 
@@ -72,50 +67,6 @@ class VectorStoreFactory:
             raise VectorStoreInitError(
                 f"Failed to create vector store: {str(e)}"
             ) from e
-
-    @classmethod
-    def get(cls, app_config: AppConfig) -> VectorStore:
-        """
-        Create and initialize a vector store instance or return existing instance
-
-        Args:
-            app_config: App configuration
-
-        Returns:
-            Initialized vector store instance
-
-        Raises:
-            VectorStoreInitError: If initialization fails
-        """
-        # FIXME: we should deprcated this method and use _get instead after refactoring
-        if isinstance(app_config, VectorStoreConfig):
-            return cls._get(app_config)
-
-        db_config = app_config.db
-        # Create a unique key based on the configuration
-        instance_key = f"{db_config.db_provider}_{db_config.connection_url}"
-
-        # Check if an instance with this configuration already exists
-        if instance_key not in cls._instances:
-            try:
-                # Create new instance
-                store_cls: Type[VectorStore] = get_vector_store(db_config.db_provider)
-                vector_store: VectorStore = store_cls.create_from_config(app_config)
-
-                # Save the instance
-                cls._instances[instance_key] = vector_store
-
-            except VectorStoreError:
-                # Re-raise VectorStoreError subclasses as-is
-                raise
-            except Exception as e:
-                # Wrap any other exceptions
-                raise VectorStoreInitError(
-                    f"Failed to create vector store: {str(e)}"
-                ) from e
-
-        # Return the instance (either existing or newly created)
-        return cls._instances[instance_key]
 
     @classmethod
     def reset(cls) -> None:

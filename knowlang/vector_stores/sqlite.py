@@ -3,16 +3,16 @@ from __future__ import annotations
 import json
 import struct
 import uuid
-from typing import Any, Dict, List, Literal, Optional, TYPE_CHECKING
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from knowlang.database.config import VectorStoreConfig
-from knowlang.configs import AppConfig
 from knowlang.core.types import VectorStoreProvider
+from knowlang.database.config import VectorStoreConfig
+from knowlang.utils import FancyLogger
 from knowlang.vector_stores.base import (
     SearchResult,
     VectorStore,
@@ -20,12 +20,11 @@ from knowlang.vector_stores.base import (
     VectorStoreInitError,
 )
 from knowlang.vector_stores.factory import register_vector_store
-from knowlang.utils import FancyLogger
-
 
 if TYPE_CHECKING:
     try:
         import sqlite3
+
         import sqlite_vec
     except ImportError as e:
         raise ImportError(
@@ -38,7 +37,7 @@ LOG = FancyLogger(__name__)
 @register_vector_store(VectorStoreProvider.SQLITE)
 class SqliteVectorStore(VectorStore):
     """SQLite implementation of VectorStore using SQLAlchemy and the sqlite-vec extension.
-    
+
     This implementation uses a single virtual table to store both vector embeddings
     and document content/metadata, eliminating redundancy and improving performance.
     """
@@ -47,30 +46,15 @@ class SqliteVectorStore(VectorStore):
     def from_cfg(cls, cfg: VectorStoreConfig) -> "SqliteVectorStore":
         """Create SqliteVectorStore from VectorStoreConfig."""
         return cls(
-            app_config=cfg,
+            config=cfg,
             db_path=cfg.connection_string,
             table_name=cfg.table_name,
             embedding_dim=cfg.embedding.dimension,
         )
 
-    @classmethod
-    def create_from_config(cls, config: AppConfig) -> "SqliteVectorStore":
-        db_config = config.db
-        embedding_config = config.embedding
-        if not db_config.connection_url:
-            raise VectorStoreInitError("Database path not set for SqliteVectorStore.")
-        return cls(
-            app_config=config,
-            db_path=db_config.connection_url,
-            table_name=db_config.collection_name,
-            embedding_dim=embedding_config.dimension,
-            similarity_metric=db_config.similarity_metric,
-            content_field=db_config.content_field,
-        )
-
     def __init__(
         self,
-        app_config: AppConfig,
+        config: VectorStoreConfig,
         db_path: str,
         table_name: str,
         embedding_dim: int,
@@ -78,7 +62,7 @@ class SqliteVectorStore(VectorStore):
         content_field: Optional[str] = "content",
     ):
         super().__init__()
-        self.app_config = app_config
+        self.config = config
         self.db_path = db_path
         self.table_name = table_name
         self.embedding_dim = embedding_dim
@@ -90,7 +74,9 @@ class SqliteVectorStore(VectorStore):
     def assert_initialized(self) -> None:
         """Assert that the vector store is initialized"""
         if self.engine is None or self.AsyncSession is None:
-            raise ValueError(f"{self.__class__.__name__} is not initialized. Call initialize() first.")
+            raise ValueError(
+                f"{self.__class__.__name__} is not initialized. Call initialize() first."
+            )
 
     async def initialize(self) -> None:
         """Initialize the SQLite vector store with sqlite-vec extension."""
@@ -138,12 +124,17 @@ class SqliteVectorStore(VectorStore):
             try:
                 raw_connection = await session.connection()
                 dbapi_connection = await raw_connection.get_raw_connection()
-                
+
                 try:
                     import sqlite_vec
+
                     await dbapi_connection.driver_connection.enable_load_extension(True)
-                    await dbapi_connection.driver_connection.load_extension(sqlite_vec.loadable_path())
-                    await dbapi_connection.driver_connection.enable_load_extension(False)
+                    await dbapi_connection.driver_connection.load_extension(
+                        sqlite_vec.loadable_path()
+                    )
+                    await dbapi_connection.driver_connection.enable_load_extension(
+                        False
+                    )
                 except Exception as e:
                     raise VectorStoreInitError(
                         f"Failed to load sqlite-vec extension. Ensure it's installed and accessible. {e}"
@@ -187,8 +178,9 @@ class SqliteVectorStore(VectorStore):
                     content_to_store = self._get_content_from_document_or_metadata(
                         doc_ref_content, metadata
                     )
-                    
+
                     from sqlite_vec import serialize_float32
+
                     embedding_bytes = serialize_float32(embedding_list)
                     metadata_str = json.dumps(metadata)
 
@@ -253,6 +245,7 @@ class SqliteVectorStore(VectorStore):
         await self.ensure_initialized()
 
         from sqlite_vec import serialize_float32
+
         query_embedding_bytes = serialize_float32(query_embedding)
 
         try:
@@ -297,7 +290,7 @@ class SqliteVectorStore(VectorStore):
                         )
                     ]
                     return filtered_results
-                
+
                 return search_results
 
         except SQLAlchemyError as e:
@@ -316,13 +309,15 @@ class SqliteVectorStore(VectorStore):
                 # Simple deletion from single table
                 placeholders = ",".join([":id" + str(i) for i in range(len(ids))])
                 params = {f"id{i}": doc_id for i, doc_id in enumerate(ids)}
-                
+
                 result = await session.execute(
                     text(f"DELETE FROM {self.table_name} WHERE id IN ({placeholders})"),
                     params,
                 )
 
-                LOG.debug(f"Successfully deleted {result.rowcount} documents from vector store.")
+                LOG.debug(
+                    f"Successfully deleted {result.rowcount} documents from vector store."
+                )
 
         except SQLAlchemyError as e:
             raise VectorStoreError(f"Failed to delete documents: {e}")
@@ -335,9 +330,11 @@ class SqliteVectorStore(VectorStore):
             async with self.get_session() as session:
                 placeholders = ",".join([":id" + str(i) for i in range(len(ids))])
                 params = {f"id{i}": doc_id for i, doc_id in enumerate(ids)}
-                
+
                 result = await session.execute(
-                    text(f"SELECT id, content, doc_metadata FROM {self.table_name} WHERE id IN ({placeholders})"),
+                    text(
+                        f"SELECT id, content, doc_metadata FROM {self.table_name} WHERE id IN ({placeholders})"
+                    ),
                     params,
                 )
                 rows = result.fetchall()
@@ -346,12 +343,14 @@ class SqliteVectorStore(VectorStore):
                 for row in rows:
                     doc_id, content, metadata_str = row
                     metadata = json.loads(metadata_str) if metadata_str else {}
-                    results.append(SearchResult(
-                        id=doc_id,
-                        document=content,
-                        metadata=metadata,
-                        score=0.0,
-                    ))
+                    results.append(
+                        SearchResult(
+                            id=doc_id,
+                            document=content,
+                            metadata=metadata,
+                            score=0.0,
+                        )
+                    )
                 return results
 
         except SQLAlchemyError as e:
@@ -365,16 +364,19 @@ class SqliteVectorStore(VectorStore):
         metadata: Dict[str, Any],
     ) -> None:
         """Update a document in the vector store.
-        
+
         Note: Since virtual tables may not support UPDATE operations,
         we use DELETE + INSERT pattern.
         """
         await self.ensure_initialized()
 
         from sqlite_vec import serialize_float32
+
         embedding_bytes = serialize_float32(embedding)
         metadata_str = json.dumps(metadata)
-        content_to_store = self._get_content_from_document_or_metadata(document, metadata)
+        content_to_store = self._get_content_from_document_or_metadata(
+            document, metadata
+        )
 
         try:
             async with self.get_session() as session:
@@ -384,7 +386,9 @@ class SqliteVectorStore(VectorStore):
                     {"id": id},
                 )
                 if not check_result.fetchone():
-                    raise VectorStoreError(f"Document with id {id} not found for update.")
+                    raise VectorStoreError(
+                        f"Document with id {id} not found for update."
+                    )
 
                 # Delete the existing document
                 await session.execute(
@@ -431,7 +435,7 @@ class SqliteVectorStore(VectorStore):
                         metadata = json.loads(metadata_str) if metadata_str else {}
                     except json.JSONDecodeError:
                         metadata = {}
-                    
+
                     results.append(
                         SearchResult(
                             id=doc_id,
