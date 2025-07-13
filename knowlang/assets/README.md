@@ -134,6 +134,4 @@ knowlang parse
 
 # TODOs
 
-- Deprecate the following:
-  - AppConfig
 - Testing for the Domain Registry Parsing

@@ -9,9 +9,7 @@ from knowlang.configs.defaults import DEFAULT_VECTOR_COLLECTION_NAME
 from knowlang.configs.llm_config import LLMConfig
 from knowlang.core.types import ModelProvider, VectorStoreProvider
 
-from .base import _validate_api_key, generate_model_config
-from .chat_config import ChatbotAnalyticsConfig, ChatConfig
-from .server_config import ServerConfig
+from .base import _validate_api_key
 from .state_store_config import StateStoreConfig
 
 
@@ -197,21 +195,3 @@ class EvaluatorConfig(LLMConfig):
     evaluation_rounds: int = Field(
         default=1, description="Number of evaluation rounds per test case"
     )
-
-
-class AppConfig(BaseSettings):
-    model_config = generate_model_config(
-        env_file=".env.app",
-        default_env_file=".env.example.app",
-    )
-    llm: LLMConfig = Field(default_factory=LLMConfig)
-    evaluator: EvaluatorConfig = Field(default_factory=EvaluatorConfig)
-    reranker: RerankerConfig = Field(default_factory=RerankerConfig)
-    db: DBConfig = Field(default_factory=DBConfig)
-    parser: ParserConfig = Field(default_factory=ParserConfig)
-    chat: ChatConfig = Field(default_factory=ChatConfig)
-    embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
-    chat_analytics: ChatbotAnalyticsConfig = Field(
-        default_factory=ChatbotAnalyticsConfig
-    )
-    server: ServerConfig = Field(default_factory=ServerConfig)

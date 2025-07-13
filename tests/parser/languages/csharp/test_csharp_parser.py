@@ -1,18 +1,18 @@
-import pytest
 from pathlib import Path
-from typing import List, Any
+from typing import Any, List
+
+import pytest
 
 from knowlang.assets.codebase.models import CodeProcessorConfig
-from knowlang.configs import AppConfig, DBConfig, LanguageConfig, ParserConfig
+from knowlang.configs import LanguageConfig
+from knowlang.core.types import CodeChunk
 from knowlang.parser.languages.csharp.parser import CSharpParser
-from knowlang.core.types import CodeChunk, BaseChunkType, CodeMetadata
 
 # Import the new fixtures
 from .fixtures.expectations import (
-    load_test_expectations,
-    get_test_file_path,
-    get_all_test_files,
     ChunkExpectation,
+    get_test_file_path,
+    load_test_expectations,
 )
 
 
@@ -85,10 +85,10 @@ def csharp_parser() -> CSharpParser:
                 ],  # Using common tree-sitter type names
                 max_file_size=1_000_000,
             )
-        }
+        },
     )
     parser = CSharpParser(processor_config)
-    parser.setup() 
+    parser.setup()
     return parser
 
 
@@ -119,7 +119,9 @@ class TestCSharpParser:
         assert csharp_parser.supports_extension(".CS") is True
 
     @pytest.mark.asyncio
-    async def test_simple_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
+    async def test_simple_file_parsing(
+        self, csharp_parser: CSharpParser, test_expectations
+    ):
         """Test parsing the simple.cs file with basic classes and methods."""
         test_file = get_test_file_path("simple.cs")
         chunks = await csharp_parser.parse_file(test_file)
@@ -138,7 +140,9 @@ class TestCSharpParser:
             validate_chunk_against_expectation(chunk, expectation)
 
     @pytest.mark.asyncio
-    async def test_complex_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
+    async def test_complex_file_parsing(
+        self, csharp_parser: CSharpParser, test_expectations
+    ):
         """Test parsing the complex.cs file with namespaces, generics, and attributes."""
         test_file = get_test_file_path("complex.cs")
         chunks = await csharp_parser.parse_file(test_file)
@@ -157,7 +161,9 @@ class TestCSharpParser:
             validate_chunk_against_expectation(chunk, expectation)
 
     @pytest.mark.asyncio
-    async def test_nested_file_parsing(self, csharp_parser: CSharpParser, test_expectations):
+    async def test_nested_file_parsing(
+        self, csharp_parser: CSharpParser, test_expectations
+    ):
         """Test parsing the nested.cs file with nested classes and static classes."""
         test_file = get_test_file_path("nested.cs")
         chunks = await csharp_parser.parse_file(test_file)
@@ -257,7 +263,9 @@ class TestCSharpParser:
                 assert len(chunks) > 0, f"Expected chunks for {test_file} but got none"
 
     @pytest.mark.asyncio
-    async def test_namespace_handling(self, csharp_parser: CSharpParser, test_expectations):
+    async def test_namespace_handling(
+        self, csharp_parser: CSharpParser, test_expectations
+    ):
         """Test that namespaces are correctly identified and assigned to chunks."""
         test_file = get_test_file_path("complex.cs")
         chunks = await csharp_parser.parse_file(test_file)
@@ -299,15 +307,17 @@ class TestCSharpParser:
     @pytest.mark.asyncio
     async def test_empty_file(self, csharp_parser: CSharpParser):
         """Test parsing an empty C# file."""
-        import tempfile, os
+        import os
+        import tempfile
+
         temp_fd, temp_file = tempfile.mkstemp(suffix=".cs", dir=Path(__file__).parent)
-        with os.fdopen(temp_fd, 'w') as f:
+        with os.fdopen(temp_fd, "w") as f:
             f.write("")  # Create an empty file
         chunks = await csharp_parser.parse_file(Path(temp_file))
         assert chunks == [], "Empty file should produce no chunks"
 
         # Clean up the temporary file
-        os.remove(temp_file)  
+        os.remove(temp_file)
 
     def test_all_test_files_exist(self):
         """Test that all expected test files exist."""
