@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class ChunkExpectation:
     """Expected values for a code chunk"""
+
     name: str
     docstring: str
     content_snippet: str
@@ -327,108 +328,106 @@ export default InvalidComponent;
 
 # Test file expectations
 SIMPLE_FILE_EXPECTATIONS = {
-    'helloWorld': ChunkExpectation(
-        name='helloWorld',
-        docstring='A simple hello world function\n@param name Name to greet\n@returns Greeting message',
-        content_snippet='function helloWorld(name: string): string {'
+    "helloWorld": ChunkExpectation(
+        name="helloWorld",
+        docstring="A simple hello world function\n@param name Name to greet\n@returns Greeting message",
+        content_snippet="function helloWorld(name: string): string {",
     ),
-    'Counter': ChunkExpectation(
-        name='Counter',
-        docstring='A simple counter class',
-        content_snippet='class Counter {'
+    "Counter": ChunkExpectation(
+        name="Counter",
+        docstring="A simple counter class",
+        content_snippet="class Counter {",
     ),
-    'Person': ChunkExpectation(
-        name='Person',
-        docstring='Person interface',
-        content_snippet='interface Person {'
+    "Person": ChunkExpectation(
+        name="Person",
+        docstring="Person interface",
+        content_snippet="interface Person {",
     ),
-    'User': ChunkExpectation(
-        name='User',
-        docstring='A type alias for a user object',
-        content_snippet='type User = {'
-    )
+    "User": ChunkExpectation(
+        name="User",
+        docstring="A type alias for a user object",
+        content_snippet="type User = {",
+    ),
 }
 
 COMPLEX_FILE_EXPECTATIONS = {
-    'deprecated': ChunkExpectation(
-        name='deprecated',
-        docstring='Marks a class as deprecated',
-        content_snippet='function deprecated(message: string)'
+    "deprecated": ChunkExpectation(
+        name="deprecated",
+        docstring="Marks a class as deprecated",
+        content_snippet="function deprecated(message: string)",
     ),
-    'DecoratedService': ChunkExpectation(
-        name='DecoratedService',
-        docstring='A decorated class at the top level',
-        content_snippet='@deprecated("Use NewService instead")\nclass DecoratedService {'
+    "DecoratedService": ChunkExpectation(
+        name="DecoratedService",
+        docstring="A decorated class at the top level",
+        content_snippet='@deprecated("Use NewService instead")\nclass DecoratedService {',
     ),
-    'Repository': ChunkExpectation(
-        name='Repository',
-        docstring='Generic repository for data access\n@typeparam T The entity type',
-        content_snippet='class Repository<T> {'
+    "Repository": ChunkExpectation(
+        name="Repository",
+        docstring="Generic repository for data access\n@typeparam T The entity type",
+        content_snippet="class Repository<T> {",
     ),
-    'ApiClient': ChunkExpectation(
-        name='ApiClient',
-        docstring='Generic API client\n@typeparam T Response data type\n@typeparam U Request data type',
-        content_snippet='class ApiClient<T, U = any> {'
+    "ApiClient": ChunkExpectation(
+        name="ApiClient",
+        docstring="Generic API client\n@typeparam T Response data type\n@typeparam U Request data type",
+        content_snippet="class ApiClient<T, U = any> {",
     ),
-    'ApiConfig': ChunkExpectation(
-        name='ApiConfig',
-        docstring='Configuration options for an API client',
-        content_snippet='interface ApiConfig {'
+    "ApiConfig": ChunkExpectation(
+        name="ApiConfig",
+        docstring="Configuration options for an API client",
+        content_snippet="interface ApiConfig {",
     ),
-    'ApiResult': ChunkExpectation(
-        name='ApiResult',
-        docstring='Result type for API responses',
-        content_snippet='type ApiResult<T> = {'
+    "ApiResult": ChunkExpectation(
+        name="ApiResult",
+        docstring="Result type for API responses",
+        content_snippet="type ApiResult<T> = {",
     ),
-    'fetchData': ChunkExpectation(
-        name='fetchData',
-        docstring='Function with arrow syntax',
-        content_snippet='const fetchData = async <T>(url: string): Promise<T> => {'
-    )
+    "fetchData": ChunkExpectation(
+        name="fetchData",
+        docstring="Function with arrow syntax",
+        content_snippet="const fetchData = async <T>(url: string): Promise<T> => {",
+    ),
 }
 
 SIMPLE_TSX_EXPECTATIONS = {
-    'ButtonProps': ChunkExpectation(
-        name='ButtonProps',
-        docstring='Props for Button component',
-        content_snippet='interface ButtonProps {'
+    "ButtonProps": ChunkExpectation(
+        name="ButtonProps",
+        docstring="Props for Button component",
+        content_snippet="interface ButtonProps {",
     ),
-    'Button': ChunkExpectation(
-        name='Button',
-        docstring='A simple button component',
-        content_snippet='const Button: React.FC<ButtonProps> = ({ onClick, label, disabled = false }) => {'
-    )
+    "Button": ChunkExpectation(
+        name="Button",
+        docstring="A simple button component",
+        content_snippet="const Button: React.FC<ButtonProps> = ({ onClick, label, disabled = false }) => {",
+    ),
 }
 
 COMPLEX_TSX_EXPECTATIONS = {
-    'User': ChunkExpectation(
-        name='User',
-        docstring='User data structure',
-        content_snippet='interface User {'
+    "User": ChunkExpectation(
+        name="User", docstring="User data structure", content_snippet="interface User {"
     ),
-    'UserListProps': ChunkExpectation(
-        name='UserListProps',
-        docstring='Props for the UserList component',
-        content_snippet='interface UserListProps {'
+    "UserListProps": ChunkExpectation(
+        name="UserListProps",
+        docstring="Props for the UserList component",
+        content_snippet="interface UserListProps {",
     ),
-    'UserList': ChunkExpectation(
-        name='UserList',
-        docstring='A component that displays a list of users with filtering',
-        content_snippet='const UserList: React.FC<UserListProps> = ({'
+    "UserList": ChunkExpectation(
+        name="UserList",
+        docstring="A component that displays a list of users with filtering",
+        content_snippet="const UserList: React.FC<UserListProps> = ({",
     ),
-    'loadUsers': ChunkExpectation(
-        name='loadUsers',
-        docstring='Load users from API',
-        content_snippet='const loadUsers = useCallback(async () => {'
-    )
+    "loadUsers": ChunkExpectation(
+        name="loadUsers",
+        docstring="Load users from API",
+        content_snippet="const loadUsers = useCallback(async () => {",
+    ),
 }
 
 # Compile test files
 TEST_FILES = {
-    'simple.ts': SIMPLE_TS,
-    'complex.ts': COMPLEX_TS,
-    'simple.tsx': SIMPLE_TSX,
-    'complex.tsx': COMPLEX_TSX,
-    'invalid.ts': INVALID_TS,
-    'invalid.tsx': INVALID_TSX
+    "simple.ts": SIMPLE_TS,
+    "complex.ts": COMPLEX_TS,
+    "simple.tsx": SIMPLE_TSX,
+    "complex.tsx": COMPLEX_TSX,
+    "invalid.ts": INVALID_TS,
+    "invalid.tsx": INVALID_TSX,
 }

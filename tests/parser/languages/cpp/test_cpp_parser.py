@@ -15,12 +15,14 @@ def cpp_parser(test_config):
     parser.setup()
     return parser
 
+
 def find_chunk_by_criteria(chunks: List[CodeChunk], **criteria) -> CodeChunk:
     """Helper function to find a chunk matching given criteria"""
     for chunk in chunks:
         if all(getattr(chunk, k) == v for k, v in criteria.items()):
             return chunk
     return None
+
 
 class TestCppParser:
     """Test suite for CppParser"""
@@ -34,7 +36,9 @@ class TestCppParser:
         assert cpp_parser.supports_extension(".h")
 
     @pytest.mark.asyncio
-    async def test_simple_file_parsing(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
+    async def test_simple_file_parsing(
+        self, cpp_parser: CppParser, test_config: CodeProcessorConfig
+    ):
         """Test parsing a simple C++ file with function and class"""
         simple_cpp = """
         /**
@@ -73,30 +77,40 @@ class TestCppParser:
         chunks = await cpp_parser.parse_file(test_file)
 
         # Test function
-        function_chunk = find_chunk_by_criteria(chunks, type=BaseChunkType.FUNCTION, name="add")
+        function_chunk = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.FUNCTION, name="add"
+        )
         assert function_chunk is not None
         assert "A simple function that adds two numbers" in function_chunk.docstring
         assert "int add(int a, int b)" in function_chunk.content
 
         # Test function
-        function_chunk = find_chunk_by_criteria(chunks, type=BaseChunkType.FUNCTION, name="MyNamespace::minus")
+        function_chunk = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.FUNCTION, name="MyNamespace::minus"
+        )
         assert function_chunk is not None
         assert "A simple function that minus two numbers" in function_chunk.docstring
         assert "MY_MACRO int MyNamespace::minus(int a, int b)" in function_chunk.content
 
         # Test class
-        class_chunk = find_chunk_by_criteria(chunks, type=BaseChunkType.CLASS, name="SimpleClass")
+        class_chunk = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.CLASS, name="SimpleClass"
+        )
         assert class_chunk is not None
         assert "A simple class for demonstration" in class_chunk.docstring
         assert "class SimpleClass" in class_chunk.content
 
         # Test class with dll export
-        exported_chunk = find_chunk_by_criteria(chunks, type=BaseChunkType.CLASS, name="ExportedClass")
+        exported_chunk = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.CLASS, name="ExportedClass"
+        )
         assert exported_chunk is not None
         assert "__declspec(dllexport)" in exported_chunk.content
 
     @pytest.mark.asyncio
-    async def test_namespace_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
+    async def test_namespace_handling(
+        self, cpp_parser: CppParser, test_config: CodeProcessorConfig
+    ):
         """Test handling of namespaces"""
         namespace_cpp = """
         namespace test {
@@ -124,19 +138,27 @@ class TestCppParser:
         test_file.write_text(namespace_cpp)
         chunks = await cpp_parser.parse_file(test_file)
 
-        func = find_chunk_by_criteria(chunks, type=BaseChunkType.FUNCTION, name="namespace_func")
+        func = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.FUNCTION, name="namespace_func"
+        )
         assert func is not None
         assert func.metadata.namespace == "test"
 
-        cls = find_chunk_by_criteria(chunks, type=BaseChunkType.CLASS, name="NamespaceClass")
+        cls = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.CLASS, name="NamespaceClass"
+        )
         assert cls is not None
         assert cls.metadata.namespace == "test"
 
-        cls = find_chunk_by_criteria(chunks, type=BaseChunkType.CLASS, name="MyNamespace::SimpleClass")
+        cls = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.CLASS, name="MyNamespace::SimpleClass"
+        )
         assert cls is not None
 
     @pytest.mark.asyncio
-    async def test_template_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
+    async def test_template_handling(
+        self, cpp_parser: CppParser, test_config: CodeProcessorConfig
+    ):
         """Test handling of template classes and functions"""
         template_cpp = """
         /**
@@ -171,7 +193,9 @@ class TestCppParser:
         assert "template<typename T, typename U>" in cls.content
 
     @pytest.mark.asyncio
-    async def test_error_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
+    async def test_error_handling(
+        self, cpp_parser: CppParser, test_config: CodeProcessorConfig
+    ):
         """Test error handling for various error cases"""
         # Test invalid syntax
         invalid_file = Path(test_config.directory_path) / "invalid.cpp"
@@ -191,7 +215,9 @@ class TestCppParser:
         assert chunks == []
 
     @pytest.mark.asyncio
-    async def test_preprocessor_handling(self, cpp_parser: CppParser, test_config: CodeProcessorConfig):
+    async def test_preprocessor_handling(
+        self, cpp_parser: CppParser, test_config: CodeProcessorConfig
+    ):
         """Test handling of preprocessor directives"""
         preprocessor_cpp = """
         #include <iostream>
@@ -211,6 +237,8 @@ class TestCppParser:
         test_file.write_text(preprocessor_cpp)
         chunks = await cpp_parser.parse_file(test_file)
 
-        cls = find_chunk_by_criteria(chunks, type=BaseChunkType.CLASS, name="PreprocessorTest")
+        cls = find_chunk_by_criteria(
+            chunks, type=BaseChunkType.CLASS, name="PreprocessorTest"
+        )
         assert cls is not None
         assert "#ifdef DEBUG" in cls.content

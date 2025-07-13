@@ -1,21 +1,23 @@
-from typing import Dict, NamedTuple
+from typing import NamedTuple
+
 
 class ExpectedChunk(NamedTuple):
     name: str
     docstring: str
     content_snippet: str  # A unique part of the content that should be present
 
+
 # Test file contents
 SIMPLE_FUCNTION_CLEANED_DOCSTRING = "Say hello to the world"
-SIMPLE_FUNCTION_DOCSTRING = f'\"\"\"{SIMPLE_FUCNTION_CLEANED_DOCSTRING}\"\"\"'
-SIMPLE_FUNCTION = f'''
+SIMPLE_FUNCTION_DOCSTRING = f'"""{SIMPLE_FUCNTION_CLEANED_DOCSTRING}"""'
+SIMPLE_FUNCTION = f"""
 def hello_world():
     {SIMPLE_FUNCTION_DOCSTRING}
     return "Hello, World!"
-'''
+"""
 
-SIMPLE_CLASS_DOCSTRING = f'\"\"\"A simple class for testing\"\"\"'
-SIMPLE_CLASS = f'''
+SIMPLE_CLASS_DOCSTRING = '"""A simple class for testing"""'
+SIMPLE_CLASS = f"""
 class SimpleClass:
     {SIMPLE_CLASS_DOCSTRING}
     def __init__(self):
@@ -23,7 +25,7 @@ class SimpleClass:
 
     def get_value(self):
         return self.value
-'''
+"""
 
 NESTED_OUTER_CLASS_DOCSTRING = "#Outer class docstring"
 NESTED_CLASS = f'''
@@ -39,7 +41,7 @@ class OuterClass:
 '''
 
 
-COMPLEX_FUNCTION_DOCSTRING = f"""\"\"\"
+COMPLEX_FUNCTION_DOCSTRING = """\"\"\"
 A complex function with type hints and docstring
 Args:
     param1: First parameter
@@ -70,46 +72,46 @@ class ComplexClass:
         self._value = None
 '''
 
-INVALID_SYNTAX = '''def invalid_syntax(:'''
+INVALID_SYNTAX = """def invalid_syntax(:"""
 
 # Expected test results
 SIMPLE_FILE_EXPECTATIONS = {
-    'hello_world': ExpectedChunk(
+    "hello_world": ExpectedChunk(
         name="hello_world",
         docstring=SIMPLE_FUNCTION_DOCSTRING,
-        content_snippet='return "Hello, World!"'
+        content_snippet='return "Hello, World!"',
     ),
-    'SimpleClass': ExpectedChunk(
+    "SimpleClass": ExpectedChunk(
         name="SimpleClass",
         docstring=SIMPLE_CLASS_DOCSTRING,
-        content_snippet='self.value = 42'
-    )
+        content_snippet="self.value = 42",
+    ),
 }
 
 NESTED_CLASS_EXPECTATIONS = {
-    'OuterClass': ExpectedChunk(
+    "OuterClass": ExpectedChunk(
         name="OuterClass",
         docstring=NESTED_OUTER_CLASS_DOCSTRING,
-        content_snippet='class InnerClass'
+        content_snippet="class InnerClass",
     )
 }
 
 COMPLEX_FILE_EXPECTATIONS = {
-    'complex_function': ExpectedChunk(
+    "complex_function": ExpectedChunk(
         name="complex_function",
         docstring=COMPLEX_FUNCTION_DOCSTRING,
-        content_snippet='List[str]'
+        content_snippet="List[str]",
     ),
-    'ComplexClass': ExpectedChunk(
+    "ComplexClass": ExpectedChunk(
         name="ComplexClass",
         docstring=COMPLEX_CLASS_DOCSTRING,
-        content_snippet='_value = None'
-    )
+        content_snippet="_value = None",
+    ),
 }
 
 DECORATED_FUNCTION_DOCSTRING = '"""A function with decorators"""'
 DECORATED_CLASS_DOCSTRING = '"""A class with decorators"""'
-DECORATED_FILE = f'''
+DECORATED_FILE = f"""
 @my_decorator
 @another_decorator
 def decorated_function():
@@ -121,25 +123,25 @@ class DecoratedClass:
     {DECORATED_CLASS_DOCSTRING}
     def __init__(self):
         self.value = "decorated"
-'''
+"""
 
 # Add expectations for decorated components
 DECORATED_FILE_EXPECTATIONS = {
-    'decorated_function': ExpectedChunk(
+    "decorated_function": ExpectedChunk(
         name="decorated_function",
         docstring=DECORATED_FUNCTION_DOCSTRING,
-        content_snippet='return "I am decorated"'
+        content_snippet='return "I am decorated"',
     ),
-    'DecoratedClass': ExpectedChunk(
+    "DecoratedClass": ExpectedChunk(
         name="DecoratedClass",
         docstring=DECORATED_CLASS_DOCSTRING,
-        content_snippet='self.value = "decorated"'
-    )
+        content_snippet='self.value = "decorated"',
+    ),
 }
 
 TEST_FILES = {
-    'simple.py': SIMPLE_FUNCTION + SIMPLE_CLASS,
-    'nested.py': NESTED_CLASS,
-    'complex.py': COMPLEX_FILE,
-    'decorated.py': DECORATED_FILE
+    "simple.py": SIMPLE_FUNCTION + SIMPLE_CLASS,
+    "nested.py": NESTED_CLASS,
+    "complex.py": COMPLEX_FILE,
+    "decorated.py": DECORATED_FILE,
 }

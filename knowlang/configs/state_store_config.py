@@ -78,4 +78,3 @@ class StateStoreConfig(BaseSettings):
                 "url": self.connection_url,
                 **common_args,
             }
-

@@ -126,9 +126,9 @@ class TestTypeScriptParser:
         increment_method = find_chunk_by_criteria(
             chunks, type=TypescriptChunkType.FUNCTION, name="increment"
         )
-        assert (
-            increment_method is None
-        ), "Methods inside classes should not be extracted"
+        assert increment_method is None, (
+            "Methods inside classes should not be extracted"
+        )
 
     @pytest.mark.asyncio
     async def test_complex_ts_file_parsing(
@@ -284,9 +284,9 @@ class TestTypeScriptParser:
         hook_chunk = find_chunk_by_criteria(
             chunks, type=TypescriptChunkType.FUNCTION, name="loadUsers"
         )
-        assert (
-            hook_chunk is None
-        ), "Functions inside other functions should not be extracted"
+        assert hook_chunk is None, (
+            "Functions inside other functions should not be extracted"
+        )
 
     @pytest.mark.asyncio
     async def test_error_handling(

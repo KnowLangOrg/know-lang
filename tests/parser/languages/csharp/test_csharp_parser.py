@@ -43,32 +43,32 @@ def validate_chunk_against_expectation(
     chunk: CodeChunk, expectation: ChunkExpectation
 ) -> None:
     """Helper to validate a chunk against its expectation"""
-    assert (
-        chunk.name == expectation.name
-    ), f"Expected name {expectation.name}, got {chunk.name}"
+    assert chunk.name == expectation.name, (
+        f"Expected name {expectation.name}, got {chunk.name}"
+    )
 
     if expectation.docstring is not None:
-        assert (
-            expectation.docstring in chunk.docstring
-        ), f"Expected docstring '{expectation.docstring}', got '{chunk.docstring}'"
+        assert expectation.docstring in chunk.docstring, (
+            f"Expected docstring '{expectation.docstring}', got '{chunk.docstring}'"
+        )
     else:
-        assert (
-            chunk.docstring is None
-        ), f"Expected no docstring, but got '{chunk.docstring}'"
+        assert chunk.docstring is None, (
+            f"Expected no docstring, but got '{chunk.docstring}'"
+        )
 
-    assert (
-        expectation.content_snippet in chunk.content
-    ), f"Expected content snippet '{expectation.content_snippet}' not found in chunk content"
+    assert expectation.content_snippet in chunk.content, (
+        f"Expected content snippet '{expectation.content_snippet}' not found in chunk content"
+    )
 
     if expectation.namespace is not None:
-        assert (
-            chunk.metadata.namespace == expectation.namespace
-        ), f"Expected namespace {expectation.namespace}, got {chunk.metadata.namespace}"
+        assert chunk.metadata.namespace == expectation.namespace, (
+            f"Expected namespace {expectation.namespace}, got {chunk.metadata.namespace}"
+        )
 
     if expectation.class_name is not None:
-        assert (
-            chunk.name == expectation.class_name
-        ), f"Expected class_name {expectation.class_name}, got {chunk.name}"
+        assert chunk.name == expectation.class_name, (
+            f"Expected class_name {expectation.class_name}, got {chunk.name}"
+        )
 
 
 @pytest.fixture
@@ -101,12 +101,12 @@ def test_expectations():
 class TestCSharpParser:
     def test_parser_initialization(self, csharp_parser: CSharpParser):
         """Test that the CSharpParser initializes correctly."""
-        assert (
-            csharp_parser.parser is not None
-        ), "Parser should be initialized if grammar is loaded"
-        assert (
-            csharp_parser.language is not None
-        ), "Language should be set if grammar is loaded"
+        assert csharp_parser.parser is not None, (
+            "Parser should be initialized if grammar is loaded"
+        )
+        assert csharp_parser.language is not None, (
+            "Language should be set if grammar is loaded"
+        )
         assert csharp_parser.language_name == "csharp"
 
         # Check if language_config was loaded (even if default)
@@ -129,9 +129,9 @@ class TestCSharpParser:
         expectations = test_expectations["simple.cs"]
 
         # We expect at least the major chunks (HelloWorld class, Person class, and their methods)
-        assert (
-            len(chunks) == 2
-        ), f"Expected 2 chunks, got {len(chunks)}. Chunks: {[c.name for c in chunks]}"
+        assert len(chunks) == 2, (
+            f"Expected 2 chunks, got {len(chunks)}. Chunks: {[c.name for c in chunks]}"
+        )
 
         # Validate each expected chunk
         for expected_name, expectation in expectations.items():
@@ -150,9 +150,9 @@ class TestCSharpParser:
         expectations = test_expectations["complex.cs"]
 
         # We expect multiple chunks across different namespaces
-        assert len(chunks) == len(
-            expectations
-        ), f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        assert len(chunks) == len(expectations), (
+            f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        )
 
         # Validate each expected chunk
         for expected_name, expectation in expectations.items():
@@ -170,9 +170,9 @@ class TestCSharpParser:
 
         expectations = test_expectations["nested.cs"]
 
-        assert len(chunks) >= len(
-            expectations
-        ), f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        assert len(chunks) >= len(expectations), (
+            f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        )
 
         # Validate each expected chunk
         for expected_name, expectation in expectations.items():
@@ -190,9 +190,9 @@ class TestCSharpParser:
 
         expectations = test_expectations["advanced_features.cs"]
 
-        assert len(chunks) >= len(
-            expectations
-        ), f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        assert len(chunks) >= len(expectations), (
+            f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        )
 
         # Validate each expected chunk
         for expected_name, expectation in expectations.items():
@@ -210,9 +210,9 @@ class TestCSharpParser:
 
         expectations = test_expectations["modern.cs"]
 
-        assert len(chunks) >= len(
-            expectations
-        ), f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        assert len(chunks) >= len(expectations), (
+            f"Expected at least {len(expectations)} chunks, got {len(chunks)}"
+        )
 
         # Validate each expected chunk
         for expected_name, expectation in expectations.items():
@@ -237,9 +237,9 @@ class TestCSharpParser:
         chunks = await csharp_parser.parse_file(test_file)
 
         # Should produce no chunks since there are no classes or methods
-        assert (
-            len(chunks) == 0
-        ), f"Expected 0 chunks for minimal file, got {len(chunks)}"
+        assert len(chunks) == 0, (
+            f"Expected 0 chunks for minimal file, got {len(chunks)}"
+        )
 
     @pytest.mark.parametrize(
         "test_file",
@@ -333,9 +333,9 @@ class TestCSharpParser:
 
         for filename in expected_files:
             file_path = get_test_file_path(filename)
-            assert (
-                file_path.exists()
-            ), f"Test file {filename} does not exist at {file_path}"
+            assert file_path.exists(), (
+                f"Test file {filename} does not exist at {file_path}"
+            )
             assert file_path.is_file(), f"Test file {filename} is not a file"
 
     def test_expectations_completeness(self, test_expectations):
@@ -349,8 +349,8 @@ class TestCSharpParser:
         ]
 
         for filename in expected_files_with_expectations:
-            assert (
-                filename in test_expectations
-            ), f"No expectations defined for {filename}"
+            assert filename in test_expectations, (
+                f"No expectations defined for {filename}"
+            )
             expectations = test_expectations[filename]
             assert len(expectations) > 0, f"Empty expectations for {filename}"

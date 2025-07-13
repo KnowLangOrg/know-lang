@@ -51,10 +51,13 @@ class Group:
 
 class UnityYAMLLoader(yaml.SafeLoader):
     """Custom YAML loader for Unity asset files that handles Unity-specific tags"""
+
     pass
 
 
-def unity_object_constructor(loader: yaml.SafeLoader, tag_suffix: str, node: yaml.Node) -> dict:
+def unity_object_constructor(
+    loader: yaml.SafeLoader, tag_suffix: str, node: yaml.Node
+) -> dict:
     """Constructor for Unity objects with custom tags"""
     if isinstance(node, yaml.MappingNode):
         return loader.construct_mapping(node)
@@ -65,7 +68,7 @@ def unity_object_constructor(loader: yaml.SafeLoader, tag_suffix: str, node: yam
 
 
 # Register constructors for Unity-specific tags
-UnityYAMLLoader.add_multi_constructor('tag:unity3d.com,2011:', unity_object_constructor)
+UnityYAMLLoader.add_multi_constructor("tag:unity3d.com,2011:", unity_object_constructor)
 
 
 class UnityObjectHandler(ABC):
@@ -78,7 +81,7 @@ class UnityObjectHandler(ABC):
     def can_handle(self, unity_type: str, data: dict) -> bool:
         """Check if this handler can process the given Unity object type"""
         pass
-    
+
     @abstractmethod
     def extract_chunks(self, data: dict, file_path: str) -> List[CodeChunk]:
         """Extract code chunks from the Unity object data"""
@@ -87,14 +90,11 @@ class UnityObjectHandler(ABC):
 
 class MonoBehaviourHandler(UnityObjectHandler):
     """Handler for MonoBehaviour objects (Visual Scripting)"""
-    
-    
+
     def can_handle(self, unity_type: str, data: dict) -> bool:
         """Check if this is a MonoBehaviour with Visual Scripting data"""
-        return (unity_type == "114" and 
-                "_data" in data and 
-                "_json" in data["_data"])
-    
+        return unity_type == "114" and "_data" in data and "_json" in data["_data"]
+
     def extract_chunks(self, data: dict, file_path: str) -> List[CodeChunk]:
         """Extract Visual Scripting chunks from MonoBehaviour"""
         try:
@@ -103,12 +103,12 @@ class MonoBehaviourHandler(UnityObjectHandler):
         except json.JSONDecodeError:
             LOG.warning(f"Failed to parse JSON in MonoBehaviour from {file_path}")
             return []
-        
+
         # Extract all raw elements from the graph
         raw_elements = graph_data.get("graph", {}).get("elements", [])
-        
+
         # Parse each raw element into the appropriate data class
-        nodes : Dict[str, Node] = {}
+        nodes: Dict[str, Node] = {}
         connections: List[Connection] = []
         groups: List[Group] = []
 
@@ -121,13 +121,13 @@ class MonoBehaviourHandler(UnityObjectHandler):
                 connections.append(element)
             elif isinstance(element, Group):
                 groups.append(element)
-        
+
         # Group connected elements together
         self._group_connected_elements(nodes, connections, groups)
-        
+
         # Convert to chunks
         return self._create_chunks(nodes, connections, groups, file_path)
-    
+
     def _parse_element(self, raw_element: dict) -> Union[Node, Connection, Group]:
         """Parse a raw element dictionary into the appropriate data class"""
         element_type = raw_element.get("$type", "")
@@ -168,8 +168,11 @@ class MonoBehaviourHandler(UnityObjectHandler):
                 graph_id=0,
             )
 
-    def _group_connected_elements(self, nodes : Dict[str, Node], connections: List[Connection], groups: List[Group]):
+    def _group_connected_elements(
+        self, nodes: Dict[str, Node], connections: List[Connection], groups: List[Group]
+    ):
         """Group connected elements together by assigning same graph_id"""
+
         def merge_elements(elements: List[Union[Node, Connection, Group]]):
             if len(elements) == 0:
                 return
@@ -206,7 +209,13 @@ class MonoBehaviourHandler(UnityObjectHandler):
             end_node_graph_id = nodes[connection.end_id].graph_id
             merge_graphs([start_node_graph_id, end_node_graph_id, connection.graph_id])
 
-    def _create_chunks(self, nodes : Dict[str, Node], connections: List[Connection], groups: List[Group], file_path: str) -> List[CodeChunk]:
+    def _create_chunks(
+        self,
+        nodes: Dict[str, Node],
+        connections: List[Connection],
+        groups: List[Group],
+        file_path: str,
+    ) -> List[CodeChunk]:
         """Create CodeChunk objects from grouped elements"""
         elements_by_graph = {}
 
@@ -242,10 +251,10 @@ class MonoBehaviourHandler(UnityObjectHandler):
 # Placeholder handlers for future Unity object types
 class GameObjectHandler(UnityObjectHandler):
     """Handler for GameObject objects (type 1)"""
-    
+
     def can_handle(self, unity_type: str, data: dict) -> bool:
         return unity_type == "1"
-    
+
     def extract_chunks(self, data: dict, file_path: str) -> List[CodeChunk]:
         # TODO: Implement GameObject parsing
         LOG.debug(f"GameObject handler not yet implemented for {file_path}")
@@ -254,10 +263,10 @@ class GameObjectHandler(UnityObjectHandler):
 
 class InputManagerHandler(UnityObjectHandler):
     """Handler for InputManager objects (type 13)"""
-    
+
     def can_handle(self, unity_type: str, data: dict) -> bool:
         return unity_type == "13"
-    
+
     def extract_chunks(self, data: dict, file_path: str) -> List[CodeChunk]:
         # TODO: Implement InputManager parsing
         LOG.debug(f"InputManager handler not yet implemented for {file_path}")
@@ -266,24 +275,24 @@ class InputManagerHandler(UnityObjectHandler):
 
 class UnityAssetParser(LanguageParser):
     """Parser for Unity Assets with extensible handler system"""
+
     # https://docs.unity3d.com/Manual/ClassIDReference.html
-    _unity_class_code_mapping : Dict[str, str] = {
+    _unity_class_code_mapping: Dict[str, str] = {
         "GameObject": "1",
         "MonoBehaviour": "114",
         "InputManager": "13",
         # Add more mappings as needed
     }
 
-
     def setup(self) -> None:
         """Initialize parser for Unity Assets"""
         self.language_name = LanguageEnum.UNITYASSET
         self.language_config = self.config.languages[LanguageEnum.UNITYASSET.value]
-        
+
         self.handlers: Dict[str, UnityObjectHandler] = {
-            '1': GameObjectHandler(self.config),
-            '114': MonoBehaviourHandler(self.config),
-            '13': InputManagerHandler(self.config),
+            "1": GameObjectHandler(self.config),
+            "114": MonoBehaviourHandler(self.config),
+            "13": InputManagerHandler(self.config),
         }
 
     async def parse_file(self, file_path: Path) -> List[CodeChunk]:
@@ -314,31 +323,45 @@ class UnityAssetParser(LanguageParser):
             return []
 
         chunks = []
-        
+
         # Process each YAML document in the file
         for doc in documents:
             if doc is None:
                 continue
-            
+
             # Extract Unity object type and data
             for unity_object_key, unity_object_data in doc.items():
-                if (unity_type := self._unity_class_code_mapping.get(unity_object_key, "")) is None:
-                    LOG.warning(f"Unknown Unity object type in {file_path}: {unity_object_key}")
+                if (
+                    unity_type := self._unity_class_code_mapping.get(
+                        unity_object_key, ""
+                    )
+                ) is None:
+                    LOG.warning(
+                        f"Unknown Unity object type in {file_path}: {unity_object_key}"
+                    )
                     continue
 
                 if (handler := self.handlers.get(unity_type, None)) is None:
-                    LOG.warning(f"Unknown handler for Unity object type {unity_type} in {file_path}")
+                    LOG.warning(
+                        f"Unknown handler for Unity object type {unity_type} in {file_path}"
+                    )
                     continue
 
                 if handler.can_handle(unity_type, unity_object_data) is False:
-                    LOG.debug(f"Handler {handler.__class__.__name__} cannot handle {unity_object_key} in {file_path}")
+                    LOG.debug(
+                        f"Handler {handler.__class__.__name__} cannot handle {unity_object_key} in {file_path}"
+                    )
                     continue
 
                 try:
-                    handler_chunks = handler.extract_chunks(unity_object_data, str(file_path))
+                    handler_chunks = handler.extract_chunks(
+                        unity_object_data, str(file_path)
+                    )
                     chunks.extend(handler_chunks)
                 except Exception as e:
-                    LOG.warning(f"Handler {handler.__class__.__name__} failed for {file_path}: {e}")
+                    LOG.warning(
+                        f"Handler {handler.__class__.__name__} failed for {file_path}: {e}"
+                    )
 
         return chunks
 

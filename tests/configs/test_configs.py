@@ -1,9 +1,8 @@
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from pydantic_settings import SettingsConfigDict
 
 # Import the functions to test
 from knowlang.configs.base import get_resource_path

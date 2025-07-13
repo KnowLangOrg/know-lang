@@ -1196,6 +1196,7 @@ all = [
     { name = "pyinstaller" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "ruff" },
     { name = "sentence-transformers" },
     { name = "sqlite-vec" },
     { name = "sse-starlette" },
@@ -1220,6 +1221,7 @@ csharp = [
 dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "ruff" },
 ]
 gradio = [
     { name = "gradio" },
@@ -1297,6 +1299,7 @@ all = [
     { name = "pyinstaller", specifier = ">=6.14.0" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "ruff", specifier = ">=0.11.10" },
     { name = "sentence-transformers", specifier = ">=4.0.1,<5.0.0" },
     { name = "sqlite-vec", specifier = ">=0.1.6" },
     { name = "sse-starlette", specifier = ">=2.3.5" },
@@ -1315,6 +1318,7 @@ csharp = [{ name = "tree-sitter-c-sharp", specifier = ">=0.23.1" }]
 dev = [
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "ruff", specifier = ">=0.11.10" },
 ]
 gradio = [{ name = "gradio", specifier = ">=5.13.1,<6.0.0" }]
 mcp = [{ name = "mcp", extras = ["cli"], specifier = ">=1.6.0,<2.0.0" }]

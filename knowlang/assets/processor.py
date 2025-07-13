@@ -8,7 +8,10 @@ from knowlang.assets.models import (
 )
 from knowlang.assets.config import ProcessorConfigT
 
-DomainGenericT: TypeAlias = Generic[DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT]
+DomainGenericT: TypeAlias = Generic[
+    DomainDataT, AssetDataT, AssetChunkDataT, ProcessorConfigT
+]
+
 
 @dataclass
 class DomainContext(DomainGenericT):
@@ -17,31 +20,28 @@ class DomainContext(DomainGenericT):
     asset_chunks: List[AssetChunkDataT]
     config: ProcessorConfigT
 
+
 DomainCtxT: TypeAlias = DomainContext[DomainDataT, AssetDataT, AssetChunkDataT]
 
-class DomainContextInit():
-    def __init__(
-        self,
-        ctx: DomainCtxT
-    ) -> None:
+
+class DomainContextInit:
+    def __init__(self, ctx: DomainCtxT) -> None:
         self.ctx = ctx
 
-class DomainAssetSourceMixin(
-    ABC, DomainContextInit
-):
+
+class DomainAssetSourceMixin(ABC, DomainContextInit):
     """Base class for domain asset source managers."""
 
     @abstractmethod
     async def yield_all_assets(
-        self, ctx: DomainCtxT = None,
+        self,
+        ctx: DomainCtxT = None,
     ) -> AsyncGenerator[AssetDataT, None]:
         """Get all assets for the given asset ID."""
         pass
 
 
-class DomainAssetParserMixin(
-    ABC, DomainContextInit
-):
+class DomainAssetParserMixin(ABC, DomainContextInit):
     """Base class for domain asset parsers."""
 
     @abstractmethod
@@ -51,9 +51,8 @@ class DomainAssetParserMixin(
         """Parse the given assets."""
         pass
 
-class DomainAssetIndexingMixin(
-    ABC, DomainContextInit
-):
+
+class DomainAssetIndexingMixin(ABC, DomainContextInit):
     """Base class for domain asset indexing managers."""
 
     @abstractmethod
@@ -71,7 +70,7 @@ class DomainAssetIndexingMixin(
         pass
 
 
-class DomainProcessor():
+class DomainProcessor:
     source_mixin: DomainAssetSourceMixin
     indexing_mixin: DomainAssetIndexingMixin
     parser_mixin: DomainAssetParserMixin

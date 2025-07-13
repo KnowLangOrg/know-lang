@@ -1,7 +1,7 @@
 from .chat_graph import (
-    ChatStatus, 
-    stream_chat_progress, 
-    StreamingChatResult, 
+    ChatStatus,
+    stream_chat_progress,
+    StreamingChatResult,
 )
 
 __all__ = [

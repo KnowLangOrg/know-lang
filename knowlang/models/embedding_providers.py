@@ -23,9 +23,7 @@ def register_provider(provider: ModelProvider):
     """Decorator to register a provider function."""
 
     def decorator(
-        func: Callable[
-            [EmbeddingParams], List[EmbeddingVector]
-        ],
+        func: Callable[[EmbeddingParams], List[EmbeddingVector]],
     ):
         EMBEDDING_PROVIDER_REGISTRY[provider] = func
         return func
@@ -34,9 +32,7 @@ def register_provider(provider: ModelProvider):
 
 
 @register_provider(ModelProvider.NOMIC_AI)
-def _process_nomic_sentence_batch(
-    params: EmbeddingParams
-) -> List[EmbeddingVector]:
+def _process_nomic_sentence_batch(params: EmbeddingParams) -> List[EmbeddingVector]:
     from knowlang.models.nomic_ai.model import generate_embeddings
 
     inputs = params.inputs
@@ -46,11 +42,8 @@ def _process_nomic_sentence_batch(
     return generate_embeddings(inputs, model_name=model_name, input_type=input_type)
 
 
-
 @register_provider(ModelProvider.OLLAMA)
-def _process_ollama_batch(
-    params: EmbeddingParams
-) -> List[EmbeddingVector]:
+def _process_ollama_batch(params: EmbeddingParams) -> List[EmbeddingVector]:
     inputs = params.inputs
     model_name = params.cfg.model_name
 
@@ -65,9 +58,7 @@ def _process_ollama_batch(
 
 
 @register_provider(ModelProvider.OPENAI)
-def _process_openai_batch(
-    params: EmbeddingParams
-) -> List[EmbeddingVector]:
+def _process_openai_batch(params: EmbeddingParams) -> List[EmbeddingVector]:
     import openai
 
     inputs = params.inputs
@@ -78,9 +69,7 @@ def _process_openai_batch(
 
 
 @register_provider(ModelProvider.VOYAGE)
-def _process_voyage_batch(
-    params: EmbeddingParams
-) -> List[EmbeddingVector]:
+def _process_voyage_batch(params: EmbeddingParams) -> List[EmbeddingVector]:
     inputs = params.inputs
     model_name = params.cfg.model_name
     input_type = params.input_type
@@ -99,9 +88,7 @@ def _process_voyage_batch(
 
 
 @register_provider(ModelProvider.KNOWLANG)
-async def _process_knowlang_batch(
-    params: EmbeddingParams
-) -> List[EmbeddingVector]:
+async def _process_knowlang_batch(params: EmbeddingParams) -> List[EmbeddingVector]:
     """
     Generate embeddings using the KnowLang embedding model.
     Args:
@@ -113,14 +100,12 @@ async def _process_knowlang_batch(
     """
     import aiohttp
 
-
     inputs = params.inputs
     model_name = params.cfg.model_name
     input_type = params.input_type
     base_url = params.cfg.settings.get("base_url", None)
     if not base_url:
         raise ValueError("Base URL must be provided in the configuration settings.")
-    
 
     embeddings = []
     async with aiohttp.ClientSession() as session:
@@ -130,12 +115,12 @@ async def _process_knowlang_batch(
                 json={
                     "model": model_name,
                     "input": item,
-                    "input_type": input_type.value if input_type else 'document',
+                    "input_type": input_type.value if input_type else "document",
                 },
             ) as response:
                 if response.status != 200:
                     raise Exception(f"Failed to get embeddings: {response.status}")
                 data = await response.json()
-                embeddings += [e['embedding'] for e in data['data']]
+                embeddings += [e["embedding"] for e in data["data"]]
 
     return embeddings

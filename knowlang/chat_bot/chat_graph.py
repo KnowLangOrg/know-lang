@@ -14,7 +14,7 @@ from knowlang.assets.config import BaseDomainConfig
 from knowlang.chat_bot.nodes.base import ChatGraphDeps, ChatGraphState, ChatResult
 from knowlang.configs.chat_config import ChatConfig
 from knowlang.search import SearchResult
-from knowlang.utils import FancyLogger, create_pydantic_model, truncate_chunk
+from knowlang.utils import FancyLogger, create_pydantic_model
 from knowlang.models.types import EmbeddingInputType
 
 LOG = FancyLogger(__name__)
@@ -106,7 +106,9 @@ class RetrievalNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
             search_config = domain.search_config
             vector_store = VectorStoreFactory.get(vector_store_config)
             embedding_vec = await generate_embedding(
-                ctx.state.original_question, vector_store_config.embedding, EmbeddingInputType.QUERY
+                ctx.state.original_question,
+                vector_store_config.embedding,
+                EmbeddingInputType.QUERY,
             )
             vector_query = VectorQuery(
                 embedding=embedding_vec,
@@ -166,8 +168,6 @@ Remember: Your primary goal is answering the user's specific question, not expla
             )
 
         context = ctx.state.retrieved_context
-        for single_context in context:
-            chunk = truncate_chunk(single_context.document)
 
         prompt = f"""
 Question: {ctx.state.original_question}

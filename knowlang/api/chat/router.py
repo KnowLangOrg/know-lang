@@ -48,7 +48,7 @@ async def websocket_chat_stream(
             LOG.info(f"Received query via WebSocket: {query}")
             async for result in stream_chat_progress(query):
                 await websocket.send_text(result.model_dump_json())
-            
+
             await websocket.close(reason="Chat completed")
     except WebSocketDisconnect:
         LOG.info("Client disconnected from WebSocket chat stream.")

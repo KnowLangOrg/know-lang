@@ -1,4 +1,5 @@
-# to register vector stores to factory
+# TODO: ideally, we should refactor the register_vectorestore to be called in the factory instead of script intialization stage
+# ruff: noqa: F401
 from . import sqlite  # Add this line
 from . import chroma, postgres
 from .base import (

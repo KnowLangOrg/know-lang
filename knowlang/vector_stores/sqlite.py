@@ -4,7 +4,7 @@ import json
 import struct
 import uuid
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -21,15 +21,6 @@ from knowlang.vector_stores.base import (
 )
 from knowlang.vector_stores.factory import register_vector_store
 
-if TYPE_CHECKING:
-    try:
-        import sqlite3
-
-        import sqlite_vec
-    except ImportError as e:
-        raise ImportError(
-            'SQLite vector store is not installed. Please install it using `pip install "knowlang[sqlite]"`.'
-        ) from e
 
 LOG = FancyLogger(__name__)
 

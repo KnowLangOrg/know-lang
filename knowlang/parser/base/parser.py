@@ -11,13 +11,13 @@ from knowlang.core.types import CodeChunk, LanguageEnum
 
 class LanguageParser(ABC):
     """Abstract base class for language-specific parsers"""
-    
+
     def __init__(self, config: CodeProcessorConfig):
-        self.config : CodeProcessorConfig = config
-        self.language_name : LanguageEnum = None
-        self.language : Language = None
-        self.parser : Parser = None
-        self.language_config : LanguageConfig = None
+        self.config: CodeProcessorConfig = config
+        self.language_name: LanguageEnum = None
+        self.language: Language = None
+        self.parser: Parser = None
+        self.language_config: LanguageConfig = None
 
     @abstractmethod
     def setup(self) -> None:
