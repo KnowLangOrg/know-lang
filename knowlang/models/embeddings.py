@@ -4,7 +4,7 @@ from typing import List, Optional, Union, overload
 from knowlang.configs import EmbeddingConfig
 
 from .embedding_providers import EMBEDDING_PROVIDER_REGISTRY
-from .types import EmbeddingInputType, EmbeddingVector
+from .types import EmbeddingInputType, EmbeddingVector, EmbeddingParams
 
 
 def to_batch(input: Union[str, List[str]]) -> List[str]:
@@ -50,13 +50,19 @@ async def generate_embedding(
 
     if provider_function is None:
         raise ValueError(f"Unsupported provider: {config.model_provider}")
+    
+    params = EmbeddingParams(
+        cfg=config,
+        inputs=inputs,
+        input_type=input_type,
+    )
 
     try:
         if inspect.iscoroutinefunction(provider_function):
             # If the provider function is async, await it
-            embeddings = await provider_function(inputs, config.model_name, input_type)
+            embeddings = await provider_function(params)
         else:
-            embeddings = provider_function(inputs, config.model_name, input_type)
+            embeddings = provider_function(params)
         return embeddings[0] if isinstance(input, str) else embeddings
     except Exception as e:
         raise RuntimeError(f"Failed to generate embeddings: {str(e)}") from e
