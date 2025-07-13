@@ -152,7 +152,6 @@ class CodeQAChatInterface:
 
             with gr.Row():
                 submit = gr.Button("Submit", scale=1)
-                clear = gr.ClearButton([msg, chatbot], scale=1)
 
             async def respond(
                 message: str, history: List[ChatMessage], request: gr.Request

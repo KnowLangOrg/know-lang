@@ -14,7 +14,7 @@ from knowlang.assets.config import BaseDomainConfig
 from knowlang.chat_bot.nodes.base import ChatGraphDeps, ChatGraphState, ChatResult
 from knowlang.configs.chat_config import ChatConfig
 from knowlang.search import SearchResult
-from knowlang.utils import FancyLogger, create_pydantic_model, truncate_chunk
+from knowlang.utils import FancyLogger, create_pydantic_model
 from knowlang.models.types import EmbeddingInputType
 
 LOG = FancyLogger(__name__)
@@ -168,8 +168,6 @@ Remember: Your primary goal is answering the user's specific question, not expla
             )
 
         context = ctx.state.retrieved_context
-        for single_context in context:
-            chunk = truncate_chunk(single_context.document)
 
         prompt = f"""
 Question: {ctx.state.original_question}

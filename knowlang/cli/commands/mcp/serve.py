@@ -19,8 +19,6 @@ async def mcp_serve_command(args: MCPServeCommandArgs) -> None:
     registry = DomainRegistry(config)
     await registry.discover_and_register()
 
-    # Set up logging level
-    log_level = "DEBUG" if args.verbose else "INFO"
     LOG.info(f"Starting Knowlang MCP server on {args.host}:{args.port}")
 
     # Create and start the server

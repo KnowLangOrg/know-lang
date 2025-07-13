@@ -128,24 +128,6 @@ class MockVectorStore(VectorStore):
     ) -> List[SearchResult]:
         return await super().vector_serach(query_embedding, top_k, score_threshold)
 
-    def accumulate_result(
-        self,
-        acc: List[SearchResult],
-        record: str,
-        score_threshold: Optional[float] = None,
-    ) -> List[SearchResult]:
-        doc_id, dist = record
-        score = 1.0 - dist  # Convert distance to similarity score
-        if score_threshold is None or score >= score_threshold:
-            acc.append(
-                SearchResult(
-                    document=self.documents[doc_id],
-                    metadata=self.metadata[doc_id],
-                    score=float(score),
-                )
-            )
-        return acc
-
     async def query(
         self, query_embedding: List[float], top_k: int = 5
     ) -> List[Tuple[str, float, Dict[str, Any]]]:

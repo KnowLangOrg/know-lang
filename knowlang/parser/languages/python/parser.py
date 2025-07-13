@@ -159,13 +159,6 @@ class PythonParser(LanguageParser):
                 f"Could not find function name in node: {function_node.text}"
             )
 
-        # Get decorators
-        decorators = [
-            child.text.decode("utf-8").strip("@")
-            for child in node.children
-            if child.type == "decorator"
-        ]
-
         # Determine if this is a method within a class
         parent_node = node.parent
         parent_name = None
@@ -214,13 +207,6 @@ class PythonParser(LanguageParser):
 
         if not name:
             raise ValueError(f"Could not find class name in node: {class_node.text}")
-
-        # Get decorators
-        decorators = [
-            child.text.decode("utf-8").strip("@")
-            for child in node.children
-            if child.type == "decorator"
-        ]
 
         return CodeChunk(
             language=self.language_name,
