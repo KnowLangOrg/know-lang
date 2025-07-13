@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 
-from knowlang.configs.config import AppConfig
+from knowlang.database.config import VectorStoreConfig
 from knowlang.mcp.common import KnowLangTool, Singleton
 from knowlang.models.types import EmbeddingInputType
 from knowlang.search.base import SearchMethodology
@@ -19,11 +19,11 @@ class VectorSearchTool(KnowLangTool, metaclass=Singleton):
 Search code snippets through vector embeddings with natual language queries. 
 It's a powerful tool for finding relevant code snippets fast based on their semantic meaning rather than going through the filesystem.
 """
-    config: AppConfig = None
+    config: VectorStoreConfig = None
     vector_store: VectorStore = None
 
     @classmethod
-    def initialize(cls, config: AppConfig) -> "VectorSearchTool":
+    def initialize(cls, config: VectorStoreConfig) -> "VectorSearchTool":
         _instance = VectorSearchTool()
 
         from knowlang.vector_stores.factory import VectorStoreFactory
@@ -45,7 +45,7 @@ It's a powerful tool for finding relevant code snippets fast based on their sema
 
         vector_query = VectorQuery(
             embedding=embedding,
-            top_k=100,  # TODO: make this configurable
+            top_k=10,  # TODO: make this configurable
         )
 
         results = await instance.vector_store.search(
