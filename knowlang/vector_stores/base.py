@@ -5,7 +5,6 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from knowlang.configs.config import AppConfig
 from knowlang.database.config import VectorStoreConfig
 from knowlang.search import SearchResult
 from knowlang.search.base import SearchMethodology
@@ -117,12 +116,6 @@ class VectorStore(SearchableStore):
         raise NotImplementedError(
             "VectorStore subclasses must implement the from_cfg method to create an instance from configuration."
         )
-
-    @classmethod
-    @abstractmethod
-    def create_from_config(config: AppConfig) -> "VectorStore":
-        """Create a VectorStore instance from configuration"""
-        pass
 
     @classmethod
     @abstractmethod
