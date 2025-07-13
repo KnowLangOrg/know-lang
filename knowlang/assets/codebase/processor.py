@@ -9,7 +9,6 @@ from knowlang.assets.processor import (
     DomainContext,
 )
 from knowlang.assets.codebase.models import (
-    CodebaseMetaData,
     CodeAssetMetaData,
     CodeAssetChunkMetaData,
     CodebaseManagerData,
@@ -30,10 +29,10 @@ CodebaseConfigType: TypeAlias = CodeProcessorConfig
 
 # Main context type alias
 CodebaseDomainContext: TypeAlias = DomainContext[
-        CodebaseManagerData,
-        CodeAssetData, 
-        CodeAssetChunkData,
-    ]
+    CodebaseManagerData,
+    CodeAssetData,
+    CodeAssetChunkData,
+]
 
 
 class CodebaseAssetSource(DomainAssetSourceMixin):
@@ -50,6 +49,7 @@ class CodebaseAssetSource(DomainAssetSourceMixin):
 
         import zlib
         from git import Repo, InvalidGitRepositoryError
+
         assert isinstance(ctx.config, CodeProcessorConfig)
 
         domain = ctx.domain
@@ -102,6 +102,7 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
     ) -> None:
         super().__init__(ctx)
         from knowlang.vector_stores.factory import VectorStoreFactory
+
         self.vector_store = VectorStoreFactory.get(ctx.config.vector_store)
 
     async def index_chunks(
@@ -115,6 +116,7 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
             self.ctx.asset_chunks.extend(chunks)
 
         from knowlang.models import generate_embedding
+
         embedding_cfg = self.ctx.config.vector_store.embedding
 
         for chunk in chunks:
@@ -126,16 +128,22 @@ class CodebaseAssetIndexing(DomainAssetIndexingMixin):
                 metadatas=[chunk.meta.model_dump()],
                 ids=[chunk.id],
             )
-        
-        if chunks:
-            LOG.debug(f"Indexed {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
 
-    async def delete_chunks(self, chunks: List[CodeAssetChunkData], ctx: CodebaseDomainContext = None) -> None:
+        if chunks:
+            LOG.debug(
+                f"Indexed {len(chunks)} asset chunks from domain: {self.ctx.domain.name}"
+            )
+
+    async def delete_chunks(
+        self, chunks: List[CodeAssetChunkData], ctx: CodebaseDomainContext = None
+    ) -> None:
         """Delete the given asset chunks."""
         if ctx is not None:
             self.ctx = ctx
-        
-        LOG.debug(f"Try deleting {len(chunks)} asset chunks from domain: {self.ctx.domain.name}")
+
+        LOG.debug(
+            f"Try deleting {len(chunks)} asset chunks from domain: {self.ctx.domain.name}"
+        )
         await self.vector_store.delete(ids=[chunk.id for chunk in chunks])
 
 
@@ -169,14 +177,19 @@ class CodebaseAssetParser(DomainAssetParserMixin):
                 LOG.debug(f"No parser found for file: {file_path}, skipping.")
                 continue
 
-            LOG.debug(f"Parsing file: {file_path} with parser: {parser.__class__.__name__}")
+            LOG.debug(
+                f"Parsing file: {file_path} with parser: {parser.__class__.__name__}"
+            )
             _chunks_raw = await parser.parse_file(file_path)
-            curr_chunks = [CodeAssetChunkData(
+            curr_chunks = [
+                CodeAssetChunkData(
                     id=chunk.location.to_single_line(),
                     asset_id=asset.id,
                     content=chunk.content,
                     meta=CodeAssetChunkMetaData.from_code_chunk(chunk),
-                ) for chunk in _chunks_raw]
+                )
+                for chunk in _chunks_raw
+            ]
 
             chunks.extend(curr_chunks)
 

@@ -9,7 +9,7 @@ LOG = FancyLogger(__name__)
 
 async def parse_command(args: ParseCommandArgs) -> None:
     """Execute the parse command.
-    
+
     Args:
         args: Typed command line arguments
     """

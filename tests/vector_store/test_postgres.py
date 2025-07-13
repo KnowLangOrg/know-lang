@@ -105,7 +105,7 @@ class TestPostgresVectorStore:
         # Verify content field was added to metadata
         for i, (id, emb, meta) in enumerate(records):
             assert meta["content"] == documents[i]
-            assert meta["field"] == f"value{i+1}"  # Original metadata preserved
+            assert meta["field"] == f"value{i + 1}"  # Original metadata preserved
 
     @pytest.mark.asyncio
     async def test_update_document_with_content_field(self):
@@ -175,4 +175,4 @@ class TestPostgresVectorStore:
         # Verify original metadata is preserved but no content field added
         for i, (id, emb, meta) in enumerate(records):
             assert "content" not in meta
-            assert meta["field"] == f"value{i+1}"
+            assert meta["field"] == f"value{i + 1}"

@@ -106,7 +106,9 @@ class RetrievalNode(BaseNode[ChatGraphState, ChatGraphDeps, ChatResult]):
             search_config = domain.search_config
             vector_store = VectorStoreFactory.get(vector_store_config)
             embedding_vec = await generate_embedding(
-                ctx.state.original_question, vector_store_config.embedding, EmbeddingInputType.QUERY
+                ctx.state.original_question,
+                vector_store_config.embedding,
+                EmbeddingInputType.QUERY,
             )
             vector_query = VectorQuery(
                 embedding=embedding_vec,

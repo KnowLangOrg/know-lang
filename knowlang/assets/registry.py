@@ -297,9 +297,9 @@ class DomainRegistry:
         seen_asset_ids: Set[str] = set()
 
         async for asset in processor.source_mixin.yield_all_assets():
-            assert isinstance(
-                asset, GenericAssetData
-            ), "Asset must be of type GenericAssetData"
+            assert isinstance(asset, GenericAssetData), (
+                "Asset must be of type GenericAssetData"
+            )
             asset_batch.append(asset)
             seen_asset_ids.add(asset.id)
 

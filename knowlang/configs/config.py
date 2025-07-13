@@ -1,16 +1,13 @@
 import fnmatch
-from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
-from knowlang.configs.defaults import DEFAULT_VECTOR_COLLECTION_NAME
 from knowlang.configs.llm_config import LLMConfig
-from knowlang.core.types import ModelProvider, VectorStoreProvider
+from knowlang.core.types import ModelProvider
 
 from .base import _validate_api_key
-from .state_store_config import StateStoreConfig
 
 
 class PathPatterns(BaseSettings):
@@ -53,7 +50,8 @@ class LanguageConfig(BaseSettings):
         description="Types of code chunks to extract",
     )
     max_file_size: int = Field(
-        default=1_000_000, description="Maximum file size to process in bytes"  # 1MB
+        default=1_000_000,
+        description="Maximum file size to process in bytes",  # 1MB
     )
 
 

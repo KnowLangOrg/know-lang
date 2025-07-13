@@ -1,5 +1,3 @@
 from .base import ApiModelRegistry
 
-__all__ = [
-    "ApiModelRegistry"
-]
+__all__ = ["ApiModelRegistry"]

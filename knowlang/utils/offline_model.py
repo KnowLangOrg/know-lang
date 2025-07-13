@@ -1,4 +1,3 @@
-
 from pydantic_ai.models import Model
 from pydantic_ai.messages import ModelResponse, TextPart
 
@@ -12,11 +11,12 @@ class OfflineModel(Model):
     ) -> ModelResponse:
         return ModelResponse(
             parts=[
-                TextPart(content="This is an offline model. No actual request will be made.")
+                TextPart(
+                    content="This is an offline model. No actual request will be made."
+                )
             ],
             model_name=self.model_name,
         )
-
 
     @property
     def model_name(self) -> str:

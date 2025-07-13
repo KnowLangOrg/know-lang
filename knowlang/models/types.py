@@ -10,6 +10,7 @@ class EmbeddingInputType(Enum):
     DOCUMENT = "document"
     QUERY = "query"
 
+
 class EmbeddingParams(BaseModel):
     cfg: EmbeddingConfig
     inputs: List[str]

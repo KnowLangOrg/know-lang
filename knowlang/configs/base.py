@@ -38,21 +38,19 @@ def get_resource_path(relative_path: str, default_path: Optional[str] = None) ->
 
     # If we get here, none of the paths exist
     attempted_paths = [str(Path.cwd() / path) for path in paths_to_try]
-    raise FileNotFoundError(
-        f"Resource not found. Attempted paths: {attempted_paths}"
-    )
+    raise FileNotFoundError(f"Resource not found. Attempted paths: {attempted_paths}")
 
 
 def generate_model_config(
-    env_dir: Path = Path("settings"), 
-    env_file: Path = ".env", 
+    env_dir: Path = Path("settings"),
+    env_file: Path = ".env",
     env_prefix: str = "",
-    default_env_file: Optional[Path] = None
+    default_env_file: Optional[Path] = None,
 ) -> SettingsConfigDict:
     # Use PyInstaller-aware path resolution with optional default path
     env_file_path = get_resource_path(
-        str(env_dir / env_file), 
-        default_path=str(env_dir / default_env_file) if default_env_file else None
+        str(env_dir / env_file),
+        default_path=str(env_dir / default_env_file) if default_env_file else None,
     )
 
     return SettingsConfigDict(

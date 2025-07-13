@@ -50,7 +50,7 @@ async def generate_embedding(
 
     if provider_function is None:
         raise ValueError(f"Unsupported provider: {config.model_provider}")
-    
+
     params = EmbeddingParams(
         cfg=config,
         inputs=inputs,

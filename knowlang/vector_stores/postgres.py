@@ -95,7 +95,7 @@ class PostgresVectorStore(VectorStore):
 
         try:
             self.collection.create_index(measure=self.measure(), replace=False)
-        except Exception as e:
+        except Exception:
             # index already exists, ignore
             LOG.info(f"Index already exists for collection {self.table_name}")
             return

@@ -5,8 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from knowlang.cli.commands.parse import parse_command
-from knowlang.cli.types import ParseCommandArgs
 from knowlang.core.types import CodeChunk
 from knowlang.vector_stores.mock import MockVectorStore
 

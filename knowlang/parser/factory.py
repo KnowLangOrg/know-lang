@@ -2,12 +2,12 @@ from pathlib import Path
 from typing import Dict, Optional, Type
 
 from knowlang.parser.base.parser import CodeProcessorConfig, LanguageParser
-from knowlang.core.types import LanguageEnum 
+from knowlang.core.types import LanguageEnum
 
 
 class CodeParserFactory:
     """Concrete implementation of parser factory"""
-    
+
     def __init__(self, config: CodeProcessorConfig):
         self.config = config
         self._parsers: Dict[str, LanguageParser] = {}
@@ -36,7 +36,10 @@ class CodeParserFactory:
 
         # Find parser class for this extension
         for lang, parser_class in self._parser_classes.items():
-            if lang not in self.config.languages or not self.config.languages[lang].enabled:
+            if (
+                lang not in self.config.languages
+                or not self.config.languages[lang].enabled
+            ):
                 continue
             parser = self._parsers.get(lang)
             if parser is None:

@@ -1,4 +1,5 @@
 """Expected test results for C# parser tests"""
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
@@ -7,6 +8,7 @@ from typing import Dict, Optional
 @dataclass
 class ChunkExpectation:
     """Expected values for a code chunk"""
+
     name: str
     docstring: str
     content_snippet: str
@@ -16,28 +18,28 @@ class ChunkExpectation:
 
 def get_test_file_path(filename: str) -> Path:
     """Get the path to a test file"""
-    test_files_dir = Path(__file__).parent / 'test_files'
+    test_files_dir = Path(__file__).parent / "test_files"
     return test_files_dir / filename
 
 
 def get_test_file_content(filename: str) -> str:
     """Get the content of a test file"""
     file_path = get_test_file_path(filename)
-    return file_path.read_text(encoding='utf-8')
+    return file_path.read_text(encoding="utf-8")
 
 
 def get_all_test_files() -> list[Path]:
     """Get all test files in the test_files directory"""
-    test_files_dir = Path(__file__).parent / 'test_files'
-    return list(test_files_dir.glob('*.cs'))
+    test_files_dir = Path(__file__).parent / "test_files"
+    return list(test_files_dir.glob("*.cs"))
 
 
 # Test expectations for each file
 SIMPLE_FILE_EXPECTATIONS = {
-    'HelloWorld': ChunkExpectation(
-        name='HelloWorld',
-        docstring='A simple hello world class',
-        content_snippet='public class HelloWorld'
+    "HelloWorld": ChunkExpectation(
+        name="HelloWorld",
+        docstring="A simple hello world class",
+        content_snippet="public class HelloWorld",
     ),
     # 'SayHello': ChunkExpectation(
     #     name='SayHello',
@@ -51,10 +53,10 @@ SIMPLE_FILE_EXPECTATIONS = {
     #     content_snippet='public void DoSomething()',
     #     class_name='HelloWorld'
     # ),
-    'Person': ChunkExpectation(
-        name='Person',
-        docstring='A simple data class',
-        content_snippet='public class Person'
+    "Person": ChunkExpectation(
+        name="Person",
+        docstring="A simple data class",
+        content_snippet="public class Person",
     ),
     # 'GetInfo': ChunkExpectation(
     #     name='GetInfo',
@@ -65,23 +67,23 @@ SIMPLE_FILE_EXPECTATIONS = {
 }
 
 COMPLEX_FILE_EXPECTATIONS = {
-    'DeprecatedAttribute': ChunkExpectation(
-        name='DeprecatedAttribute',
-        docstring='Marks a class as deprecated with a custom message',
-        content_snippet='public class DeprecatedAttribute : Attribute',
-        namespace='MyApplication.Services'
+    "DeprecatedAttribute": ChunkExpectation(
+        name="DeprecatedAttribute",
+        docstring="Marks a class as deprecated with a custom message",
+        content_snippet="public class DeprecatedAttribute : Attribute",
+        namespace="MyApplication.Services",
     ),
-    'IRepository': ChunkExpectation(
-        name='IRepository',
-        docstring='Generic repository interface for data access',
-        content_snippet='public interface IRepository<T> where T : class',
-        namespace='MyApplication.Services'
+    "IRepository": ChunkExpectation(
+        name="IRepository",
+        docstring="Generic repository interface for data access",
+        content_snippet="public interface IRepository<T> where T : class",
+        namespace="MyApplication.Services",
     ),
-    'GenericRepository': ChunkExpectation(
-        name='GenericRepository',
-        docstring='Generic repository implementation',
-        content_snippet='public class GenericRepository<T> : IRepository<T>',
-        namespace='MyApplication.Services'
+    "GenericRepository": ChunkExpectation(
+        name="GenericRepository",
+        docstring="Generic repository implementation",
+        content_snippet="public class GenericRepository<T> : IRepository<T>",
+        namespace="MyApplication.Services",
     ),
     # 'GetAllAsync': ChunkExpectation(
     #     name='GetAllAsync',
@@ -104,11 +106,11 @@ COMPLEX_FILE_EXPECTATIONS = {
     #     namespace='MyApplication.Services',
     #     class_name='GenericRepository'
     # ),
-    'User': ChunkExpectation(
-        name='User',
-        docstring='Represents a user in the system',
-        content_snippet='public class User',
-        namespace='MyApplication.Models'
+    "User": ChunkExpectation(
+        name="User",
+        docstring="Represents a user in the system",
+        content_snippet="public class User",
+        namespace="MyApplication.Models",
     ),
     # 'IsValid': ChunkExpectation(
     #     name='IsValid',
@@ -120,11 +122,11 @@ COMPLEX_FILE_EXPECTATIONS = {
 }
 
 NESTED_FILE_EXPECTATIONS = {
-    'OuterClass': ChunkExpectation(
-        name='OuterClass',
-        docstring='Outer class demonstrating nesting capabilities',
-        content_snippet='public class OuterClass',
-        namespace='MyApplication.Advanced'
+    "OuterClass": ChunkExpectation(
+        name="OuterClass",
+        docstring="Outer class demonstrating nesting capabilities",
+        content_snippet="public class OuterClass",
+        namespace="MyApplication.Advanced",
     ),
     # 'OuterMethod': ChunkExpectation(
     #     name='OuterMethod',
@@ -133,11 +135,11 @@ NESTED_FILE_EXPECTATIONS = {
     #     namespace='MyApplication.Advanced',
     #     class_name='OuterClass'
     # ),
-    'StringExtensions': ChunkExpectation(
-        name='StringExtensions',
-        docstring='Static class with extension methods',
-        content_snippet='public static class StringExtensions',
-        namespace='MyApplication.Advanced'
+    "StringExtensions": ChunkExpectation(
+        name="StringExtensions",
+        docstring="Static class with extension methods",
+        content_snippet="public static class StringExtensions",
+        namespace="MyApplication.Advanced",
     ),
     # 'IsNullOrEmpty': ChunkExpectation(
     #     name='IsNullOrEmpty',
@@ -156,17 +158,17 @@ NESTED_FILE_EXPECTATIONS = {
 }
 
 ADVANCED_FEATURES_EXPECTATIONS = {
-    'NotificationEventArgs': ChunkExpectation(
-        name='NotificationEventArgs',
-        docstring='Event arguments for notification events',
-        content_snippet='public class NotificationEventArgs : EventArgs',
-        namespace='MyApplication.Events'
+    "NotificationEventArgs": ChunkExpectation(
+        name="NotificationEventArgs",
+        docstring="Event arguments for notification events",
+        content_snippet="public class NotificationEventArgs : EventArgs",
+        namespace="MyApplication.Events",
     ),
-    'NotificationService': ChunkExpectation(
-        name='NotificationService',
-        docstring='Service class demonstrating events and delegates',
-        content_snippet='public class NotificationService',
-        namespace='MyApplication.Events'
+    "NotificationService": ChunkExpectation(
+        name="NotificationService",
+        docstring="Service class demonstrating events and delegates",
+        content_snippet="public class NotificationService",
+        namespace="MyApplication.Events",
     ),
     # 'SendNotification': ChunkExpectation(
     #     name='SendNotification',
@@ -185,10 +187,10 @@ ADVANCED_FEATURES_EXPECTATIONS = {
 }
 
 MODERN_CSHARP_EXPECTATIONS = {
-    'Person': ChunkExpectation(
-        name='Person',
-        docstring='A record type representing a person',
-        content_snippet='public record Person(string FirstName, string LastName, int Age)'
+    "Person": ChunkExpectation(
+        name="Person",
+        docstring="A record type representing a person",
+        content_snippet="public record Person(string FirstName, string LastName, int Age)",
     ),
     # 'IsAdult': ChunkExpectation(
     #     name='IsAdult',
@@ -196,10 +198,10 @@ MODERN_CSHARP_EXPECTATIONS = {
     #     content_snippet='public bool IsAdult() => Age >= 18;',
     #     class_name='Person'
     # ),
-    'Point': ChunkExpectation(
-        name='Point',
-        docstring='A record struct for coordinates',
-        content_snippet='public readonly record struct Point(double X, double Y)'
+    "Point": ChunkExpectation(
+        name="Point",
+        docstring="A record struct for coordinates",
+        content_snippet="public readonly record struct Point(double X, double Y)",
     ),
     # 'DistanceFromOrigin': ChunkExpectation(
     #     name='DistanceFromOrigin',
@@ -207,10 +209,10 @@ MODERN_CSHARP_EXPECTATIONS = {
     #     content_snippet='public double DistanceFromOrigin() => Math.Sqrt(X * X + Y * Y);',
     #     class_name='Point'
     # ),
-    'PatternMatchingExample': ChunkExpectation(
-        name='PatternMatchingExample',
-        docstring='Class demonstrating pattern matching and switch expressions',
-        content_snippet='public static class PatternMatchingExample'
+    "PatternMatchingExample": ChunkExpectation(
+        name="PatternMatchingExample",
+        docstring="Class demonstrating pattern matching and switch expressions",
+        content_snippet="public static class PatternMatchingExample",
     ),
     # 'DescribeObject': ChunkExpectation(
     #     name='DescribeObject',
@@ -222,11 +224,11 @@ MODERN_CSHARP_EXPECTATIONS = {
 
 # All expectations combined for easy access
 ALL_EXPECTATIONS: Dict[str, Dict[str, ChunkExpectation]] = {
-    'simple.cs': SIMPLE_FILE_EXPECTATIONS,
-    'complex.cs': COMPLEX_FILE_EXPECTATIONS,
-    'nested.cs': NESTED_FILE_EXPECTATIONS,
-    'advanced_features.cs': ADVANCED_FEATURES_EXPECTATIONS,
-    'modern.cs': MODERN_CSHARP_EXPECTATIONS
+    "simple.cs": SIMPLE_FILE_EXPECTATIONS,
+    "complex.cs": COMPLEX_FILE_EXPECTATIONS,
+    "nested.cs": NESTED_FILE_EXPECTATIONS,
+    "advanced_features.cs": ADVANCED_FEATURES_EXPECTATIONS,
+    "modern.cs": MODERN_CSHARP_EXPECTATIONS,
 }
 
 
