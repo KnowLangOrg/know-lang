@@ -5,6 +5,7 @@ KnowLang uses [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pyda
 ## Quick Start
 
 1. Copy the example configuration files:
+
 ```bash
 cp settings/.env.example.app settings/.env.app
 cp settings/app_config.example.json settings/app_config.json
@@ -18,7 +19,7 @@ KnowLang supports multiple configuration methods:
 
 1. **Environment Variables**: Set directly in your environment
 2. **`.env` Files**: Settings in `.env.app` file
-3. **JSON Configuration**: Settings in `app_config.json` file 
+3. **JSON Configuration**: Settings in `app_config.json` file
 4. **Programmatic**: Create config objects in code
 
 Environment variables take precedence over .env files, which take precedence over JSON configuration.
@@ -26,6 +27,7 @@ Environment variables take precedence over .env files, which take precedence ove
 ## Core Settings
 
 ### LLM Settings
+
 ```env
 # Default is Ollama with llama3.2
 LLM__MODEL_NAME=llama3.2
@@ -35,11 +37,13 @@ LLM__MODEL_SETTINGS='{"base_url":"http://127.0.0.1:11434/v1"}'
 ```
 
 Supported providers:
+
 - `ollama`: Local models through Ollama
 - `openai`: OpenAI models (requires API key)
 - `anthropic`: Anthropic models (requires API key)
 
 ### Embedding Settings
+
 ```env
 # Default uses the nomic-ai CodeRankEmbed model
 EMBEDDING__MODEL_NAME=nomic-ai/CodeRankEmbed
@@ -49,9 +53,11 @@ EMBEDDING__DIMENSION=768  # Default dimension of graphcodebert
 ```
 
 ### Database Settings
+
 Please refer to [database_setup.md](database_setup.md).
 
 ### Parser Settings
+
 ```env
 # Language support and file patterns
 PARSER__LANGUAGES='{"python": {"enabled": true, "file_extensions": [".py"], "tree_sitter_language": "python", "chunk_types": ["class_definition", "function_definition"], "max_file_size": 1000000}, "cpp": {"enabled": true, "file_extensions": [".cpp", ".h", ".hpp", ".cc"], "tree_sitter_language": "cpp", "chunk_types": ["class_definition", "function_definition"], "max_file_size": 1000000}, "typescript": {"enabled": true, "file_extensions": [".ts", ".tsx"], "tree_sitter_language": "typescript", "chunk_types": ["class_definition", "function_definition"], "max_file_size": 1000000}}'
@@ -59,62 +65,12 @@ PARSER__LANGUAGES='{"python": {"enabled": true, "file_extensions": [".py"], "tre
 PARSER__PATH_PATTERNS='{"include": ["**/*"], "exclude": ["**/venv/**", "**/.git/**", "**/__pycache__/**", "**/tests/**"]}'
 ```
 
-### Two-Stage Retrieval Configuration
-```env
-# Retrieval Configuration
-RETRIEVAL__ENABLED=true
-
-# Vector Search Configuration
-RETRIEVAL__VECTOR_SEARCH__ENABLED=true
-RETRIEVAL__VECTOR_SEARCH__TOP_K=10
-RETRIEVAL__VECTOR_SEARCH__SCORE_THRESHOLD=0.0
-RETRIEVAL__VECTOR_SEARCH__MAX_RETRIES=5
-
-# Keyword Search Configuration
-RETRIEVAL__KEYWORD_SEARCH__ENABLED=true
-RETRIEVAL__KEYWORD_SEARCH__TOP_K=10
-RETRIEVAL__KEYWORD_SEARCH__SCORE_THRESHOLD=0.0
-RETRIEVAL__KEYWORD_SEARCH__MAX_RETRIES=5
-```
-
-In the JSON configuration, this would look like:
-
-```json
-"retrieval": {
-  "enabled": true,
-  "keyword_search": {
-    "enabled": true,
-    "top_k": 10,
-    "score_threshold": 0.0,
-    "max_retries": 5
-  },
-  "vector_search": {
-    "enabled": true,
-    "top_k": 10,
-    "score_threshold": 0.0,
-    "max_retries": 5
-  }
-}
-```
-
-### Reranker Configuration
-```env
-# Reranker Configuration
-RERANKER__ENABLED=true
-RERANKER__MODEL_NAME=KnowLang/RerankerCodeBERT
-RERANKER__MODEL_PROVIDER=graph_code_bert
-RERANKER__API_KEY=your_api_key
-RERANKER__TOP_K=5
-RERANKER__RELEVANCE_THRESHOLD=0.1
-```
-
-The `graph_code_bert` provider implements the GraphCodeBERT model for more effective code search reranking.
-
 ## Advanced Configuration
 
 ### Using Multiple Models
 
 You can configure different models for different purposes:
+
 ```env
 # Main LLM for responses
 LLM__MODEL_NAME=llama3.2
@@ -131,6 +87,7 @@ CHAT__LLM__MODEL_PROVIDER=ollama
 ```
 
 ### Analytics Integration
+
 ```env
 CHAT_ANALYTICS__ENABLED=false
 CHAT_ANALYTICS__PROVIDER=mixpanel
@@ -173,18 +130,12 @@ For detailed configuration, you can use the JSON format in `app_config.json`. He
     },
     "path_patterns": {
       "include": ["**/*"],
-      "exclude": ["**/venv/**", "**/.git/**", "**/__pycache__/**", "**/tests/**"]
-    }
-  },
-  "retrieval": {
-    "enabled": true,
-    "keyword_search": {
-      "enabled": true,
-      "top_k": 10
-    },
-    "vector_search": {
-      "enabled": true,
-      "top_k": 10
+      "exclude": [
+        "**/venv/**",
+        "**/.git/**",
+        "**/__pycache__/**",
+        "**/tests/**"
+      ]
     }
   }
 }

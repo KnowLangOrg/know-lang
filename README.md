@@ -11,7 +11,6 @@ KnowLang is an advanced codebase exploration tool that helps software engineers 
 - 🔍 **Semantic Code Search**: Find relevant code snippets based on natural language queries
 - 📚 **Contextual Q&A**: Get detailed explanations about code functionality and implementation details
 - 🎯 **Smart Chunking**: Intelligent code parsing that preserves semantic meaning
-- 🔄 **Two-Stage Retrieval**: Powerful multi-stage retrieval pipeline with keyword search, vector embedding search, and relevance reranking
 - 🌐 **Multi-Language Support**: Support for Python, C++, TypeScript, with more languages on the roadmap
 - 📈 **Incremental Updates**: Efficiently update your index when code changes without reprocessing the entire codebase
 
@@ -197,28 +196,6 @@ KnowLang supports efficient incremental updates to your code index:
 3. Only processing modified files rather than the entire codebase
 4. Maintaining index consistency by removing outdated chunks
 5. Adding new chunks for modified or added files
-
-### Two-Stage Retrieval System
-
-The RAG system uses a sophisticated multi-stage retrieval process:
-
-1. **First Stage**: Recall relevant code chunks using:
-
-   - Keyword-based search for exact matches
-   - Vector embedding search for semantic similarity
-   - Combined results from both approaches
-
-2. **Second Stage**: Rerank results using:
-
-   - GraphCodeBERT cross-encoder for more accurate relevance scoring
-   - Filtering based on relevance threshold
-   - Limited to top-K most relevant chunks
-
-3. **Response Generation**:
-   - Combine reranked chunks as context
-   - Generate LLM response with the enhanced context
-
-> ⚠️ Warning: the reranker is not yet fully implemented, hence reranking stage is disabled by default.
 
 ## MCP Integration
 

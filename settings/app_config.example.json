@@ -1,110 +1,100 @@
 {
-    "llm": {
-      "model_name": "llama3.2",
-      "model_provider": "ollama",
-      "api_key": "your_api_key",
-      "model_settings": {
-        "base_url": "http://127.0.0.1:11434/v1"
-      }
-    },
-    "evaluator": {
-      "model_name": "llama3.2",
-      "model_provider": "ollama",
-      "api_key": "your_api_key",
-      "evaluation_rounds": 1,
-      "model_settings": {}
-    },
-    "reranker": {
-      "enabled": true,
-      "model_name": "KnowLang/RerankerCodeBERT",
-      "model_provider": "graph_code_bert",
-      "api_key": "your_api_key",
-      "top_k": 5,
-      "relevance_threshold": 0.1
-    },
-    "db": {
-      "db_provider": "postgres",
-      "connection_url": "postgresql://postgres:postgres@localhost:5432/postgres",
-      "persist_directory": "./chromadb/mycode",
-      "collection_name": "code",
-      "codebase_directory": ".",
-      "codebase_url": null,
-      "similarity_metric": "cosine",
-      "content_field": "content",
-      "state_store": {
-        "provider": "postgres",
-        "store_path": "./statedb/file_state.db",
-        "connection_url": "postgresql://postgres:postgres@localhost:5432/postgres",
-        "pool_size": 5,
-        "max_overflow": 10,
-        "pool_timeout": 30,
-        "pool_recycle": 3600,
-        "echo": false,
-        "extra_config": {}
-      }
-    },
-    "parser": {
-      "languages": {
-        "python": {
-          "enabled": true,
-          "file_extensions": [".py"],
-          "tree_sitter_language": "python",
-          "chunk_types": ["class_definition", "function_definition"],
-          "max_file_size": 1000000
-        },
-        "cpp": {
-          "enabled": true,
-          "file_extensions": [".cpp", ".h", ".hpp", ".cc"],
-          "tree_sitter_language": "cpp",
-          "chunk_types": ["class_definition", "function_definition"],
-          "max_file_size": 1000000
-        },
-        "typescript": {
-          "enabled": true,
-          "file_extensions": [".ts", ".tsx"],
-          "tree_sitter_language": "typescript",
-          "chunk_types": ["class_definition", "function_definition"],
-          "max_file_size": 1000000
-        },
-        "unity_asset": {
-          "enabled": true,
-          "file_extensions": [".asset"],
-          "tree_sitter_language": "unity_asset",
-          "chunk_types": ["function_definition"],
-          "max_file_size": 1000000
-        }
-      },
-      "path_patterns": {
-        "include": ["**/*"],
-        "exclude": ["**/venv/**", "**/.git/**", "**/__pycache__/**", "**/tests/**"]
-      },
-      "enable_code_summarization": false
-    },
-    "embedding": {
-      "model_name": "KnowLang/graphcodebert-codesearch-python",
-      "model_provider": "graph_code_bert",
-      "api_key": "your_api_key",
-      "dimension": 768,
-      "settings": {}
-    },
-    "chat_analytics": {
-      "enabled": false,
-      "provider": "mixpanel",
-      "api_key": "your_api_key"
-    },
-    "retrieval": {
-      "enabled": true,
-      "keyword_search": {
-        "enabled": true,
-        "top_k": 10,
-        "score_threshold": 0.0,
-        "max_retries": 5
-      },
-      "vector_search": {
-        "enabled": true,
-        "top_k": 10,
-        "score_threshold": 0.0,
-        "max_retries": 5
-      }
+  "llm": {
+    "model_name": "llama3.2",
+    "model_provider": "ollama",
+    "api_key": "your_api_key",
+    "model_settings": {
+      "base_url": "http://127.0.0.1:11434/v1"
     }
+  },
+  "evaluator": {
+    "model_name": "llama3.2",
+    "model_provider": "ollama",
+    "api_key": "your_api_key",
+    "evaluation_rounds": 1,
+    "model_settings": {}
+  },
+  "reranker": {
+    "enabled": true,
+    "model_name": "KnowLang/RerankerCodeBERT",
+    "model_provider": "graph_code_bert",
+    "api_key": "your_api_key",
+    "top_k": 5,
+    "relevance_threshold": 0.1
+  },
+  "db": {
+    "db_provider": "postgres",
+    "connection_url": "postgresql://postgres:postgres@localhost:5432/postgres",
+    "persist_directory": "./chromadb/mycode",
+    "collection_name": "code",
+    "codebase_directory": ".",
+    "codebase_url": null,
+    "similarity_metric": "cosine",
+    "content_field": "content",
+    "state_store": {
+      "provider": "postgres",
+      "store_path": "./statedb/file_state.db",
+      "connection_url": "postgresql://postgres:postgres@localhost:5432/postgres",
+      "pool_size": 5,
+      "max_overflow": 10,
+      "pool_timeout": 30,
+      "pool_recycle": 3600,
+      "echo": false,
+      "extra_config": {}
+    }
+  },
+  "parser": {
+    "languages": {
+      "python": {
+        "enabled": true,
+        "file_extensions": [".py"],
+        "tree_sitter_language": "python",
+        "chunk_types": ["class_definition", "function_definition"],
+        "max_file_size": 1000000
+      },
+      "cpp": {
+        "enabled": true,
+        "file_extensions": [".cpp", ".h", ".hpp", ".cc"],
+        "tree_sitter_language": "cpp",
+        "chunk_types": ["class_definition", "function_definition"],
+        "max_file_size": 1000000
+      },
+      "typescript": {
+        "enabled": true,
+        "file_extensions": [".ts", ".tsx"],
+        "tree_sitter_language": "typescript",
+        "chunk_types": ["class_definition", "function_definition"],
+        "max_file_size": 1000000
+      },
+      "unity_asset": {
+        "enabled": true,
+        "file_extensions": [".asset"],
+        "tree_sitter_language": "unity_asset",
+        "chunk_types": ["function_definition"],
+        "max_file_size": 1000000
+      }
+    },
+    "path_patterns": {
+      "include": ["**/*"],
+      "exclude": [
+        "**/venv/**",
+        "**/.git/**",
+        "**/__pycache__/**",
+        "**/tests/**"
+      ]
+    },
+    "enable_code_summarization": false
+  },
+  "embedding": {
+    "model_name": "KnowLang/graphcodebert-codesearch-python",
+    "model_provider": "graph_code_bert",
+    "api_key": "your_api_key",
+    "dimension": 768,
+    "settings": {}
+  },
+  "chat_analytics": {
+    "enabled": false,
+    "provider": "mixpanel",
+    "api_key": "your_api_key"
   }
+}

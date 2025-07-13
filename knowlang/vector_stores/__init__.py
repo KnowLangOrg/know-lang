@@ -1,18 +1,18 @@
 # to register vector stores to factory
-from . import (
-    chroma,
-    postgres, 
-    postgres_hybrid,
-    sqlite # Add this line
+from . import sqlite  # Add this line
+from . import chroma, postgres
+from .base import (
+    VectorStore,
+    VectorStoreError,
+    VectorStoreInitError,
+    VectorStoreNotFoundError,
 )
-from .base import (VectorStore, VectorStoreError, VectorStoreInitError,
-                   VectorStoreNotFoundError)
-from .sqlite import SqliteVectorStore # Added this line
+from .sqlite import SqliteVectorStore  # Added this line
 
 __all__ = [
     "VectorStoreError",
     "VectorStoreInitError",
     "VectorStoreNotFoundError",
     "VectorStore",
-    "SqliteVectorStore", # Added this line
+    "SqliteVectorStore",  # Added this line
 ]

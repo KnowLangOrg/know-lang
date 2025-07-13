@@ -1,6 +1,6 @@
 # Model Context Protocol (MCP) for Knowlang
 
-This package provides an implementation of the Model Context Protocol (MCP) for Knowlang's search capabilities. It allows language models like Claude to access Knowlang's keyword and vector search features.
+This package provides an implementation of the Model Context Protocol (MCP) for Knowlang's search capabilities. It allows language models like Claude to access Knowlang's vector search feature.
 
 ## Overview
 
@@ -8,9 +8,7 @@ The Model Context Protocol (MCP) standardizes how applications provide context t
 
 ## Features
 
-- **Keyword Search Tool**: Performs keyword-based search on your knowledge base
 - **Vector Search Tool**: Performs semantic search using vector embeddings
-
 
 ## Usage
 
@@ -53,7 +51,6 @@ The image above shows how KnowLang tools appear in Claude Desktop once properly 
 
 Here are some example queries you can try with Claude once the MCP server is connected:
 
-- "Search for information about keyword search in the codebase"
 - "Find code related to vector embeddings"
 - "What's the implementation of search results ranking?"
 

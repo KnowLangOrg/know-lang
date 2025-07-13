@@ -1,36 +1,37 @@
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
+from knowlang.configs.config import AppConfig
 from knowlang.mcp.common import KnowLangTool, Singleton
 from knowlang.models.types import EmbeddingInputType
 from knowlang.search.base import SearchMethodology
 from knowlang.search.query import VectorQuery
-from knowlang.configs.config import AppConfig
 from knowlang.utils import FancyLogger
 from knowlang.vector_stores.base import VectorStore
 
 LOG = FancyLogger(__name__)
 
+
 class VectorSearchTool(KnowLangTool, metaclass=Singleton):
     """MCP tool for vector-based search in Knowlang."""
+
     name: str = "vector_search_codebase"
     description = """
 Search code snippets through vector embeddings with natual language queries. 
 It's a powerful tool for finding relevant code snippets fast based on their semantic meaning rather than going through the filesystem.
 """
-    config : AppConfig = None
+    config: AppConfig = None
     vector_store: VectorStore = None
 
-    
     @classmethod
-    def initialize(cls, config: AppConfig) -> 'VectorSearchTool':
+    def initialize(cls, config: AppConfig) -> "VectorSearchTool":
         _instance = VectorSearchTool()
 
         from knowlang.vector_stores.factory import VectorStoreFactory
+
         _instance.config = config
         _instance.vector_store = VectorStoreFactory.get(config)
 
         return _instance
-
 
     @classmethod
     async def run(cls, query: str) -> List[Dict[str, Any]]:
@@ -38,11 +39,13 @@ It's a powerful tool for finding relevant code snippets fast based on their sema
 
         from knowlang.models.embeddings import generate_embedding
 
-        embedding = await generate_embedding(query, instance.config.embedding, EmbeddingInputType.QUERY)
+        embedding = await generate_embedding(
+            query, instance.config.embedding, EmbeddingInputType.QUERY
+        )
 
         vector_query = VectorQuery(
             embedding=embedding,
-            top_k=instance.config.retrieval.vector_search.top_k,
+            top_k=100,  # TODO: make this configurable
         )
 
         results = await instance.vector_store.search(
