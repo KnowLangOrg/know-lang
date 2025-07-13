@@ -9,9 +9,7 @@ from knowlang.configs.defaults import DEFAULT_VECTOR_COLLECTION_NAME
 from knowlang.configs.llm_config import LLMConfig
 from knowlang.core.types import ModelProvider, VectorStoreProvider
 
-from .base import _validate_api_key, generate_model_config
-from .chat_config import ChatbotAnalyticsConfig, ChatConfig
-from .server_config import ServerConfig
+from .base import _validate_api_key
 from .state_store_config import StateStoreConfig
 
 
@@ -128,90 +126,7 @@ class EmbeddingConfig(BaseSettings):
         return _validate_api_key(v, info)
 
 
-class DBConfig(BaseSettings):
-    db_provider: VectorStoreProvider = Field(
-        default=VectorStoreProvider.SQLITE, description="Vector Database provider"
-    )
-    connection_url: Optional[str] = Field(
-        default=None,
-        description="Database connection URL (for network-based stores like PostgreSQL)",
-    )
-    persist_directory: Path = Field(
-        default=Path("./vectordb"), description="Directory to vector store"
-    )
-    collection_name: str = Field(
-        default=DEFAULT_VECTOR_COLLECTION_NAME,
-        description="Name of the vector store collection",
-    )
-    codebase_directory: Path = Field(
-        default=Path("./"), description="Root directory of the codebase to analyze"
-    )
-    codebase_url: Optional[str] = Field(
-        default=None, description="URL of the codebase repository"
-    )
-    similarity_metric: Literal["cosine"] = Field(
-        default="cosine", description="Similarity metric for vector search"
-    )
-    content_field: Optional[str] = Field(
-        default="content",
-        description="Field to store the actual content in the vector store",
-    )
-    state_store: StateStoreConfig = Field(default_factory=StateStoreConfig)
-
-
-class RerankerConfig(BaseSettings):
-    enabled: bool = Field(
-        # The reranker is disabled by default, since the reranker should be fine-tuned against each codebase
-        default=False,
-        description="Enable reranking",
-    )
-    model_name: str = Field(
-        default="llama3.2", description="Name of the reranker model to use"
-    )
-    model_provider: str = Field(
-        default=ModelProvider.OLLAMA,
-        description="Reranker provider (anthropic, openai, ollama, etc)",
-    )
-    api_key: Optional[str] = Field(
-        default=None, description="API key for the model provider"
-    )
-    top_k: int = Field(
-        default=10,
-        description="Number of most relevant documents to return from reranking",
-    )
-    relevance_threshold: float = Field(
-        default=0.5,
-        description="Minimum relevance score to include a document in reranking",
-    )
-    max_sequence_length: int = Field(
-        default=256, description="Maximum sequence length for the reranker model"
-    )
-
-    @field_validator("api_key", mode="after")
-    @classmethod
-    def validate_api_key(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
-        return _validate_api_key(v, info)
-
-
 class EvaluatorConfig(LLMConfig):
     evaluation_rounds: int = Field(
         default=1, description="Number of evaluation rounds per test case"
     )
-
-
-class AppConfig(BaseSettings):
-    model_config = generate_model_config(
-        env_file=".env.app",
-        default_env_file=".env.example.app",
-    )
-    llm: LLMConfig = Field(default_factory=LLMConfig)
-    evaluator: EvaluatorConfig = Field(default_factory=EvaluatorConfig)
-    reranker: RerankerConfig = Field(default_factory=RerankerConfig)
-    db: DBConfig = Field(default_factory=DBConfig)
-    parser: ParserConfig = Field(default_factory=ParserConfig)
-    chat: ChatConfig = Field(default_factory=ChatConfig)
-    embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
-    chat_analytics: ChatbotAnalyticsConfig = Field(
-        default_factory=ChatbotAnalyticsConfig
-    )
-    server: ServerConfig = Field(default_factory=ServerConfig)

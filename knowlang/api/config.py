@@ -1,3 +1,3 @@
-from knowlang.configs.config import AppConfig
+from knowlang.configs.server_config import ServerConfig
 
-asgi_server_config = AppConfig(_cli_parse_args=True)
+asgi_server_config = ServerConfig(_cli_parse_args=True)
