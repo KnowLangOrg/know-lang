@@ -99,10 +99,8 @@ class ModelProvider(str, Enum):
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
     VOYAGE = "voyage"
-    GRAPH_CODE_BERT = "graph_code_bert"
     NOMIC_AI = "nomic-ai"
     GOOGLE = "google-gla"
-    KNOWLANG_BERT = "knowlang_bert"
     KNOWLANG = "knowlang"
     TESTING = "testing"
 
