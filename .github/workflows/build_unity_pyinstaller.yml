@@ -6,12 +6,21 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        # os: [windows-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Create settings for unity
+        run: |
+          mkdir -p settings/unity
+          echo "${{ secrets.UNITY_CHAT_YAML }}" > settings/chat.yaml
+          echo "${{ secrets.UNITY_CODEBASE_YAML }}" > settings/unity/codebase.yaml
+          echo "${{ secrets.UNITY_VISUAL_SCRIPT_YAML }}" > settings/unity/visualscript.yaml
+          echo "${{ secrets.UNITY_REGISTRY_YAML }}" > settings/registry.yaml
 
       - name: Set up Python
         uses: actions/setup-python@v4
