@@ -5,7 +5,7 @@ Domains can be registered by adding YAML files in settings/assets/\*.yml. An exa
 
 ## Domain, Asset, Chunks
 
-Regardless of the domain, assets, and chunks, the shared data structures are defined in `knowlang/assets/models.py`.
+Regardless of the domain, assets, and chunks, the shared data structures are defined in `./models.py`.
 The domain-specific information can be defined and stored in the metadata field to flexibly store additional information.
 
 # Asset Domain Registry
@@ -20,7 +20,7 @@ Domain → Assets → Chunks
 
 The entire processing flow is shown below.
 
-![Domain,Asset,Registry](knowlang/assets/DomainAssetChunk.jpg)
+![Domain,Asset,Registry](./DomainAssetChunk.jpg)
 
 Each domain contains multiple assets, and each asset can be parsed into multiple chunks. The system provides a unified interface for:
 
@@ -30,19 +30,19 @@ Each domain contains multiple assets, and each asset can be parsed into multiple
 
 ## Core Components
 
-### Models ([`models.py`](knowlang/assets/models.py))
+### Models ([`models.py`](./models.py))
 
 - `DomainManagerData[MetaDataT]`: Domain configuration and metadata
 - `GenericAssetData[MetaDataT]`: Individual asset within a domain
 - `GenericAssetChunkData[MetaDataT]`: Parsed chunks from assets
 
-### Processor Framework ([`processor.py`](knowlang/assets/processor.py))
+### Processor Framework ([`processor.py`](./processor.py))
 
 - `DomainAssetSourceMixin`: Asset discovery and enumeration
 - `DomainAssetParserMixin`: Asset-to-chunk parsing
 - `DomainAssetIndexingMixin`: Vector embedding and storage
 
-### Registry ([`registry.py`](knowlang/assets/registry.py))
+### Registry ([`registry.py`](./registry.py))
 
 - `DomainRegistry`: Main orchestrator that discovers YAML configs
 - `TypeRegistry`: Maps domain types to their metadata classes
