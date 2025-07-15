@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "knowlang"
-version = "0.2.3"
+version = "0.3.0"
 description = "AI-powered code understanding assistant that helps developers explore and understand complex codebases through semantic search and intelligent Q&A"
 authors = [
   { name = "gabhyun kim", email = "kimgb415@gmail.com" },
