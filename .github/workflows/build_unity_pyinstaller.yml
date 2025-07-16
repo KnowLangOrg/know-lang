@@ -10,7 +10,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        # macos requires code signing, so we are not supporting macos builds for now
+        os: [windows-latest ]
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
@@ -18,12 +19,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create settings for unity
+        env:
+          UNITY_CHAT_YAML: ${{ secrets.UNITY_CHAT_YAML }}
+          UNITY_CODEBASE_YAML: ${{ secrets.UNITY_CODEBASE_YAML }}
+          UNITY_VISUAL_SCRIPT_YAML: ${{ secrets.UNITY_VISUAL_SCRIPT_YAML }}
+          UNITY_REGISTRY_YAML: ${{ secrets.UNITY_REGISTRY_YAML }}
         run: |
           mkdir -p settings/unity
-          echo "${{ secrets.UNITY_CHAT_YAML }}" > settings/chat.yaml
-          echo "${{ secrets.UNITY_CODEBASE_YAML }}" > settings/unity/codebase.yaml
-          echo "${{ secrets.UNITY_VISUAL_SCRIPT_YAML }}" > settings/unity/visualscript.yaml
-          echo "${{ secrets.UNITY_REGISTRY_YAML }}" > settings/registry.yaml
+          echo "$UNITY_CHAT_YAML" > settings/chat.yaml
+          echo "$UNITY_CODEBASE_YAML" > settings/unity/codebase.yaml
+          echo "$UNITY_VISUAL_SCRIPT_YAML" > settings/unity/visualscript.yaml
+          echo "$UNITY_REGISTRY_YAML" > settings/registry.yaml
+
 
       - name: Set up Python
         uses: actions/setup-python@v4
