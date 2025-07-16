@@ -58,5 +58,5 @@ if __name__ == "__main__":
     from knowlang.api.config import asgi_server_config
 
     uvicorn.run(
-        "knowlang.api.main:app", host="0.0.0.0", port=asgi_server_config.server.port
+        "knowlang.api.main:app", host="0.0.0.0", port=asgi_server_config.port
     )
