@@ -10,7 +10,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        # macos requires code signing, so we are not supporting macos builds for now
+        os: [windows-latest ]
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
