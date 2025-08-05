@@ -19,3 +19,6 @@ chromadb
 vectordb/
 statedb/
 *.db
+
+# grpc stub code
+grpc_stub/

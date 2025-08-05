@@ -18,9 +18,6 @@ service UIGenerationService {
   // Generate UI with streaming progress updates
   rpc GenerateUIStream(UIGenerationRequest) returns (stream UIGenerationStreamResponse);
   
-  // Generate UI synchronously (returns final result only)
-  rpc GenerateUISync(UIGenerationRequest) returns (UIGenerationResponse);
-  
   // Get the status of a UI generation request
   rpc GetGenerationStatus(GetGenerationStatusRequest) returns (UIGenerationStatusResponse);
   
@@ -34,18 +31,6 @@ message UIGenerationRequest {
   optional string unity_project_path = 2;
   map<string, string> ui_style_preferences = 3;
   map<string, string> chat_config_override = 4;
-}
-
-// Response for synchronous UI generation
-message UIGenerationResponse {
-  bool success = 1;
-  optional string uxml_content = 2;
-  optional string uss_content = 3;
-  optional string csharp_content = 4;
-  string ui_description = 5;
-  UIGenerationStatus status = 6;
-  string progress_message = 7;
-  optional string error_message = 8;
 }
 
 // Streaming response for UI generation

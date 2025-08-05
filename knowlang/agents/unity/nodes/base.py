@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 from pydantic import BaseModel
 from knowlang.configs.chat_config import ChatConfig
-from knowlang.agents.unity.proto_enums import UIGenerationStatus
 
 
 class UIGenerationResult(BaseModel):
