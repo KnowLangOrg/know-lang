@@ -2,18 +2,20 @@
 
 A pydantic-ai graph-based system for automatic Unity UI generation with gRPC communication between C# frontend and Python backend.
 
-## Architecture Overview
+## Overview
 
-### Protobuf-First Design
+The Unity agent generates complete Unity UI Toolkit components:
+- **UXML**: Unity UI XML markup
+- **USS**: Unity Style Sheets for styling
+- **C#**: Boilerplate code for event binding
 
-The system uses a **protobuf-first approach** for enum definitions to ensure type safety and consistency between C# frontend and Python backend:
+## Architecture
 
 ```
 ┌─────────────────┐    gRPC    ┌─────────────────┐
 │   Unity C#      │◄──────────►│  Python Backend │
 │   Frontend      │            │                 │
 └─────────────────┘            └─────────────────┘
-        │                               │
         │                               │
         ▼                               ▼
 ┌─────────────────┐            ┌─────────────────┐
@@ -23,65 +25,37 @@ The system uses a **protobuf-first approach** for enum definitions to ensure typ
 └─────────────────┘            └─────────────────┘
 ```
 
-### Why Protobuf-First Enums?
+## Setup
 
-**Problems with Python-only enums:**
-- ❌ Type mismatches between frontend and backend
-- ❌ Serialization issues over gRPC
-- ❌ Manual enum duplication in C#
-- ❌ Version drift between languages
-- ❌ No compile-time type safety
+### 1. Generate Protobuf Files
 
-**Benefits of protobuf-first enums:**
-- ✅ Single source of truth for enum definitions
-- ✅ Automatic code generation for both languages
-- ✅ Compile-time type safety
-- ✅ Version compatibility guarantees
-- ✅ Proper gRPC serialization
+```bash
+python -m grpc_tools.protoc \
+  -Igrpc_stub=./knowlang-api/protos/ \
+  --python_out=./ \
+  --grpc_python_out=./ \
+  --pyi_out=./ \
+  protos/unity/ui_generation.proto
+```
 
-## File Structure
+**Command Options Explained:**
+- `-Igrpc_stub=./knowlang-api/protos/`: Sets the import path for protobuf files
+- `--python_out=./`: Generates Python message classes in current directory
+- `--grpc_python_out=./`: Generates gRPC service classes in current directory  
+- `--pyi_out=./`: Generates Python type stubs for better IDE support
+
+### 2. File Structure
 
 ```
 knowlang/agents/unity/
 ├── __init__.py                 # Package exports
-├── README.md                   # This file
-├── proto_enums.py             # Python protobuf enum wrapper
-├── csharp_enums.cs            # C# enum definitions
 ├── ui_generation_graph.py     # Main graph orchestration
-├── grpc_models.py             # gRPC request/response models
-├── grpc_service.py            # gRPC service implementation
-├── protos/
-│   └── ui_generation.proto    # Protobuf service definition
+├── serve.py                   # gRPC service implementation
 └── nodes/
-    ├── __init__.py            # Node exports
     ├── base.py                # Base types and state
     ├── uxml_generator.py      # UXML generation node
     ├── uss_generator.py       # USS generation node
     └── csharp_generator.py    # C# generation node
-```
-
-## Graph Flow
-
-```
-User Description
-       │
-       ▼
-┌─────────────────┐
-│ UXML Generator  │ ──► Generates Unity UI XML markup
-└─────────────────┘
-       │
-       ▼
-┌─────────────────┐
-│ USS Generator   │ ──► Generates Unity Style Sheets
-└─────────────────┘
-       │
-       ▼
-┌─────────────────┐
-│ C# Generator    │ ──► Generates C# boilerplate code
-└─────────────────┘
-       │
-       ▼
-   Final Result
 ```
 
 ## Usage
@@ -102,50 +76,48 @@ async for result in stream_ui_generation_progress(
         print(f"C#: {result.csharp_content}")
 ```
 
-### C# Frontend (Unity)
+### gRPC Service
 
-```csharp
-using UnityUIGeneration;
+```python
+from knowlang.agents.unity.serve import serve
 
-// The enum values are guaranteed to match the Python backend
-UIGenerationStatus status = UIGenerationStatus.GeneratingUxml;
-string displayText = status.ToDisplayString(); // "Generating UXML"
-
-if (status.IsInProgress())
-{
-    // Show progress indicator
-}
+# Start gRPC server
+await serve(port=50051)
 ```
 
-## gRPC Communication
+## Graph Flow
 
-### Service Methods
+```
+User Description
+       │
+       ▼
+┌─────────────────┐
+│ UXML Generator  │ ──► Unity UI XML markup
+└─────────────────┘
+       │
+       ▼
+┌─────────────────┐
+│ USS Generator   │ ──► Unity Style Sheets
+└─────────────────┘
+       │
+       ▼
+┌─────────────────┐
+│ C# Generator    │ ──► Event binding code
+└─────────────────┘
+       │
+       ▼
+   Final Result
+```
 
-1. **GenerateUIStream**: Streaming generation with real-time progress
-2. **GenerateUISync**: Synchronous generation (final result only)
-3. **GetGenerationStatus**: Check status of ongoing generation
-4. **CancelGeneration**: Cancel ongoing generation
+## gRPC Methods
 
-### Enum Consistency
+- `GenerateUIStream`: Streaming generation with real-time progress
+- `GetGenerationStatus`: Check status of ongoing generation  
+- `CancelGeneration`: Cancel ongoing generation
 
-The `UIGenerationStatus` enum is defined in:
-- **Protobuf**: `protos/ui_generation.proto`
-- **Python**: `proto_enums.py` (matches protobuf)
-- **C#**: `csharp_enums.cs` (matches protobuf)
+## Benefits
 
-All three definitions are guaranteed to be in sync.
-
-## Benefits of This Architecture
-
-1. **Type Safety**: Compile-time guarantees across language boundaries
-2. **Maintainability**: Single source of truth for enum definitions
-3. **Scalability**: Easy to add new status types or modify existing ones
-4. **Reliability**: No runtime enum mapping errors
-5. **Developer Experience**: IntelliSense support in both languages
-
-## Future Improvements
-
-1. **Auto-generation**: Use `protoc` to automatically generate enum files
-2. **Versioning**: Add protobuf versioning for backward compatibility
-3. **Validation**: Add runtime validation for enum values
-4. **Documentation**: Auto-generate API documentation from protobuf 
+- **Type Safety**: Compile-time guarantees across language boundaries
+- **Maintainability**: Single source of truth for enum definitions
+- **Scalability**: Easy to add new status types or modify existing ones
+- **Reliability**: No runtime enum mapping errors 
