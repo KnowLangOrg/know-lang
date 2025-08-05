@@ -29,5 +29,3 @@ class UIGenerationDeps:
     """Dependencies required by the UI generation graph"""
 
     chat_config: ChatConfig = None
-    unity_project_path: Optional[str] = None
-    ui_style_preferences: Optional[dict] = None

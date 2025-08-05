@@ -3,7 +3,7 @@ from typing import Union, TYPE_CHECKING
 from pydantic_ai import Agent
 from pydantic_graph import BaseNode, GraphRunContext
 from knowlang.utils import create_pydantic_model
-from .base import UIGenerationState, UIGenerationDeps, UIGenerationResult
+from knowlang.agents.unity.nodes.base import UIGenerationState, UIGenerationDeps, UIGenerationResult
 
 if TYPE_CHECKING:
     from knowlang.agents.unity.nodes import USSGeneratorNode

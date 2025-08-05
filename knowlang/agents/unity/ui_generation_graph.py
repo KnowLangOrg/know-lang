@@ -17,10 +17,10 @@ from grpc_stub.unity.ui_generation_pb2 import (
 
 from knowlang.configs.chat_config import ChatConfig
 from knowlang.utils import FancyLogger
-from .nodes.base import UIGenerationState, UIGenerationDeps, UIGenerationResult
-from .nodes.uxml_generator import UXMLGeneratorNode
-from .nodes.uss_generator import USSGeneratorNode
-from .nodes.csharp_generator import CSharpGeneratorNode
+from knowlang.agents.unity.nodes.base import UIGenerationState, UIGenerationDeps, UIGenerationResult
+from knowlang.agents.unity.nodes.uxml_generator import UXMLGeneratorNode
+from knowlang.agents.unity.nodes.uss_generator import USSGeneratorNode
+from knowlang.agents.unity.nodes.csharp_generator import CSharpGeneratorNode
 
 LOG = FancyLogger(__name__)
 
@@ -98,8 +98,6 @@ ui_generation_graph = Graph(
 async def stream_ui_generation_progress(
     ui_description: str,
     chat_config: Optional[ChatConfig] = None,
-    unity_project_path: Optional[str] = None,
-    ui_style_preferences: Optional[dict] = None,
 ) -> AsyncGenerator[UIGenerationStreamResponse, None]:
     """
     Stream UI generation progress through the graph.
@@ -111,25 +109,35 @@ async def stream_ui_generation_progress(
     # Create initial state
     state = UIGenerationState(
         ui_description=ui_description,
-        unity_project_path=unity_project_path,
-        ui_style_preferences=ui_style_preferences or {},
-        chat_config=chat_config,
     )
 
     # Create dependencies
-    deps = UIGenerationDeps()
+    deps = UIGenerationDeps(
+        chat_config=chat_config
+    )
+    
+    start_node = UXMLGeneratorNode()
 
     try:
-        # Run the graph and stream progress
-        async for node in ui_generation_graph.run(state, deps):
-            if node is not None and node is not End:
-                # Yield progress update
-                yield create_stream_response(node, state)
+        graph_run_context_manager = ui_generation_graph.iter(
+            start_node, state=state, deps=deps, infer_name=False
+        )
+        graph_run = await graph_run_context_manager.__aenter__()
+        next_node = graph_run.next_node
 
-        # Yield final result
-        yield create_complete_response(state)
+        # Run the graph and stream progress
+        while True:
+            yield create_stream_response(next_node, state)
+
+            next_node = await graph_run.next(next_node)
+            if isinstance(next_node, End):
+                yield create_complete_response(state)
+                break
+
 
     except Exception as e:
-        # Yield error result
         yield create_error_response(e, state)
         raise
+    finally:
+        await graph_run_context_manager.__aexit__(None, None, None)
+        return

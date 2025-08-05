@@ -19,7 +19,7 @@ from grpc_stub.unity.ui_generation_pb2 import (
 
 from knowlang.configs.chat_config import ChatConfig
 from knowlang.utils import FancyLogger
-from .ui_generation_graph import stream_ui_generation_progress
+from knowlang.agents.unity.ui_generation_graph import stream_ui_generation_progress
 
 LOG = FancyLogger(__name__)
 
@@ -47,8 +47,6 @@ class UIGenerationServicer(ui_generation_pb2_grpc.UIGenerationServiceServicer):
             async for result in stream_ui_generation_progress(
                 ui_description=request.ui_description,
                 chat_config=chat_config,
-                unity_project_path=request.unity_project_path or None,
-                ui_style_preferences=dict(request.ui_style_preferences),
             ):
                 # Update status
                 status_response = UIGenerationStatusResponse(

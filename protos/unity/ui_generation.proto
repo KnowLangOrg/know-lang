@@ -28,8 +28,6 @@ service UIGenerationService {
 // Request for UI generation
 message UIGenerationRequest {
   string ui_description = 1;
-  optional string unity_project_path = 2;
-  map<string, string> ui_style_preferences = 3;
   map<string, string> chat_config_override = 4;
 }
 
