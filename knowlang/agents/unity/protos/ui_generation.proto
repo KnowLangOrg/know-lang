@@ -2,6 +2,17 @@ syntax = "proto3";
 
 package unity.ui_generation;
 
+// Enum for tracking UI generation progress status
+enum UIGenerationStatus {
+  UIGENERATION_STATUS_UNSPECIFIED = 0;
+  UIGENERATION_STATUS_ERROR = 1;
+  UIGENERATION_STATUS_STARTING = 2;
+  UIGENERATION_STATUS_GENERATING_UXML = 3;
+  UIGENERATION_STATUS_GENERATING_USS = 4;
+  UIGENERATION_STATUS_GENERATING_CSHARP = 5;
+  UIGENERATION_STATUS_COMPLETE = 6;
+}
+
 // Service for Unity UI generation
 service UIGenerationService {
   // Generate UI with streaming progress updates
@@ -32,7 +43,7 @@ message UIGenerationResponse {
   optional string uss_content = 3;
   optional string csharp_content = 4;
   string ui_description = 5;
-  string status = 6;
+  UIGenerationStatus status = 6;
   string progress_message = 7;
   optional string error_message = 8;
 }
@@ -43,7 +54,7 @@ message UIGenerationStreamResponse {
   optional string uss_content = 2;
   optional string csharp_content = 3;
   string ui_description = 4;
-  string status = 5;
+  UIGenerationStatus status = 5;
   string progress_message = 6;
   optional string error_message = 7;
   bool is_complete = 8;
@@ -57,7 +68,7 @@ message GetGenerationStatusRequest {
 // Response for generation status
 message UIGenerationStatusResponse {
   string request_id = 1;
-  string status = 2;
+  UIGenerationStatus status = 2;
   string progress_message = 3;
   bool is_complete = 4;
   optional string error_message = 5;

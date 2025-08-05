@@ -54,10 +54,10 @@ class UIGenerationService:
                     "uss_content": result.uss_content,
                     "csharp_content": result.csharp_content,
                     "ui_description": result.ui_description,
-                    "status": result.status.value,
+                    "status": result.status,
                     "progress_message": result.progress_message,
                     "error_message": result.error_message,
-                    "is_complete": result.status.value == "complete",
+                    "is_complete": result.status == UIGenerationStatus.COMPLETE,
                 }
                 
                 # Yield the streaming response
@@ -66,20 +66,20 @@ class UIGenerationService:
                     uss_content=result.uss_content,
                     csharp_content=result.csharp_content,
                     ui_description=result.ui_description,
-                    status=result.status.value,
+                    status=result.status,
                     progress_message=result.progress_message,
                     error_message=result.error_message,
-                    is_complete=result.status.value == "complete",
+                    is_complete=result.status == UIGenerationStatus.COMPLETE,
                 )
                 
-                if result.status.value in ["complete", "error"]:
+                if result.status in [UIGenerationStatus.COMPLETE, UIGenerationStatus.ERROR]:
                     break
                     
         except Exception as e:
             LOG.error(f"Error in generate_ui_stream: {e}")
             yield UIGenerationStreamResponse(
                 ui_description=request.ui_description,
-                status="error",
+                status=UIGenerationStatus.ERROR,
                 progress_message=f"An error occurred: {str(e)}",
                 error_message=str(e),
                 is_complete=True,
@@ -108,11 +108,11 @@ class UIGenerationService:
                 if result.status.value == "complete":
                     final_result = result
                     break
-                elif result.status.value == "error":
+                elif result.status == UIGenerationStatus.ERROR:
                     return UIGenerationResponse(
                         success=False,
                         ui_description=request.ui_description,
-                        status="error",
+                        status=UIGenerationStatus.ERROR,
                         progress_message=result.progress_message,
                         error_message=result.error_message,
                     )
@@ -124,14 +124,14 @@ class UIGenerationService:
                     uss_content=final_result.uss_content,
                     csharp_content=final_result.csharp_content,
                     ui_description=final_result.ui_description,
-                    status="complete",
+                    status=UIGenerationStatus.COMPLETE,
                     progress_message="UI generation completed successfully",
                 )
             else:
                 return UIGenerationResponse(
                     success=False,
                     ui_description=request.ui_description,
-                    status="error",
+                    status=UIGenerationStatus.ERROR,
                     progress_message="UI generation did not complete",
                     error_message="No final result received",
                 )
@@ -141,7 +141,7 @@ class UIGenerationService:
             return UIGenerationResponse(
                 success=False,
                 ui_description=request.ui_description,
-                status="error",
+                status=UIGenerationStatus.ERROR,
                 progress_message=f"An error occurred: {str(e)}",
                 error_message=str(e),
             )
@@ -153,7 +153,7 @@ class UIGenerationService:
         if request_id not in self.generation_results:
             return UIGenerationStatusResponse(
                 request_id=request_id,
-                status="not_found",
+                status=UIGenerationStatus.ERROR,  # Using ERROR for not_found
                 progress_message="Request not found",
                 is_complete=False,
             )

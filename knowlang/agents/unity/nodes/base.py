@@ -1,19 +1,8 @@
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel
 from knowlang.configs.chat_config import ChatConfig
-
-
-class UIGenerationStatus(str, Enum):
-    """Enum for tracking UI generation progress status"""
-    
-    STARTING = "starting"
-    GENERATING_UXML = "generating_uxml"
-    GENERATING_USS = "generating_uss" 
-    GENERATING_CSHARP = "generating_csharp"
-    COMPLETE = "complete"
-    ERROR = "error"
+from knowlang.agents.unity.proto_enums import UIGenerationStatus
 
 
 class UIGenerationResult(BaseModel):

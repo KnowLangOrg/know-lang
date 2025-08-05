@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from pydantic import BaseModel
+from knowlang.agents.unity.proto_enums import UIGenerationStatus
 
 
 class UIGenerationRequest(BaseModel):
@@ -20,7 +21,7 @@ class UIGenerationResponse(BaseModel):
     uss_content: Optional[str] = None
     csharp_content: Optional[str] = None
     ui_description: str
-    status: str
+    status: UIGenerationStatus
     progress_message: str
     error_message: Optional[str] = None
 
@@ -32,7 +33,7 @@ class UIGenerationStreamResponse(BaseModel):
     uss_content: Optional[str] = None
     csharp_content: Optional[str] = None
     ui_description: str
-    status: str
+    status: UIGenerationStatus
     progress_message: str
     error_message: Optional[str] = None
     is_complete: bool = False
@@ -42,7 +43,7 @@ class UIGenerationStatusResponse(BaseModel):
     """Status response model for checking UI generation progress"""
     
     request_id: str
-    status: str
+    status: UIGenerationStatus
     progress_message: str
     is_complete: bool
     error_message: Optional[str] = None
