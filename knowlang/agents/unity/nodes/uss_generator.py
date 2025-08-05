@@ -3,7 +3,11 @@ from typing import Union, TYPE_CHECKING
 from pydantic_ai import Agent
 from pydantic_graph import BaseNode, GraphRunContext, End
 from knowlang.utils import create_pydantic_model
-from knowlang.agents.unity.nodes.base import UIGenerationState, UIGenerationDeps, UIGenerationResult
+from knowlang.agents.unity.nodes.base import (
+    UIGenerationState,
+    UIGenerationDeps,
+    UIGenerationResult,
+)
 
 
 if TYPE_CHECKING:
@@ -11,7 +15,9 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class USSGeneratorNode(BaseNode[UIGenerationState, UIGenerationDeps, UIGenerationResult]):
+class USSGeneratorNode(
+    BaseNode[UIGenerationState, UIGenerationDeps, UIGenerationResult]
+):
     """Node that generates USS (Unity Style Sheets) based on the generated UXML"""
 
     default_system_prompt = """
@@ -106,7 +112,8 @@ Generate only the USS content:
             ctx.state.uss_content = result.output.strip()
 
             from knowlang.agents.unity.nodes.csharp_generator import CSharpGeneratorNode
+
             return CSharpGeneratorNode()
         except Exception as e:
             ctx.state.error_message = f"Error generating USS: {e}"
-            raise 
+            raise

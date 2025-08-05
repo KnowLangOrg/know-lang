@@ -7,7 +7,9 @@ from .base import UIGenerationState, UIGenerationDeps, UIGenerationResult
 
 
 @dataclass
-class CSharpGeneratorNode(BaseNode[UIGenerationState, UIGenerationDeps, UIGenerationResult]):
+class CSharpGeneratorNode(
+    BaseNode[UIGenerationState, UIGenerationDeps, UIGenerationResult]
+):
     """Node that generates C# boilerplate code for Unity UI event binding"""
 
     default_system_prompt = """
@@ -140,15 +142,15 @@ Generate only the C# code:
         try:
             result = await csharp_agent.run(prompt)
             ctx.state.csharp_content = result.output.strip()
-            
+
             return End(
                 UIGenerationResult(
                     uxml_content=ctx.state.uxml_content,
                     uss_content=ctx.state.uss_content,
                     csharp_content=ctx.state.csharp_content,
-                    ui_description=ctx.state.ui_description
+                    ui_description=ctx.state.ui_description,
                 )
             )
         except Exception as e:
             ctx.state.error_message = f"Error generating C# code: {e}"
-            raise 
+            raise

@@ -8,8 +8,11 @@ from .base import UIGenerationState, UIGenerationDeps, UIGenerationResult
 if TYPE_CHECKING:
     from knowlang.agents.unity.nodes import USSGeneratorNode
 
+
 @dataclass
-class UXMLGeneratorNode(BaseNode[UIGenerationState, UIGenerationDeps, UIGenerationResult]):
+class UXMLGeneratorNode(
+    BaseNode[UIGenerationState, UIGenerationDeps, UIGenerationResult]
+):
     """Node that generates UXML (Unity UI XML) markup based on the UI description"""
 
     default_system_prompt = """
@@ -84,7 +87,8 @@ Generate only the UXML content:
             ctx.state.uxml_content = result.output.strip()
 
             from knowlang.agents.unity.nodes import USSGeneratorNode
+
             return USSGeneratorNode()
         except Exception as e:
             ctx.state.error_message = f"Error generating UXML: {e}"
-            raise 
+            raise

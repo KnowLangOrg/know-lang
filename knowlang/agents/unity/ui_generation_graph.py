@@ -25,33 +25,43 @@ from .nodes.csharp_generator import CSharpGeneratorNode
 LOG = FancyLogger(__name__)
 
 
-def create_stream_response(node: BaseNode, state: UIGenerationState) -> UIGenerationStreamResponse:
+def create_stream_response(
+    node: BaseNode, state: UIGenerationState
+) -> UIGenerationStreamResponse:
     """Create a streaming response from a node's current state"""
     response = UIGenerationStreamResponse(
         ui_description=state.ui_description,
         is_complete=False,
     )
-    
+
     if isinstance(node, UXMLGeneratorNode):
         response.status = UIGENERATION_STATUS_GENERATING_UXML
-        response.progress_message = f"Generating UXML markup for: '{state.ui_description}'"
+        response.progress_message = (
+            f"Generating UXML markup for: '{state.ui_description}'"
+        )
     elif isinstance(node, USSGeneratorNode):
         response.uxml_content = state.uxml_content or ""
         response.status = UIGENERATION_STATUS_GENERATING_USS
-        response.progress_message = f"Generating USS styles for: '{state.ui_description}'"
+        response.progress_message = (
+            f"Generating USS styles for: '{state.ui_description}'"
+        )
     elif isinstance(node, CSharpGeneratorNode):
         response.uxml_content = state.uxml_content or ""
         response.uss_content = state.uss_content or ""
         response.status = UIGENERATION_STATUS_GENERATING_CSHARP
-        response.progress_message = f"Generating C# script for: '{state.ui_description}'"
+        response.progress_message = (
+            f"Generating C# script for: '{state.ui_description}'"
+        )
     else:
         response.status = UIGENERATION_STATUS_UNSPECIFIED
         response.progress_message = "Starting UI generation..."
-    
+
     return response
 
 
-def create_error_response(error: Exception, state: UIGenerationState) -> UIGenerationStreamResponse:
+def create_error_response(
+    error: Exception, state: UIGenerationState
+) -> UIGenerationStreamResponse:
     """Create a streaming error response"""
     error_msg = f"Error during UI generation: {str(error)}"
     LOG.error(error_msg)
@@ -80,7 +90,9 @@ def create_complete_response(state: UIGenerationState) -> UIGenerationStreamResp
 
 
 # Create the graph
-ui_generation_graph = Graph(nodes=[UXMLGeneratorNode, USSGeneratorNode, CSharpGeneratorNode])
+ui_generation_graph = Graph(
+    nodes=[UXMLGeneratorNode, USSGeneratorNode, CSharpGeneratorNode]
+)
 
 
 async def stream_ui_generation_progress(
@@ -121,4 +133,3 @@ async def stream_ui_generation_progress(
         # Yield error result
         yield create_error_response(e, state)
         raise
-
