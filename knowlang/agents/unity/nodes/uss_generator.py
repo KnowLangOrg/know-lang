@@ -7,7 +7,7 @@ from knowlang.agents.unity.nodes.base import UIGenerationState, UIGenerationDeps
 
 
 if TYPE_CHECKING:
-    from .csharp_generator import CSharpGeneratorNode
+    from knowlang.agents.unity.nodes.csharp_generator import CSharpGeneratorNode
 
 
 @dataclass

@@ -4,7 +4,6 @@ from typing import AsyncGenerator, List, Optional, Union
 
 from pydantic import BaseModel
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext
-from rich.console import Console
 
 from knowlang.configs.chat_config import ChatConfig
 from knowlang.utils import FancyLogger
@@ -14,7 +13,6 @@ from .nodes.uss_generator import USSGeneratorNode
 from .nodes.csharp_generator import CSharpGeneratorNode
 
 LOG = FancyLogger(__name__)
-console = Console()
 
 
 class StreamingUIGenerationResult(BaseModel):
