@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package unity.ui_generation;
+
+// Service for Unity UI generation
+service UIGenerationService {
+  // Generate UI with streaming progress updates
+  rpc GenerateUIStream(UIGenerationRequest) returns (stream UIGenerationStreamResponse);
+  
+  // Generate UI synchronously (returns final result only)
+  rpc GenerateUISync(UIGenerationRequest) returns (UIGenerationResponse);
+  
+  // Get the status of a UI generation request
+  rpc GetGenerationStatus(GetGenerationStatusRequest) returns (UIGenerationStatusResponse);
+  
+  // Cancel a UI generation request
+  rpc CancelGeneration(UIGenerationCancelRequest) returns (UIGenerationCancelResponse);
+}
+
+// Request for UI generation
+message UIGenerationRequest {
+  string ui_description = 1;
+  optional string unity_project_path = 2;
+  map<string, string> ui_style_preferences = 3;
+  map<string, string> chat_config_override = 4;
+}
+
+// Response for synchronous UI generation
+message UIGenerationResponse {
+  bool success = 1;
+  optional string uxml_content = 2;
+  optional string uss_content = 3;
+  optional string csharp_content = 4;
+  string ui_description = 5;
+  string status = 6;
+  string progress_message = 7;
+  optional string error_message = 8;
+}
+
+// Streaming response for UI generation
+message UIGenerationStreamResponse {
+  optional string uxml_content = 1;
+  optional string uss_content = 2;
+  optional string csharp_content = 3;
+  string ui_description = 4;
+  string status = 5;
+  string progress_message = 6;
+  optional string error_message = 7;
+  bool is_complete = 8;
+}
+
+// Request for getting generation status
+message GetGenerationStatusRequest {
+  string request_id = 1;
+}
+
+// Response for generation status
+message UIGenerationStatusResponse {
+  string request_id = 1;
+  string status = 2;
+  string progress_message = 3;
+  bool is_complete = 4;
+  optional string error_message = 5;
+}
+
+// Request for canceling generation
+message UIGenerationCancelRequest {
+  string request_id = 1;
+}
+
+// Response for canceling generation
+message UIGenerationCancelResponse {
+  bool success = 1;
+  string message = 2;
+} 
