@@ -7,6 +7,7 @@ from knowlang.api.base import ApiModelRegistry
 from knowlang.api.chat.router import router as chat_router
 from knowlang.api.health.router import router as health_router
 from knowlang.api.parse.router import router as parse_router
+from knowlang.api.unity_agent.router import router as unity_agent_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -52,6 +53,7 @@ router_prefix = "/api/v1"
 app.include_router(chat_router, prefix=router_prefix, tags=["chat"])
 app.include_router(health_router, prefix=router_prefix, tags=["health"])
 app.include_router(parse_router, prefix=router_prefix, tags=["parse"])
+app.include_router(unity_agent_router, prefix=router_prefix)
 
 if __name__ == "__main__":
     # Run the server if this file is executed directly
