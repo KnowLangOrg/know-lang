@@ -1,0 +1,3 @@
+[submodule "knowlang-api"]
+	path = knowlang-api
+	url = https://github.com/kimgb415/KnowLangAPI

@@ -72,6 +72,8 @@ sqlite = [
 # ASGI Server
 server = [
     "fastapi>=0.115.12",
+    "grpcio>=1.74.0",
+    "grpcio-tools>=1.74.0",
     "sse-starlette>=2.3.5",
 ]
 # Dev dependencies
