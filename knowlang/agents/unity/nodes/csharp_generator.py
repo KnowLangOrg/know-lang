@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Union
 from pydantic_ai import Agent
 from pydantic_graph import BaseNode, GraphRunContext, End
 from knowlang.utils import create_pydantic_model

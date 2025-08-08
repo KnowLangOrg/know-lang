@@ -59,6 +59,4 @@ if __name__ == "__main__":
     # Run the server if this file is executed directly
     from knowlang.api.config import asgi_server_config
 
-    uvicorn.run(
-        "knowlang.api.main:app", host="0.0.0.0", port=asgi_server_config.port
-    )
+    uvicorn.run("knowlang.api.main:app", host="0.0.0.0", port=asgi_server_config.port)
