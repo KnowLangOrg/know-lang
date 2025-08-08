@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Union, TYPE_CHECKING
 from pydantic_ai import Agent
-from pydantic_graph import BaseNode, GraphRunContext, End
+from pydantic_graph import BaseNode, GraphRunContext
 from knowlang.utils import create_pydantic_model
 from knowlang.agents.unity.nodes.base import (
     UIGenerationState,

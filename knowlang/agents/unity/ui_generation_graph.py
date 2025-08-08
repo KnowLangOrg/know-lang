@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 from typing import AsyncGenerator, Optional
 
-from pydantic_graph import BaseNode, End, Graph, GraphRunContext
+from pydantic_graph import BaseNode, End, Graph
 from grpc_stub.unity.ui_generation_pb2 import (
     UIGenerationStreamResponse,
-    UIGenerationStatus,
     UIGENERATION_STATUS_GENERATING_UXML,
     UIGENERATION_STATUS_GENERATING_USS,
     UIGENERATION_STATUS_GENERATING_CSHARP,
@@ -17,7 +15,10 @@ from grpc_stub.unity.ui_generation_pb2 import (
 
 from knowlang.configs.chat_config import ChatConfig
 from knowlang.utils import FancyLogger
-from knowlang.agents.unity.nodes.base import UIGenerationState, UIGenerationDeps, UIGenerationResult
+from knowlang.agents.unity.nodes.base import (
+    UIGenerationState,
+    UIGenerationDeps,
+)
 from knowlang.agents.unity.nodes.uxml_generator import UXMLGeneratorNode
 from knowlang.agents.unity.nodes.uss_generator import USSGeneratorNode
 from knowlang.agents.unity.nodes.csharp_generator import CSharpGeneratorNode
@@ -112,10 +113,8 @@ async def stream_ui_generation_progress(
     )
 
     # Create dependencies
-    deps = UIGenerationDeps(
-        chat_config=chat_config
-    )
-    
+    deps = UIGenerationDeps(chat_config=chat_config)
+
     start_node = UXMLGeneratorNode()
 
     try:
@@ -133,7 +132,6 @@ async def stream_ui_generation_progress(
             if isinstance(next_node, End):
                 yield create_complete_response(state)
                 break
-
 
     except Exception as e:
         yield create_error_response(e, state)
