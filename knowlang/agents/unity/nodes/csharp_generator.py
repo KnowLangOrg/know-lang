@@ -26,6 +26,7 @@ Follow these rules strictly:
 8. Follow C# naming conventions (PascalCase for methods, camelCase for fields)
 9. Include proper error handling and null checks
 10. Make the code easily extensible for future modifications
+11. Output ONLY the raw C# code without any markdown formatting (no ```csharp or ```)
 
 Common patterns to include:
 - Field declarations for UI elements
@@ -35,8 +36,8 @@ Common patterns to include:
 - Property getters/setters for data binding
 - Validation methods where appropriate
 
-Example structure:
-```csharp
+Example structure (output this raw C# code without markdown formatting):
+
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -95,9 +96,8 @@ public class GeneratedUI : VisualElement
         }
     }
 }
-```
 
-Remember: Generate only the C# code, no explanations or additional text.
+Remember: Generate only the raw C# code with no markdown formatting, no explanations, and no additional text.
 """
 
     async def run(

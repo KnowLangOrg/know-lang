@@ -44,18 +44,18 @@ Follow these rules strictly:
 6. Include appropriate sizing and positioning hints
 7. Make the UI responsive and accessible
 8. Add proper IDs for elements that will need event binding in C#
+9. Output ONLY the raw UXML content without any markdown formatting (no ```xml or ```)
 
-Example structure:
-```xml
+Example structure (output this raw UXML without markdown formatting):
+
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
   <ui:VisualElement name="root" class="main-container">
     <ui:Label text="Title" name="title-label" class="title" />
     <ui:Button text="Click Me" name="action-button" class="primary-button" />
   </ui:VisualElement>
 </ui:UXML>
-```
 
-Remember: Generate only the UXML content, no explanations or additional text.
+Remember: Generate only the raw UXML content with no markdown formatting, no explanations, and no additional text.
 """
 
     async def run(

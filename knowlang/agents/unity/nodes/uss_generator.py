@@ -33,6 +33,7 @@ Follow these rules strictly:
 6. Include hover states, focus states, and other interactive elements
 7. Use appropriate spacing, typography, and visual hierarchy
 8. Make sure the styling works well with Unity's UI Toolkit rendering
+9. Output ONLY the raw USS content without any markdown formatting (no ```css or ```)
 
 Common USS properties to use:
 - flex-direction, justify-content, align-items for layout
@@ -44,8 +45,8 @@ Common USS properties to use:
 - box-shadow for depth and elevation
 - transition for smooth animations
 
-Example USS structure:
-```css
+Example structure (output this raw USS without markdown formatting):
+
 .main-container {
     flex-direction: column;
     padding: 20px;
@@ -72,9 +73,8 @@ Example USS structure:
 .primary-button:hover {
     background-color: rgb(0, 100, 180);
 }
-```
 
-Remember: Generate only the USS content, no explanations or additional text.
+Remember: Generate only the raw USS content with no markdown formatting, no explanations, and no additional text.
 """
 
     async def run(
