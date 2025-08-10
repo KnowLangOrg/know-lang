@@ -71,7 +71,7 @@ def create_stream_response(
         response.status = UIGENERATION_STATUS_UNSPECIFIED
         response.progress_message = "Starting UI generation..."
     
-    LOG.debug(f"UI Generation Agent Message: {response.SerializeToString()}")
+    LOG.debug(f"UI Generation Agent Message: {response.__str__()}")
 
     return response
 
