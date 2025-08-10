@@ -148,6 +148,7 @@ Generate only the C# code:
                     uss_content=ctx.state.uss_content,
                     csharp_content=ctx.state.csharp_content,
                     ui_description=ctx.state.ui_description,
+                    filename=ctx.state.filename
                 )
             )
         except Exception as e:

@@ -5,6 +5,7 @@ from typing import AsyncGenerator, Optional
 from pydantic_graph import BaseNode, End, Graph
 from grpc_stub.unity.ui_generation_pb2 import (
     UIGenerationStreamResponse,
+    UIGENERATION_STATUS_GENERATING_FILENAME,
     UIGENERATION_STATUS_GENERATING_UXML,
     UIGENERATION_STATUS_GENERATING_USS,
     UIGENERATION_STATUS_GENERATING_CSHARP,
@@ -19,6 +20,7 @@ from knowlang.agents.unity.nodes.base import (
     UIGenerationState,
     UIGenerationDeps,
 )
+from knowlang.agents.unity.nodes.filename_generator import FilenameGeneratorNode
 from knowlang.agents.unity.nodes.uxml_generator import UXMLGeneratorNode
 from knowlang.agents.unity.nodes.uss_generator import USSGeneratorNode
 from knowlang.agents.unity.nodes.csharp_generator import CSharpGeneratorNode
@@ -35,27 +37,41 @@ def create_stream_response(
         is_complete=False,
     )
 
-    if isinstance(node, UXMLGeneratorNode):
+    if isinstance(node, FilenameGeneratorNode):
+        response.status = UIGENERATION_STATUS_GENERATING_FILENAME
+        response.progress_message = (
+            f"Generating filename for: '{state.ui_description}'"
+        )
+        response.filename = state.filename or ""
+    elif isinstance(node, UXMLGeneratorNode):
         response.status = UIGENERATION_STATUS_GENERATING_UXML
         response.progress_message = (
             f"Generating UXML markup for: '{state.ui_description}'"
         )
+        response.filename = state.filename or ""
+        response.uxml_content = state.uxml_content or ""
     elif isinstance(node, USSGeneratorNode):
+        response.filename = state.filename or ""
         response.uxml_content = state.uxml_content or ""
         response.status = UIGENERATION_STATUS_GENERATING_USS
         response.progress_message = (
             f"Generating USS styles for: '{state.ui_description}'"
         )
+        response.uss_content = state.uss_content or ""
     elif isinstance(node, CSharpGeneratorNode):
+        response.filename = state.filename or ""
         response.uxml_content = state.uxml_content or ""
         response.uss_content = state.uss_content or ""
         response.status = UIGENERATION_STATUS_GENERATING_CSHARP
         response.progress_message = (
             f"Generating C# script for: '{state.ui_description}'"
         )
+        response.csharp_content = state.csharp_content or ""
     else:
         response.status = UIGENERATION_STATUS_UNSPECIFIED
         response.progress_message = "Starting UI generation..."
+    
+    LOG.debug(f"UI Generation Agent Message: {response.__str__()}")
 
     return response
 
@@ -80,6 +96,7 @@ def create_complete_response(state: UIGenerationState) -> UIGenerationStreamResp
     """Create a streaming completion response"""
     response = UIGenerationStreamResponse(
         ui_description=state.ui_description,
+        filename=state.filename or "",
         uxml_content=state.uxml_content or "",
         uss_content=state.uss_content or "",
         csharp_content=state.csharp_content or "",
@@ -92,7 +109,7 @@ def create_complete_response(state: UIGenerationState) -> UIGenerationStreamResp
 
 # Create the graph
 ui_generation_graph = Graph(
-    nodes=[UXMLGeneratorNode, USSGeneratorNode, CSharpGeneratorNode]
+    nodes=[FilenameGeneratorNode, UXMLGeneratorNode, USSGeneratorNode, CSharpGeneratorNode]
 )
 
 
@@ -115,7 +132,7 @@ async def stream_ui_generation_progress(
     # Create dependencies
     deps = UIGenerationDeps(chat_config=chat_config)
 
-    start_node = UXMLGeneratorNode()
+    start_node = FilenameGeneratorNode()
 
     try:
         graph_run_context_manager = ui_generation_graph.iter(
@@ -124,12 +141,20 @@ async def stream_ui_generation_progress(
         graph_run = await graph_run_context_manager.__aenter__()
         next_node = graph_run.next_node
 
+        # Track the current node being processed
+        current_node = start_node
+
         # Run the graph and stream progress
         while True:
-            yield create_stream_response(next_node, state)
-
+            # Move to the next node
             next_node = await graph_run.next(next_node)
-            if isinstance(next_node, End):
+            
+            # Yield the node that just finished processing (current_node)
+            yield create_stream_response(current_node, state)
+            # Update current_node to the one that just finished
+            current_node = next_node
+
+            if isinstance(current_node, End):
                 yield create_complete_response(state)
                 break
 

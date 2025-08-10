@@ -11,6 +11,7 @@ class UIGenerationResult(BaseModel):
     uss_content: str
     csharp_content: str
     ui_description: str
+    filename: str
 
 
 @dataclass
@@ -18,6 +19,7 @@ class UIGenerationState:
     """State maintained throughout the UI generation graph execution"""
 
     ui_description: str
+    filename: Optional[str] = None
     uxml_content: Optional[str] = None
     uss_content: Optional[str] = None
     csharp_content: Optional[str] = None
