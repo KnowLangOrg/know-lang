@@ -40,12 +40,14 @@ def create_stream_response(
         response.progress_message = (
             f"Generating UXML markup for: '{state.ui_description}'"
         )
+        response.uxml_content = state.uxml_content or ""
     elif isinstance(node, USSGeneratorNode):
         response.uxml_content = state.uxml_content or ""
         response.status = UIGENERATION_STATUS_GENERATING_USS
         response.progress_message = (
             f"Generating USS styles for: '{state.ui_description}'"
         )
+        response.uss_content = state.uss_content or ""
     elif isinstance(node, CSharpGeneratorNode):
         response.uxml_content = state.uxml_content or ""
         response.uss_content = state.uss_content or ""
@@ -53,9 +55,12 @@ def create_stream_response(
         response.progress_message = (
             f"Generating C# script for: '{state.ui_description}'"
         )
+        response.csharp_content = state.csharp_content or ""
     else:
         response.status = UIGENERATION_STATUS_UNSPECIFIED
         response.progress_message = "Starting UI generation..."
+    
+    LOG.debug(f"UI Genreation Agent Message: {response.SerializeToString()}")
 
     return response
 
@@ -124,12 +129,20 @@ async def stream_ui_generation_progress(
         graph_run = await graph_run_context_manager.__aenter__()
         next_node = graph_run.next_node
 
+        # Track the current node being processed
+        current_node = start_node
+
         # Run the graph and stream progress
         while True:
-            yield create_stream_response(next_node, state)
-
+            # Move to the next node
             next_node = await graph_run.next(next_node)
-            if isinstance(next_node, End):
+            
+            # Yield the node that just finished processing (current_node)
+            yield create_stream_response(current_node, state)
+            # Update current_node to the one that just finished
+            current_node = next_node
+
+            if isinstance(current_node, End):
                 yield create_complete_response(state)
                 break
 
