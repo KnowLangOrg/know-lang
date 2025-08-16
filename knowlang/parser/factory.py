@@ -17,6 +17,7 @@ class CodeParserFactory:
         """Register available parser implementations"""
         from knowlang.parser.languages.cpp.parser import CppParser
         from knowlang.parser.languages.csharp.parser import CSharpParser
+        from knowlang.parser.languages.markdown.parser import MarkdownParser
         from knowlang.parser.languages.python.parser import PythonParser
         from knowlang.parser.languages.ts.parser import TypeScriptParser
         from knowlang.parser.languages.unity_asset.parser import UnityAssetParser
@@ -27,6 +28,7 @@ class CodeParserFactory:
             LanguageEnum.TYPESCRIPT.value: TypeScriptParser,
             LanguageEnum.CSHARP.value: CSharpParser,  # Added
             LanguageEnum.UNITYASSET.value: UnityAssetParser,  # Added Unity Asset parser
+            LanguageEnum.MARKDOWN.value: MarkdownParser,
             # Add more languages here
         }
 

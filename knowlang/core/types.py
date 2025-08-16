@@ -12,6 +12,7 @@ class LanguageEnum(str, Enum):
     CSHARP = "csharp"
     TYPESCRIPT = "typescript"
     UNITYASSET = "unity_asset"
+    MARKDOWN = "markdown"
 
 
 class BaseChunkType:
@@ -20,6 +21,7 @@ class BaseChunkType:
     CLASS = "class"
     FUNCTION = "function"
     OTHER = "other"
+    SECTION = "section"
 
 
 class CodeVisibility(str, Enum):

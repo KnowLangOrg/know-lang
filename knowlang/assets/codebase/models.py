@@ -118,6 +118,13 @@ class CodeProcessorConfig(ProcessorConfigBase):
                 chunk_types=["group", "connection", "node"],
                 max_file_size=10_000_000,
             ),
+            LanguageEnum.MARKDOWN.value: LanguageConfig(
+                file_extensions=[".md", ".markdown"],
+                max_file_size=5 * 1024 * 1024,  # 5 MB
+                enabled=True,
+                tree_sitter_language="",
+                chunk_types=["section"],
+            ),
         }
     )
     path_patterns: PathPatterns = Field(default_factory=PathPatterns)
